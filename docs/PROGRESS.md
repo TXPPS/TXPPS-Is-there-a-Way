@@ -3,9 +3,23 @@
 > Read this file and `ARCHITECTURE.md` first. They are written assuming you
 > remember nothing about this project.
 
-**Current phase:** P0 complete (pipeline proven). P1 is next.
+**Current phase:** P0 built, green in CI, **waiting on one deploy switch**.
 **Engine:** Godot 4.6.3-stable, Compatibility (WebGL2), single-threaded web export.
 **Target:** iPhone 16 Pro Max, Safari, **landscape**.
+
+> ### The one thing blocking a live URL
+> CI builds, smoke-tests and packages the site on every push. It cannot publish
+> it yet, because both hosts need a credential this repo does not have:
+>
+> - **GitHub Pages** — GitHub's workflow token is not permitted to create a
+>   Pages site. Switch it on once: repo → **Settings** → **Pages** → *Source* →
+>   **GitHub Actions**, then re-run the latest workflow. Four taps, no secrets.
+> - **Cloudflare Pages** (primary) — needs `CLOUDFLARE_API_TOKEN` and
+>   `CLOUDFLARE_ACCOUNT_ID` as repository secrets. See `DEPLOY.md`.
+>
+> Until then the `deploy-pages` job prints the instructions in the run summary
+> and does not fail the build. The finished site is downloadable from any run as
+> the `web-build` artifact.
 
 ---
 
@@ -39,7 +53,8 @@
 - `tools/web/smoke_web.js` loads the real export in headless Chromium at iPhone
   landscape metrics, walks the tap gate, and drives real touch events. 13 checks.
 - `.github/workflows/build-and-deploy.yml` builds, smoke-tests, then deploys to
-  Cloudflare Pages (when secrets exist) and GitHub Pages (always).
+  Cloudflare Pages (when its secrets exist) and GitHub Pages (once it is
+  switched on). Verified green on `claude/is-there-a-way-setup-kah9su`.
 
 **Game**
 - One gray-box room, 14 × 3.4 × 9 m on a 0.5 m grid, one sodium bulkhead lamp
