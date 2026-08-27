@@ -34,6 +34,7 @@ tests/case_interact.gd targeting, engaging, gestures reaching the focused thing
 tests/case_pause.gd    pause halts, releases, ducks, and resumes without a jump
 tests/case_layout.gd   the reserved rect contract
 tests/case_settings.gd persistence, clamping, and change announcements
+tests/case_save.gd     round-trip, codes, migration, and failing to save
 ```
 
 Two things about the harness are worth knowing before adding a case.
@@ -67,6 +68,7 @@ the assertion is that a lie in it changes nothing.
 | pause | a stick still held on resume; a camera that jumped |
 | layout | a prompt drawn under a thumb; a target below 44 pt |
 | interact | a target offered through a control; a drag turning the wrong wheel |
+| save | a slot that does not come back; a code that crashes on a bad paste; a browser that refuses storage taking the game down with it |
 
 A case that leaves the world somewhere runs before one that assumes where it is.
 `case_interact.gd` puts the player where it needs them **and** calls
@@ -155,7 +157,7 @@ stationary, so the driver here sends exactly one changed point per call.
 
 ### What only a browser can be asked
 
-Three assertions here have no headless equivalent because they are about the
+Several assertions here have no headless equivalent because they are about the
 canvas and the HTML shell sharing a screen:
 
 - the debug overlay clears the build stamp the shell draws in the same corner,
@@ -165,7 +167,15 @@ canvas and the HTML shell sharing a screen:
   cannot be asked where its buttons are, so `PauseMenu` publishes the rects a
   frame after opening (before that, containers have not been laid out and every
   child answers with where it used to be);
-- the shell's stamp hides while the menu is open and comes back when it closes.
+- the shell's stamp hides while the menu is open and comes back when it closes;
+- the game registers a suspend hook, and `pagehide` and a hidden
+  `visibilityState` each write an autosave — the events iOS actually fires when
+  it takes a tab away, which headless Godot never sees;
+- an autosave survives a reload (the *world* in it, not the blob: reloading
+  fires `pagehide`, which correctly writes a fresh one with a new timestamp);
+- breaking `window.__itaw_store.write` makes the game say it cannot save rather
+  than fall over;
+- the Add-to-Home-Screen offer appears once and never again.
 
 ### Reading the overlay from the test
 

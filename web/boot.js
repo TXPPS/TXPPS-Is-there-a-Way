@@ -234,7 +234,14 @@
 		var STORE = 'kv';
 		var cache = {};
 		var db = null;
-		var state = { ready: false, local: false, idb: false, pending: 0, verified: 0, failed: 0, error: '' };
+		var state = {
+			ready: false, local: false, idb: false, pending: 0, verified: 0, failed: 0,
+			// Whether the browser has promised not to evict this origin under
+			// pressure. Safari grants it to installed sites and to sites the
+			// user visits often; it is a promise we ask for and never assume.
+			persisted: 'unknown', error: ''
+		};
+		var drains = [];
 		var settle;
 		var ready = new Promise(function (resolve) { settle = resolve; });
 
@@ -308,9 +315,15 @@
 			try {
 				var tx = db.transaction(STORE, 'readwrite');
 				tx.objectStore(STORE).put(value, key);
-				tx.oncomplete = function () { state.pending -= 1; verify(key, value); };
-				tx.onerror = function () { state.pending -= 1; state.failed += 1; state.error = 'indexeddb write failed'; };
-				tx.onabort = function () { state.pending -= 1; state.failed += 1; state.error = 'indexeddb write aborted'; };
+				tx.oncomplete = function () { state.pending -= 1; verify(key, value); settleDrains(); };
+				tx.onerror = function () {
+					state.pending -= 1; state.failed += 1;
+					state.error = 'indexeddb write failed'; settleDrains();
+				};
+				tx.onabort = function () {
+					state.pending -= 1; state.failed += 1;
+					state.error = 'indexeddb write aborted'; settleDrains();
+				};
 			} catch (e) {
 				state.pending -= 1;
 				state.failed += 1;
@@ -318,8 +331,40 @@
 			}
 		}
 
+		// Resolves when nothing is in flight. Something has to be able to say
+		// "the write landed" before a test believes a save survived a reload.
+		function drained() {
+			if (state.pending === 0) { return Promise.resolve(state.failed === 0); }
+			return new Promise(function (resolve) { drains.push(resolve); });
+		}
+
+		function settleDrains() {
+			if (state.pending !== 0) { return; }
+			var waiting = drains;
+			drains = [];
+			waiting.forEach(function (resolve) { resolve(state.failed === 0); });
+		}
+
+		// Ask once, at boot. Refusal is not an error -- it is the default for a
+		// site nobody has added to their home screen -- but it is worth showing
+		// on the overlay, because it is why a save can vanish after a week.
+		function askPersistence() {
+			if (!navigator.storage || !navigator.storage.persisted) {
+				state.persisted = 'unsupported';
+				return;
+			}
+			navigator.storage.persisted().then(function (already) {
+				if (already) { state.persisted = 'yes'; return; }
+				if (!navigator.storage.persist) { state.persisted = 'no'; return; }
+				return navigator.storage.persist().then(function (granted) {
+					state.persisted = granted ? 'yes' : 'no';
+				});
+			}).catch(function () { state.persisted = 'unknown'; });
+		}
+
 		state.local = probeLocal();
 		loadLocal();
+		askPersistence();
 		openDb().then(function (opened) {
 			db = opened;
 			state.idb = !!opened;
@@ -353,6 +398,12 @@
 			},
 			keys: function () { return Object.keys(cache).join(','); },
 			status: function () { return JSON.stringify(state); },
+			drained: drained,
+			// Synchronous, and that is the whole point: iOS discards a
+			// backgrounded tab without running another frame, so the only write
+			// that reliably survives is the localStorage half, which write()
+			// does before it queues anything asynchronous.
+			persisted: function () { return state.persisted; },
 			health: function () {
 				if (!state.ready) { return 'opening'; }
 				if (state.failed > 0) { return 'degraded'; }
@@ -367,13 +418,49 @@
 	// The game registers __itaw_onSuspend so it can flush a save synchronously.
 	// iOS discards backgrounded tabs without warning and fires no further
 	// frames, so anything not written inside these handlers is lost.
+	// Counted so a test can prove the hook fired rather than infer it from what
+	// happened to be in storage afterwards.
+	window.__itaw_suspends = 0;
 	function suspendGame() {
+		window.__itaw_suspends += 1;
 		if (typeof window.__itaw_onSuspend === 'function') {
 			try { window.__itaw_onSuspend(); } catch (e) { note('Suspend hook failed: ' + e.message, 'error'); }
 		}
 	}
 	document.addEventListener('freeze', suspendGame);
 	window.addEventListener('pagehide', suspendGame);
+
+	// ---- add to home screen, once ------------------------------------------
+	// iOS has no beforeinstallprompt, so there is nothing to trigger: the only
+	// way in is Share -> Add to Home Screen, and the only way the player learns
+	// that is being told. Once, ever, and only after they have played for a
+	// while -- a prompt on the tap gate is an advert.
+	//
+	// It is worth telling them. An installed site gets persistent storage;
+	// everything else is evicted after about a week idle, which means a save.
+	var A2HS_KEY = 'a2hs.told';
+	var A2HS_AFTER_MS = 90000;
+
+	function standalone() {
+		return !!(window.navigator.standalone
+			|| (window.matchMedia && matchMedia('(display-mode: standalone)').matches));
+	}
+
+	function isIOS() {
+		return /iP(hone|ad|od)/.test(navigator.userAgent) || 'standalone' in window.navigator;
+	}
+
+	function offerHomeScreen() {
+		// The instruction names a menu only iOS has, so only iOS is told.
+		if (standalone() || !isIOS()) { return; }
+		if (window.__itaw_store.read(A2HS_KEY)) { return; }
+		window.__itaw_store.write(A2HS_KEY, String(Date.now()));
+		note('Keep this: Share \u2192 Add to Home Screen. Installed, it runs full-screen '
+			+ 'and your save stops expiring.', 'note');
+	}
+
+	// Only exposed so the suite can reach it without waiting 90 seconds.
+	window.__itaw_offerHomeScreen = offerHomeScreen;
 
 	// ---- browser affordances we never want ---------------------------------
 	// Pinch/double-tap zoom. iOS ignores user-scalable=no in some contexts.
@@ -468,19 +555,20 @@
 		].join('\n');
 	}
 
-	function copyText(text) {
+	function copyText(text, said) {
+		var message = said || 'Build details copied.';
 		if (navigator.clipboard && navigator.clipboard.writeText) {
 			navigator.clipboard.writeText(text).then(function () {
-				note('Build details copied.', 'note');
-			}, function () { legacyCopy(text); });
+				note(message, 'note');
+			}, function () { legacyCopy(text, message); });
 			return;
 		}
-		legacyCopy(text);
+		legacyCopy(text, message);
 	}
 
 	// iOS Safari only honours execCommand('copy') for a genuinely selected,
 	// editable range -- hence the contentEditable dance.
-	function legacyCopy(text) {
+	function legacyCopy(text, said) {
 		var ok = false;
 		try {
 			var ta = document.createElement('textarea');
@@ -499,7 +587,7 @@
 			sel.removeAllRanges();
 			document.body.removeChild(ta);
 		} catch (e) { ok = false; }
-		if (ok) { note('Build details copied.', 'note'); return; }
+		if (ok) { note(said || 'Build details copied.', 'note'); return; }
 		// Last resort: put it on screen so it can be selected by hand.
 		note(text, 'note');
 		var last = toastHost.lastChild;
@@ -548,6 +636,22 @@
 	// The pause menu shows the same stamp at its foot and copies through here,
 	// so the report a player sends is byte-identical wherever they tapped it.
 	window.__itaw_copyStamp = function () { copyText(stampReport()); };
+
+	// Copy and paste for anything the game needs to get in or out of the
+	// clipboard -- a save code, mostly. Godot's own LineEdit cannot raise the
+	// iOS keyboard without the experimental virtual-keyboard export option, so
+	// text entry is the browser's job, through a plain prompt().
+	window.__itaw_copyText = function (text, said) {
+		copyText(String(text), said ? String(said) : 'Copied.');
+	};
+	window.__itaw_promptText = function (message, initial) {
+		try {
+			var answer = window.prompt(String(message), String(initial || ''));
+			return answer === null ? '' : answer;
+		} catch (e) {
+			return '';
+		}
+	};
 
 	// The pause menu draws over the whole canvas and shows this same string at
 	// its own foot, so the shell's copy steps aside rather than sitting on top
@@ -636,6 +740,8 @@
 	function begin() {
 		if (started) { return; }
 		started = true;
+		// Long enough that they have decided whether they like it.
+		window.setTimeout(offerHomeScreen, A2HS_AFTER_MS);
 
 		// Nudge WebKit's audio unlock heuristics inside the gesture, then let
 		// Godot build its own context in the same turn.
@@ -818,12 +924,12 @@
 			css_h: Math.round(vp ? vp.height : innerHeight),
 			safe: safeArea(),
 			store: window.__itaw_store.health(),
+			persist: window.__itaw_store.persisted(),
 			worker: workerState(),
 			build: stampShort(),
 			exe: CONFIG['executable'] || '',
 			update: updatePending ? (updateShown ? 'shown' : 'held') : 'none',
-			standalone: !!(window.navigator.standalone
-				|| (window.matchMedia && matchMedia('(display-mode: standalone)').matches))
+			standalone: standalone()
 		});
 	};
 }());

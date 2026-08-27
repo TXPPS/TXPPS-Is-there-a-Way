@@ -12,6 +12,7 @@ extends Node3D
 @onready var _menu: PauseMenu = $PauseMenu
 @onready var _settings: GameSettings = $Settings
 @onready var _state: GameState = $State
+@onready var _saves: SaveService = $Saves
 @onready var _world: WorldEnvironment = $WorldEnvironment
 @onready var _interactor: Interactor = $Player/Head/Camera/Interactor
 
@@ -23,7 +24,8 @@ var _engaged: Interactable
 func _ready() -> void:
 	_hud.look_requested.connect(_player.add_look)
 	_hud.pause_requested.connect(_menu.open)
-	_menu.bind(_settings, _hud.tuning)
+	_menu.bind(_settings, _hud.tuning, _saves)
+	_saves.failed.connect(Notify.problem)
 	_menu.opened.connect(_on_paused)
 	_menu.closed.connect(_on_resumed)
 	_settings.changed.connect(_player.on_setting)

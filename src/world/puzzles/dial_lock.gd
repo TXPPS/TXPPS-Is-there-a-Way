@@ -15,6 +15,9 @@ const DIAL_SCENE := preload("res://src/world/puzzles/dial.tscn")
 const LOCKED := Color(0.62, 0.16, 0.13)
 const OPEN := Color(0.30, 0.78, 0.42)
 
+## Stable across builds; two locks in one level must not share it.
+@export var save_key: StringName = &"dial_lock"
+
 @export var combination: PackedInt32Array = PackedInt32Array([4, 1, 7])
 
 ## Metres between wheel centres.
@@ -61,6 +64,19 @@ func is_open() -> bool:
 ## Where a wheel is in the world. Used by the suite to aim a drag at one.
 func dial_position(index: int) -> Vector3:
 	return _dials[index].global_position if index < _dials.size() else global_position
+
+
+func save_state() -> Dictionary:
+	return {"digits": Array(digits()), "open": _open}
+
+
+func load_state(state: Dictionary) -> void:
+	var wheels: Array = state.get("digits", [])
+	for index in mini(wheels.size(), _dials.size()):
+		_dials[index].set_digit(int(wheels[index]))
+	_open = bool(state.get("open", false))
+	_zone.available = not _open
+	_light(OPEN if _open else LOCKED)
 
 
 func _build_dials() -> void:

@@ -157,3 +157,51 @@ That is an engine bug, upstream of anything in this repository, and the fix here
 is not to wait for it: `TouchRouter` derives every delta from `position`, keyed
 by touch index. The field is never read. `tests/case_input.gd` sets it to ±9999
 and asserts nothing moves, so if someone reaches for it later the suite says so.
+
+## D10 — Two save slots, and a text code as the real one
+
+**Decided:** one autosave and one player-written save, plus an exportable text
+code. **Alternatives:** several numbered slots; a save browser; no code at all.
+
+Slots are cheap to add later and expensive to take away, so the reversible
+choice is the small one. The code is not a power-user feature and is not
+optional: Safari evicts storage for a site nobody has added to their home screen
+after roughly a week idle, so on this platform the only save the player really
+owns is one they can hold in a message to themselves. Cost to reverse: low —
+adding slots is a key prefix and a list.
+
+## D11 — Version 0 means "no version field"
+
+**Decided:** the schema is at version 1, and `migrate()` treats a save with no
+version field as version 0 and has a real step for it. **Alternatives:** ship at
+version 1 with an empty migration table and a comment promising to fill it in;
+invent a version 0 that never existed to have something to migrate from.
+
+An empty migration table is a mechanism nobody has run, and the first person to
+need it discovers its bugs while holding a player's only save. Version 0 is not
+invented: a hand-edited or hand-written code genuinely has no version field, and
+import is a door it can come through. So the table has one entry, that entry is
+real, and the suite exercises it. Cost to reverse: nil.
+
+## D12 — Text entry goes through the browser, not through Godot
+
+**Decided:** importing a save code uses `window.prompt()` via the shell.
+**Alternatives:** a Godot `LineEdit`; an on-canvas keyboard.
+
+Raising the iOS keyboard from a canvas needs `html/experimental_virtual_keyboard`,
+which is experimental and would have to be verified on a device this session
+cannot reach. `prompt()` is drawn by Safari, always works, and needs nothing
+enabled. It is ugly. Cost to reverse: low, and the call site is one function.
+
+## D13 — The Add-to-Home-Screen offer is gated on the user agent
+
+**Decided:** the offer fires when the UA says iOS, or when `navigator.standalone`
+exists. **Alternatives:** gate only on `navigator.standalone`, which is the
+precise Safari-only signal.
+
+The precise signal is untestable: Chromium does not define it even under an
+iPhone user agent, so gating on it alone meant the feature could never be
+exercised by the suite — and an unexercised one-shot that writes a flag is a
+feature that fails silently forever the first time it breaks. The advice names
+an iOS menu, so a UA check is not a heuristic here, it is the actual condition.
+Cost to reverse: one line.

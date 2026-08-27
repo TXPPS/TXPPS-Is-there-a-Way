@@ -44,6 +44,8 @@ const COLUMN := "Safe/Panel/Pad/Body/Scroll/Column"
 
 var _settings: GameSettings
 var _tuning: TouchTuning
+var _saves: SaveService
+var _saves_panel: SavesPanel
 var _sample: Label
 var _is_open := false
 
@@ -51,9 +53,10 @@ var _is_open := false
 ## Wired by Main rather than exported: the settings service is a node in the
 ## composition root, and a NodePath into it from here would be one more thing
 ## that silently breaks when the scene is rearranged.
-func bind(settings: GameSettings, tuning: TouchTuning) -> void:
+func bind(settings: GameSettings, tuning: TouchTuning, saves: SaveService) -> void:
 	_settings = settings
 	_tuning = tuning
+	_saves = saves
 	_settings.changed.connect(_on_setting)
 	_build()
 	_refresh()
@@ -89,6 +92,8 @@ func open() -> void:
 		return
 	_is_open = true
 	_cancel_confirm()
+	if _saves_panel != null:
+		_saves_panel.refresh()
 	_refresh()
 	visible = true
 	opened.emit()
@@ -118,6 +123,9 @@ func toggle() -> void:
 func _build() -> void:
 	for child in _groups.get_children():
 		child.queue_free()
+	_groups.add_child(_heading("Saves"))
+	_saves_panel = SavesPanel.create(_saves)
+	_groups.add_child(_saves_panel)
 	for group in _settings.spec.groups():
 		_groups.add_child(_heading(group))
 		for row in _settings.spec.rows_in(group):

@@ -57,6 +57,7 @@ Main (Node3D)                        src/main.gd -- composition root
 ├── WorldEnvironment                 filmic tonemap, depth fog, cold ambient fill
 ├── Settings (Node)                  src/core/game_settings.gd + settings_spec.tres
 ├── State (Node)                     src/core/game_state.gd -- FREE/FOCUSED/MENU/...
+├── Saves (Node)                     src/core/save_service.gd
 ├── GrayboxRoom (Node3D)             src/world/graybox/graybox_room.tscn
 │   ├── Shell (StaticBody3D)         6 box shapes: floor, ceiling, 4 walls
 │   ├── Surfaces (Node3D)            6 MeshInstance3D sharing one unit BoxMesh
@@ -209,6 +210,51 @@ it). There is no Apply button and no save-on-exit, because a phone does not
 reliably get an exit. Every change also emits `changed`, and `src/main.gd` fans
 that out to the player, the HUD and the mixer, each of which takes the keys it
 owns and ignores the rest. Nothing here needs a restart.
+
+## Saving
+
+A save is a small JSON Dictionary, versioned from the first commit that had
+anything to save. `src/core/save_game.gd` owns the shape and is the only thing
+that changes it; `MIGRATABLE_FROM` and `_step()` exist and are exercised by the
+suite today, so the day a field moves there is somewhere to put the step and a
+test that already runs it. Version 0 means "no version field at all", which is
+what a hand-edited code looks like and is reachable through import. A save from
+a **newer** build is refused rather than loaded: this build cannot know what a
+field it has never heard of means, and guessing corrupts the only copy there is.
+
+Anything with state worth keeping joins the `saveable` group and implements
+three things — a stable `save_key`, `save_state()`, `load_state()`. Duck-typed
+rather than an interface, so a puzzle does not inherit from anything to be
+saveable. Two slots and no more: `auto`, which the game writes, and `manual`,
+which the player writes.
+
+**When it writes.** On a checkpoint — a door closing, a puzzle solved — and
+whenever the browser says the tab is going away. `SaveService` registers
+`window.__itaw_onSuspend` with the shell, which calls it on `freeze`, `pagehide`
+and the moment `visibilityState` becomes hidden. iOS discards a backgrounded tab
+without running another frame, so that callback is the last chance to write
+anything, and the store's localStorage mirror is synchronous for exactly this
+reason. There is no autosave timer; a timer autosaves mid-fall.
+
+**What it does when it cannot.** `save_to()` writes and then reads back — a
+write that cannot be read back did not happen, whatever the browser said at the
+time — and on failure says so on screen and carries on. Safari can refuse
+storage outright, and a game that crashes when it cannot save is worse than one
+that tells you to export a code. `Storage.simulate_unavailable` makes that path
+reachable from the suite rather than only from a phone nobody can reproduce.
+
+**Why there is a code at all.** Safari evicts storage for a site nobody has
+added to their home screen after about a week idle. `SaveGame.to_code()` emits
+`ITAW.<size>.<sha8>.<base64 deflate>` — a couple of hundred characters the
+player can paste into a message to themselves. The checksum is over the base64
+rather than over what it decodes to, deliberately: damage is then reported
+before a decompressor is handed it. The shell does the clipboard and the
+`prompt()`, because raising the iOS keyboard from a canvas needs an export
+option this project does not enable.
+
+The site also offers **Add to Home Screen** exactly once, ninety seconds after
+the first tap gate, on iOS only, and records that it did. An installed site gets
+persistent storage; that is the entire reason to mention it.
 
 ## Data flow
 

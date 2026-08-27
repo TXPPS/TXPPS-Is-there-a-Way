@@ -12,6 +12,9 @@ extends CharacterBody3D
 
 @export var tuning: PlayerTuning
 
+## Stable across builds. Changing it orphans every existing save's player state.
+@export var save_key: StringName = &"player"
+
 @onready var _head: Node3D = $Head
 @onready var _camera: Camera3D = $Head/Camera
 
@@ -67,6 +70,27 @@ func add_look(pixels: Vector2) -> void:
 		pixels.x * tuning.drag_sensitivity * _sensitivity.x,
 		-pixels.y * tuning.drag_sensitivity * _sensitivity.y
 	)
+
+
+## Where the body is and where the eyes point. Velocity is deliberately not
+## saved: loading into a fall is not a state anyone wants restored.
+func save_state() -> Dictionary:
+	return {
+		"at": [global_position.x, global_position.y, global_position.z],
+		"aim": [_look_target.x, _look_target.y],
+	}
+
+
+func load_state(state: Dictionary) -> void:
+	var at: Array = state.get("at", [])
+	if at.size() == 3:
+		global_position = Vector3(float(at[0]), float(at[1]), float(at[2]))
+	var aim: Array = state.get("aim", [])
+	if aim.size() == 2:
+		face(float(aim[0]), float(aim[1]))
+	velocity = Vector3.ZERO
+	_move_intent = Vector2.ZERO
+	_look_intent = Vector2.ZERO
 
 
 func on_setting(key: StringName, value: float) -> void:

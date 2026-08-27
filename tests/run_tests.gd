@@ -19,6 +19,7 @@ const CASES: Array[String] = [
 	"res://tests/case_interact.gd",
 	"res://tests/case_layout.gd",
 	"res://tests/case_settings.gd",
+	"res://tests/case_save.gd",
 ]
 
 

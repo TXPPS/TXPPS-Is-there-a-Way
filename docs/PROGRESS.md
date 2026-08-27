@@ -3,13 +3,26 @@
 > Read this file and `ARCHITECTURE.md` first. They are written assuming you
 > remember nothing about this project.
 
-**Current phase:** P0 live. The **HUD, control scheme, pause menu and settings**
-half of P1 was pulled forward to fix what the first device QA found, together
-with the focused-interaction framework and a throwaway dial puzzle to exercise
-it. The rest of P1 — a real interaction grammar and save/load — waits on the
-next round of QA.
+## Resume here
+
+**Unattended run in progress.** The work order is: **A** finish P1 (save/load),
+**B** write `docs/STORY.md` + `docs/PUZZLES.md`, **C** P2 rendering, **D** P3
+audio, **E** Act 1 vertical slice, **F** later acts only if credits remain. One
+phase at a time; each is complete, tested, deployed and verified live before the
+next begins.
+
+| | |
+|---|---|
+| **Done** | A — save/load, persistence, save codes, Add-to-Home-Screen offer |
+| **Next** | B — the story bible, then puzzles derived from it |
+| **Blocked on a human** | nothing; everything unverifiable is queued in `NEEDS_DEVICE_QA.md` |
+| **Frozen** | the input layer. No change to touch semantics, layout or the router without a failing test to justify it. It has never run on a real device. |
+
 **Engine:** Godot 4.6.3-stable, Compatibility (WebGL2), single-threaded web export.
 **Target:** iPhone 16 Pro Max, Safari, **landscape**.
+
+Read `NEEDS_DEVICE_QA.md` first when you are back: it is everything that is
+built and green and that no human has ever seen run.
 
 ---
 
@@ -19,7 +32,7 @@ next round of QA.
 
 | | Status |
 |---|---|
-| Build | **green.** Export, budgets, **96-check headless suite**, 43-check gameplay smoke, 28-check update-path smoke. |
+| Build | **green.** Export, budgets, **126-check headless suite**, 52-check gameplay smoke, 28-check update-path smoke. |
 | Publish | **automatic.** Every push to `main` deploys, and so does a manual **Run workflow** on `main` — both proven, runs #15 and #16. |
 | Verified | the `verify` job fetches the live URL after every deploy and fails the build unless it serves *this* commit with every payload file answering 200 and the wasm as `application/wasm`. |
 | Cloudflare Pages | still no credentials; that job skips. Optional — it buys `web/_headers` and nothing else. See `DEPLOY.md`. |
@@ -59,10 +72,10 @@ refuse.
 | Phase | Scope | State |
 |---|---|---|
 | P0 | Repo, CI, deploy, PWA shell, gray-box room live on the phone | **live; awaiting device QA** |
-| P1 | Player controller, touch input, interaction system, settings, save/load | **controls, HUD, pause, settings and focused interaction done**; interaction grammar and save/load blocked on QA |
+| P1 | Player controller, touch input, interaction system, settings, save/load | **done.** Controls, HUD, pause, settings, focused interaction, save/load. The interaction *grammar* — what there is to interact with — comes from P5. |
+| P4 | `STORY.md` bible + plot-hole audit + narrative/document systems | **in progress** (moved before P2: art and puzzles are both derived from it) |
 | P2 | Rendering stack: post-process, materials, lighting rig, test scene | not started |
 | P3 | Audio engine, generation pipeline, adaptive score prototype | not started |
-| P4 | `STORY.md` bible + plot-hole audit + narrative/document systems | not started |
 | P5 | Act 1 vertical slice, fully dressed and scored | not started |
 | P6 | Acts 2–4 content, entity AI, endings | not started |
 | P7 | Performance, load time, accessibility, polish, final mix | not started |
@@ -144,6 +157,21 @@ refuse.
   reloads itself once per tab; if the clean load fails too it stops and shows a
   **Reload cleanly** button rather than looping.
 
+**Saving**
+- Versioned JSON, one autosave slot and one the player writes, and a migration
+  mechanism that is exercised rather than promised. See ARCHITECTURE.md.
+- Writes on a checkpoint and whenever the browser says the tab is going away
+  (`freeze`, `pagehide`, hidden `visibilityState`) — the events iOS fires when
+  it discards a backgrounded tab without running another frame.
+- Every write is read back. A browser that will not keep a save says so on
+  screen and the game carries on.
+- **Export code** puts the whole save on the clipboard as `ITAW.…`, a couple of
+  hundred characters. **Import code** takes it back through a browser `prompt()`.
+  This is not a convenience: Safari evicts storage for a site nobody installed
+  after about a week idle.
+- Storage persistence is requested at boot and reported on the debug overlay.
+- One-time **Add to Home Screen** offer, ninety seconds in, iOS only.
+
 **Still scaffolding, not wired to anything**
 `src/core/surface_type.gd` and `src/world/surface_tag.gd` — the footstep-audio
 hook P3 needs. Nothing else in `src/core/` is inert any more.
@@ -163,9 +191,11 @@ Report anything **not** on this list.
   branch.** It costs nothing now — the deploy job declares no environment — but
   it means the run page shows no environment URL. Fixable in Settings →
   Environments → github-pages if you ever want that back.
-- **No save/load.** The rest of P1. Settings persist; nothing else does, so
-  "Return to Title" has nothing to warn you about discarding yet — the confirm
-  step is there and worded for when it does.
+- **There is nothing yet worth saving.** Save/load works and is tested, but the
+  only state in the world is where you are standing and what the demo dial
+  reads. It becomes meaningful in P5.
+- **Nothing calls `checkpoint()` yet** except the suite. Autosave therefore only
+  fires when the tab goes away. P5 puts checkpoints at the doors.
 - **Haptics do nothing on iOS.** The setting exists and the call site is right;
   Safari does not implement `navigator.vibrate`, so on this device it is a no-op
   by the platform's choice rather than ours. Leave it on.
@@ -230,100 +260,8 @@ direction). Still open:
 
 ---
 
-## Device QA checklist
+## Device QA
 
-Open <https://txpps.github.io/TXPPS-Is-there-a-Way/> in Safari, landscape.
-
-Run in order. The build stamp must match the commit at the top of `main` —
-check that first, because everything else is meaningless if it does not. CI
-already asserts it, so a mismatch means you are looking at a cached page:
-append `?fresh=1` and start again.
-
-**Load and shell**
-1. Page loads black; title fades up; the hairline rule fills.
-2. "TAP TO BEGIN" appears. Tap it — the game starts. (This tap is also what
-   unlocks Web Audio for every later phase.)
-3. The **top-left stamp** reads `v0.1.0 <sha>` and matches the deployed commit.
-4. **Tap the stamp.** A "Build details copied." toast appears; paste it
-   somewhere and confirm it names the branch, payload hash and user agent.
-
-**Controls — the point of this round**
-5. Two rings, bottom-left and bottom-right. **Neither base may move.** Drag each
-   thumb around: only the knob travels, and it stops at the ring.
-6. Left thumb walks, in any direction, at a speed that follows how far you push.
-7. Right thumb turns. It is a *rate*: hold it deflected and the camera keeps
-   turning; let go and it stops dead, with no drift and no glide.
-8. **Both thumbs at once.** Walk and turn together, then **lift the left thumb
-   while the right one is still turning.** The camera must not stutter, jump or
-   change speed. Re-plant the left thumb several times quickly. This is the one
-   assertion that matters most; it is what was broken.
-9. Start a drag on a stick and pull your thumb right across the screen and off
-   the far side. It must keep driving the stick it started on, and must not
-   touch the other one.
-10. Walking into the crate stops you; you cannot leave the room.
-11. Nothing sits under the Dynamic Island or the home indicator, and no control
-    is within a slip of the build stamp or the pause button.
-12. No rubber-band scroll, no double-tap zoom, no text selection, no page chrome.
-
-**Pause and settings**
-13. **Pause button, top right.** Tap it. The world stops, the mix ducks, the
-    menu appears.
-14. The **Controls** diagram shows two sticks and says what each does.
-15. Open **Controls** in the list and switch **Look style** to **Drag**. Resume.
-    The right stick is gone and dragging anywhere turns the camera. The diagram
-    updates the moment you switch. Switch back.
-16. Move **Turn speed**, **Stick size**, **Stick visibility**, **Stick height**
-    and **Dead zone**. Resume after each. Every one must apply immediately.
-17. **Master** and **Effects** must change the lamp hum while you listen.
-18. **Brightness** and **Field of view** must change the scene live.
-19. Pause, resume, and confirm **the camera has not moved** and no stick is
-    stuck. Pause *while both thumbs are down*, resume, and check the same.
-20. Reload the page. Every setting you changed is still set.
-21. The stamp at the foot of the menu matches the top-left one; tap it to copy.
-22. **Return to Title** asks first, then returns you to the tap gate.
-
-**Interaction — new, and throwaway**
-23. Walk to the far wall. A **dial lock** with three wheels. When you are close
-    enough, a prompt appears and a round button appears above the right stick.
-24. Tap it. The sticks disappear; you are locked to the panel.
-25. Drag **up and down on one wheel**. Only that wheel turns, one number per
-    pull. Try each of the three.
-26. Set **4 1 7**. The indicator goes green.
-27. Tap the button again. The sticks come back and the camera is where you left
-    it.
-
-**Instrumentation**
-28. **Three-finger tap.** The overlay appears top-right. Read out `fps`, `cpu`,
-    `draw`, `tris` — this is the only 60 fps measurement that means anything.
-29. In the overlay: `safe` must be non-zero (the notch and home indicator),
-    `dpr` should read 3, `store` should read `ok`, `sw` should read `active`
-    after a reload.
-30. Touch the screen with one finger, then two. The `touch` line must list the
-    live touch IDs and clear when you lift.
-31. **Audio.** Stand next to the lamp: a quiet mains hum. Walk away: it fades.
-    In the overlay, `hum on N.NNs` must be **counting up**. Check with the
-    silent switch both on and off, and note which one silences it.
-32. Three-finger tap again — the overlay closes.
-
-**The update path** (the part that decides whether I can ship you fixes)
-33. Load the site, then leave the tab open.
-34. Tell me, and I will push a rebuild. Wait for CI to go green. (Or trigger
-    one yourself: Actions → build and deploy → **Run workflow** on `main`.)
-35. Send the phone to the home screen and come back. A **"New version — tap to
-    reload"** banner should appear at the top.
-36. It must **not** appear while you are walking around with the tab in the
-    foreground. If it does, that is a bug.
-37. Tap it. The game reloads and the stamp shows the new commit.
-38. **Break it deliberately:** append `?fresh=1` to the URL. The page purges and
-    reloads onto the clean URL, and the game still loads. (You should not
-    normally need this: a build that cannot load its payload purges itself.)
-
-**Installed PWA**
-39. Add to Home Screen. It launches full-screen, black, with the seam icon.
-40. After one online run, put the phone in airplane mode and launch it again —
-    it should still reach the tap gate.
-41. In the overlay, `pwa` should read `true` when launched from the home screen.
-
-**Errors**
-42. If anything at all goes wrong, a toast should say what. If something goes
-    wrong **silently**, that is itself the bug worth reporting.
+The checklist lives in **`docs/NEEDS_DEVICE_QA.md`** — everything that is built,
+green in CI, and still unverified by a human on a real phone. It is numbered and
+meant to be run in one sitting. Read that file first.

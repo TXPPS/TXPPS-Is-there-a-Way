@@ -131,7 +131,8 @@ func _lines(s: Dictionary) -> PackedStringArray:
 	lines.append("touch %s" % ("none" if (s["touches"] as String).is_empty() else s["touches"]))
 	lines.append("owned %s" % _claims(s))
 	lines.append("stick %s" % _sticks(s))
-	lines.append("store %s   sw %s" % [_env.get("store", "-"), _env.get("worker", "-")])
+	lines.append("store %s   persist %s   sw %s"
+		% [_env.get("store", "-"), _env.get("persist", "-"), _env.get("worker", "-")])
 	lines.append("hum %s   %s" % [s["audio_source"], _peak_text(s["audio_db"])])
 	lines.append("mixer gap %s ms   lat %s ms" % [s["audio_gap_ms"], s["audio_latency_ms"]])
 	lines.append("update %s   pwa %s" % [_env.get("update", "-"), _env.get("standalone", "-")])

@@ -365,6 +365,102 @@ function overlaps(list) {
 		'the drag style takes the right stick off the screen'
 	);
 
+	// ---- saving -------------------------------------------------------------
+	// The shell is the only thing that hears the browser say a tab is going
+	// away, so the whole autosave story hangs off one registered callback.
+	t.check(
+		await page.evaluate(() => typeof window.__itaw_onSuspend === 'function'),
+		'the game registers a suspend hook with the shell'
+	);
+
+	await page.evaluate(() => window.__itaw_store.erase('save.auto'));
+	await page.evaluate(() => { window.dispatchEvent(new Event('pagehide')); });
+	await page.waitForTimeout(400);
+	const afterHide = await page.evaluate(() => window.__itaw_store.read('save.auto'));
+	t.check(
+		!!afterHide && JSON.parse(afterHide).nodes.player !== undefined,
+		'a tab going away writes an autosave carrying the player'
+	);
+
+	// The event iOS actually fires when the app is backgrounded.
+	await page.evaluate(() => window.__itaw_store.erase('save.auto'));
+	await page.evaluate(() => {
+		Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+		document.dispatchEvent(new Event('visibilitychange'));
+	});
+	await page.waitForTimeout(400);
+	t.check(
+		!!(await page.evaluate(() => window.__itaw_store.read('save.auto'))),
+		'so does the tab becoming hidden'
+	);
+	await page.evaluate(() => {
+		Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
+	});
+
+	// The write has to still be there after the tab is thrown away and rebuilt.
+	const before = await page.evaluate(() => window.__itaw_store.read('save.auto'));
+	await page.evaluate(() => window.__itaw_store.drained());
+	await page.reload({ waitUntil: 'load' });
+	await page.waitForSelector('#begin:not([hidden])', { timeout: BOOT_MS });
+	const survived = await page.evaluate(() => window.__itaw_store.read('save.auto'));
+	// Not byte for byte: reloading fires pagehide, which correctly writes a
+	// fresh autosave with a new timestamp. What has to survive is the world.
+	t.check(
+		!!survived
+			&& JSON.stringify(JSON.parse(survived).nodes) === JSON.stringify(JSON.parse(before).nodes),
+		'and the world in the autosave survives a reload unchanged'
+	);
+	t.check(
+		['yes', 'no', 'unsupported', 'unknown'].includes(
+			await page.evaluate(() => window.__itaw_store.persisted())
+		),
+		`storage persistence is asked about and reported `
+			+ `(${await page.evaluate(() => window.__itaw_store.persisted())})`
+	);
+
+	await page.tap('#begin');
+	await page.waitForFunction(() => document.getElementById('veil').hidden, null, { timeout: BOOT_MS });
+	await page.waitForTimeout(2000);
+
+	// A browser that refuses to keep anything must say so, not crash.
+	await page.evaluate(() => {
+		window.__itaw_realWrite = window.__itaw_store.write;
+		window.__itaw_store.write = function () { return 'memory-only'; };
+	});
+	await page.evaluate(() => window.__itaw_store.erase('save.auto'));
+	await page.evaluate(() => window.__itaw_onSuspend());
+	await page.waitForTimeout(600);
+	const complaint = await page.locator('.toast').first().textContent().catch(() => '');
+	t.check(
+		/Export code/.test(complaint || ''),
+		`a save that cannot be kept says so on screen (${(complaint || 'no toast').slice(0, 60)})`
+	);
+	await page.evaluate(() => { window.__itaw_store.write = window.__itaw_realWrite; });
+	await page.evaluate(() => {
+		document.querySelectorAll('.toast__x').forEach((x) => x.click());
+	});
+
+	// ---- add to home screen, once -------------------------------------------
+	await page.evaluate(() => window.__itaw_store.erase('a2hs.told'));
+	await page.evaluate(() => window.__itaw_offerHomeScreen());
+	await page.waitForTimeout(200);
+	const offered = await page.locator('.toast').count();
+	t.check(offered === 1, `the home-screen offer appears once (${offered} toasts)`);
+	t.check(
+		!!(await page.evaluate(() => window.__itaw_store.read('a2hs.told'))),
+		'and records that it was made'
+	);
+	await page.evaluate(() => {
+		document.querySelectorAll('.toast__x').forEach((x) => x.click());
+	});
+	await page.evaluate(() => window.__itaw_offerHomeScreen());
+	await page.waitForTimeout(200);
+	t.check(
+		await page.locator('.toast').count() === 0,
+		'and never appears again'
+	);
+
+	await threeFingerTap();
 	await threeFingerTap();
 	const closed = await readProbe();
 	t.check(!!closed && closed.visible === false, 'a second three-finger tap closes the overlay');
