@@ -148,24 +148,43 @@ const recoveredFlag = (page) => page.evaluate(() => sessionStorage.getItem('itaw
  *
  * Chromium keeps `immutable` subresources in its own HTTP cache across a reload
  * and hands them straight to the page, never dispatching a fetch event -- which
- * would quietly hide the poison. Clearing that cache (and only that cache;
- * Cache Storage survives) is the state a phone is in after Safari evicts or the
- * browser restarts, which is exactly when a bad cached build strands you.
+ * would quietly hide the poison and let this pass for the wrong reason. So the
+ * HTTP cache is emptied *and* switched off for the rest of the run; Cache
+ * Storage is untouched. That is the state a phone is in after Safari evicts or
+ * the browser restarts, which is exactly when a bad cached build strands you.
+ *
+ * The write is read back before reloading, because "the poison never landed" and
+ * "the poison was ignored" look identical from the outside and are not the same
+ * bug.
  */
-async function poisonEnginePayload(page, context) {
-	const url = await page.evaluate(async () => {
-		const key = (await caches.keys())[0];
-		const cache = await caches.open(key);
+async function poisonEnginePayload(page, cdp) {
+	const planted = await page.evaluate(async () => {
+		const keys = await caches.keys();
+		if (!keys.length) { return { ok: false, why: 'no cache to poison' }; }
+		const cache = await caches.open(keys[0]);
 		const target = `${location.origin}/${window.GODOT_CONFIG.executable}.js`;
 		await cache.put(new Request(target), new Response('throw new Error("poisoned cache entry");', {
 			headers: { 'Content-Type': 'text/javascript' },
 		}));
-		return target;
+		const back = await cache.match(target);
+		const body = back ? await back.text() : '';
+		return { ok: /poisoned/.test(body), why: back ? 'read back wrong' : 'not stored', target, key: keys[0] };
 	});
-	const cdp = await context.newCDPSession(page);
+	if (!planted.ok) {
+		throw new Error(`could not poison the cache: ${planted.why}`);
+	}
 	await cdp.send('Network.clearBrowserCache');
+	await cdp.send('Network.setCacheDisabled', { cacheDisabled: true });
 	await page.reload({ waitUntil: 'load' }).catch(() => {});
-	return url;
+	return planted.target;
+}
+
+/** Resolves to whichever the page reaches first: playable, or asking for help. */
+async function gateOrRecover(page, timeout) {
+	return Promise.race([
+		page.waitForSelector(GATE, { timeout }).then(() => 'gate'),
+		page.waitForSelector('#recover:not([hidden])', { timeout }).then(() => 'recover'),
+	]).catch(() => 'neither');
 }
 
 async function clearToasts(page) {
@@ -207,6 +226,8 @@ async function cycleBackground(page) {
 	const page = await context.newPage();
 	lastPage = page;
 	watch(page);
+	const cdp = await context.newCDPSession(page);
+	await cdp.send('Network.enable');
 
 	// ---- A. install --------------------------------------------------------
 	await page.goto(`${ORIGIN}/index.html`, { waitUntil: 'load' });
@@ -329,7 +350,7 @@ async function cycleBackground(page) {
 	await page.waitForSelector(GATE, { timeout: BOOT_MS });
 	await page.evaluate(() => sessionStorage.removeItem('itaw.recovered'));
 
-	const poisoned = await poisonEnginePayload(page, context);
+	const poisoned = await poisonEnginePayload(page, cdp);
 	await page.waitForURL((u) => !u.href.includes('fresh=1'), { timeout: SETTLE_MS });
 	await page.waitForSelector(GATE, { timeout: BOOT_MS });
 	t.check(true, `D1 a poisoned engine payload heals itself and reloads (${poisoned})`);
@@ -345,9 +366,9 @@ async function cycleBackground(page) {
 	// Second time in the same tab: no automatic purge, because a loop of
 	// purge-and-fail would be worse than a message.
 	await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: SETTLE_MS });
-	await poisonEnginePayload(page, context);
-	const stranded = await page.waitForSelector(GATE, { timeout: 8000 }).then(() => false, () => true);
-	t.check(stranded, 'D5 a second failure in the same tab is not purged automatically');
+	await poisonEnginePayload(page, cdp);
+	const landed = await gateOrRecover(page, SETTLE_MS);
+	t.check(landed === 'recover', `D5 a second failure in the same tab is not purged automatically (${landed})`);
 	t.check(await page.isVisible('#recover'), 'D6 and offers "Reload cleanly" instead');
 
 	await page.tap('#recover');
