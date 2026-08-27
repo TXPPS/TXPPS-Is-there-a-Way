@@ -19,7 +19,7 @@ next round of QA.
 
 | | Status |
 |---|---|
-| Build | **green.** Export, budgets, **96-check headless suite**, 35-check gameplay smoke, 28-check update-path smoke. |
+| Build | **green.** Export, budgets, **96-check headless suite**, 43-check gameplay smoke, 28-check update-path smoke. |
 | Publish | **automatic.** Every push to `main` deploys, and so does a manual **Run workflow** on `main` — both proven, runs #15 and #16. |
 | Verified | the `verify` job fetches the live URL after every deploy and fails the build unless it serves *this* commit with every payload file answering 200 and the wasm as `application/wasm`. |
 | Cloudflare Pages | still no credentials; that job skips. Optional — it buys `web/_headers` and nothing else. See `DEPLOY.md`. |
@@ -194,6 +194,12 @@ Report anything **not** on this list.
 - **The dial lock is a throwaway.** Three wheels, combination 4-1-7, an
   indicator that goes green. It exists to exercise the focused-interaction
   framework on the device in the same round as the sticks; P1 replaces it.
+- **The settings list scrolls by dragging it**, like any list on a phone. There
+  is more below the fold than fits: four groups, nineteen settings, and the
+  build stamp at the bottom.
+- **Return to Title reloads the page.** A browser has no quit, and the page is
+  fully cached, so it comes straight back on the tap gate. It is not instant on
+  a cold cache.
 - **No orientation lock is possible on iOS Safari.** The manifest asks for
   landscape and the shell shows a rotate overlay in portrait, but the OS rotate
   lock is the only real enforcement.
