@@ -716,10 +716,19 @@
 		});
 	}
 
-	updateBtn.addEventListener('click', function () { location.reload(); });
+	// Guarded: touchend and click can both land, and a second reload() fired
+	// while the first one's document is still fetching aborts its subresources
+	// and leaves a page that never finishes loading.
+	var reloading = false;
+	function takeUpdate() {
+		if (reloading) { return; }
+		reloading = true;
+		location.reload();
+	}
+	updateBtn.addEventListener('click', takeUpdate);
 	updateBtn.addEventListener('touchend', function (e) {
 		e.preventDefault();
-		location.reload();
+		takeUpdate();
 	}, { passive: false });
 
 	// Used by tools/web/smoke_pwa.js, and useful on a phone when you want to

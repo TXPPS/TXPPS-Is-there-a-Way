@@ -39,7 +39,47 @@ const REWRITTEN = new Set(['.html', '.js', '.json']);
 const BOOT_MS = 180000;   // wasm compile under swiftshader is not quick
 const SETTLE_MS = 15000;
 
+let lastPage = null;
+
 const t = tally('smoke:pwa');
+
+// Kept for the crash dump. A hang in this suite always looks the same from the
+// outside -- "the gate never appeared" -- and the useful detail is whichever
+// request or exception caused it, which only the page knows.
+const CONSOLE_TAIL = 40;
+const seen = { console: [], errors: [], failed: [] };
+
+function watch(page) {
+	page.on('console', (m) => seen.console.push(`[${m.type()}] ${m.text()}`));
+	page.on('pageerror', (e) => seen.errors.push(String(e)));
+	page.on('requestfailed', (r) => seen.failed.push(
+		`${r.url()} :: ${r.failure() && r.failure().errorText}`
+	));
+}
+
+async function dump(page) {
+	console.error('\n--- page errors ---\n' + (seen.errors.join('\n') || '(none)'));
+	console.error('\n--- failed requests ---\n' + (seen.failed.join('\n') || '(none)'));
+	console.error('\n--- console (last ' + CONSOLE_TAIL + ') ---\n'
+		+ seen.console.slice(-CONSOLE_TAIL).join('\n'));
+	try {
+		const state = await page.evaluate(() => ({
+			url: location.href,
+			readyState: document.readyState,
+			engine: typeof Engine,
+			fault: (document.getElementById('fault') || {}).textContent || '',
+			beginExists: !!document.getElementById('begin'),
+			beginHidden: !!(document.getElementById('begin') || {}).hidden,
+			readout: (document.getElementById('readout-label') || {}).textContent || '',
+			toasts: [...document.querySelectorAll('.toast')].map((e) => e.textContent),
+			exe: (window.GODOT_CONFIG || {}).executable,
+			controller: !!(navigator.serviceWorker || {}).controller,
+		}));
+		console.error('\n--- page state ---\n' + JSON.stringify(state, null, 2));
+	} catch (e) {
+		console.error('\n--- page state unavailable: ' + e.message);
+	}
+}
 
 function payloadHash(dir) {
 	const wasm = fs.readdirSync(dir).find((n) => /^index\.[0-9a-f]{10}\.wasm$/.test(n));
@@ -123,6 +163,8 @@ async function cycleBackground(page) {
 	const { browser, context } = await openBrowser();
 	await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: ORIGIN });
 	const page = await context.newPage();
+	lastPage = page;
+	watch(page);
 
 	// ---- A. install --------------------------------------------------------
 	await page.goto(`${ORIGIN}/index.html`, { waitUntil: 'load' });
@@ -271,7 +313,8 @@ async function cycleBackground(page) {
 	server.close();
 	fs.rmSync(FORGED, { recursive: true, force: true });
 	process.exit(t.report());
-})().catch((err) => {
+})().catch(async (err) => {
 	console.error('smoke:pwa crashed', err);
+	if (lastPage) { await dump(lastPage).catch(() => {}); }
 	process.exit(2);
 });
