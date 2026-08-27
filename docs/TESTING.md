@@ -118,7 +118,7 @@ from a phone. Four phases, each building on the last:
 | **A install** | The worker registers, claims the open page, names its cache after the build hash, caches the payload once requests have been through it, and serves the game with the network switched off. Also: the build stamp reads version + short SHA, tapping it copies a full report, engine errors and unhandled JS exceptions become on-screen toasts, a repeating error is one toast with a count rather than a storm, and toasts dismiss. |
 | **B update** | With the game *running*, the document root is swapped to a forged rebuild. The new build is detected; the banner is **withheld** because the player is mid-scene; returning from the home screen releases it; taking it swaps the live build and the old cache is gone. |
 | **C gate** | The same withheld banner is also released by opening a menu (`window.__itaw_setUpdateGate(true)`). Rolling the deploy back restores the previous build and deletes the forged cache in turn. |
-| **D recovery** | A poisoned entry is written straight into the worker's cache in place of the engine payload, and the whole recovery ladder is climbed: the page heals itself once (purge, clean reload, gate), records that it had to, and reports a completed purge rather than one that hit its deadline. Then a second failure in the same tab — this one served broken rather than cached broken — must **not** purge again: it says so and offers "Reload cleanly", which works. |
+| **D recovery** | The host is made to hand out a document from a previous build, naming engine files this deploy no longer has. The whole recovery ladder is then climbed: the page heals itself (purge, clean reload, playable), records that it had to, and reports a purge that *completed* rather than one that hit its deadline. The same failure a second time in the same tab must **not** purge again — it says so and offers "Reload cleanly", which works. |
 
 ### The forged rebuild
 
@@ -137,37 +137,55 @@ on a deploy that is simply broken. So the automatic purge fires once per tab
 with a button. Phase D asserts both halves, because the second half is the one
 that stops a bad build becoming an infinite one.
 
-### Why the second failure is not a second poisoning
+### Why phase D breaks the document, not the cache
 
-Whether a poisoned cache entry actually reaches the page turned out to depend on
-the browser and on what its HTTP cache was holding — the same injection stranded
-the build on one Chromium and was quietly bypassed on another. So the first
-failure is poisoned (that is the scenario worth reproducing exactly) and the
-second is simply *served* broken, from a copy of the build whose engine script
-is a `throw`. Same code path — `Engine` is not defined — and no dependency on
-cache behaviour at all.
+The first version of this wrote rubbish into the worker's Cache Storage in place
+of the engine script. That reproduced the *symptom* but not reliably: whether a
+poisoned entry reaches the page depends on the browser and on what its own HTTP
+cache is holding. It stranded the build on full Chromium and was quietly
+bypassed on CI's headless shell, however hard the HTTP cache was cleared or
+disabled — so the assertion kept concluding the page was fine, which it was, for
+reasons that had nothing to do with what was being tested.
 
-### Why phase D clears the HTTP cache
+What phase D breaks now is the **document**, which is the failure a deploy
+actually produces: `index.html` from a previous build, still being handed out,
+naming payload files the new deploy has already deleted. Every reload 404s
+identically and no amount of reloading fixes it. Navigation is network-first, so
+that document reaches the page with no cache in the way, on any browser. The
+worker stays registered and its cache stays full throughout — that is what the
+purge has to clear, and what D4 counts.
 
-Chromium keeps `immutable` subresources in its own HTTP cache across a reload
-and hands them straight to the page, never dispatching a `fetch` event — which
-would quietly hide the poison and make D1 pass for the wrong reason. The suite
-calls CDP `Network.clearBrowserCache` first, which empties the HTTP cache and
-leaves Cache Storage alone. That is also the state a phone is in after Safari
-evicts or the browser restarts, which is exactly when a bad cached build strands
-you.
+### Why the stale document disarms itself
+
+`state.stale` keeps answering document requests until a request carrying
+`?fresh=1` arrives. Counting uses instead does not work: navigation preload can
+spend one, and whether preload is enabled at any given moment depends on how
+recently a worker activated — which made this suite pass and fail on the same
+machine. Disarming on `?fresh=1` keys the change to the one event that means the
+client has decided to start clean, so there is nothing timing-dependent left.
+
+### When a run disagrees with itself
+
+`ITAW_SERVE_LOG=1` turns the test server into a witness: every request, its
+`Sec-Fetch-Mode` and `Sec-Fetch-Dest`, and whether it was answered with the
+stale document. Which request got what, in what order, is usually the whole
+answer — it is how the preload double-fetch above was found.
 
 ### The browser matters here
 
 CI runs Playwright's own `chrome-headless-shell`; a dev box with
 `CHROMIUM_PATH` set runs whatever full Chromium is on it. They do not agree
 about service workers. The bug that made this suite go red on CI and stay green
-locally was exactly that: Godot's `fetchAndCache` awaits
-`event.preloadResponse`, and where the navigation preload rejects, the
-network-first branch throws and the **cached** document is served — the previous
-build's `index.html`, naming a payload the new deploy has already removed. Four
-404s and a dead page. The navigate branch now fetches for itself and ignores
-preload entirely.
+locally was ultimately in the suite, not the product (the forged rebuild did not
+replace the payload name in the shell's own config, so it loaded out of whatever
+cache still held the old files) — but chasing it turned up two real ones. The
+navigate branch was calling Godot's `fetchAndCache`, which awaits
+`event.preloadResponse`; where a navigation preload rejects, that branch throws
+and the **cached** document is served, which is the exact failure phase D now
+exists to test. And navigation preload, which Godot enables and nothing here
+reads, was issuing a second discarded request for `index.html` on every
+navigation. The navigate branch fetches for itself now, and the worker switches
+preload back off.
 
 If this suite ever disagrees between CI and a dev box again, that is the first
 thing to suspect, and `smoke_pwa.js`'s crash dump (console, page errors, failed

@@ -6,7 +6,6 @@
 /build-smoke/
 # Written by tools/web/smoke_pwa.js; removed on a clean run, left on a crash.
 /build-forged/
-/build-broken/
 /dist/
 
 # ---- Toolchain fetched by tools/ci/fetch_godot.py ----

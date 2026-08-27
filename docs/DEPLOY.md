@@ -125,12 +125,16 @@ worker. Four changes, and every one of them is tested by
    Engine assets stay cache-first, which is what makes the game work offline.
 4. **`?fresh=1` bypasses the worker entirely** — see below.
 
-The navigate branch also deliberately ignores `event.preloadResponse`. Godot's
+5. **Navigation preload is switched back off**, because nothing reads it.
+
+The navigate branch deliberately ignores `event.preloadResponse`. Godot's
 `fetchAndCache` awaits it, and a navigation preload that rejects sends the
 request down the cache fallback — serving the previous build's `index.html`,
 whose payload the deploy you are trying to pick up has already deleted. That
-failure is a dead page that reloading cannot fix, and it is browser-specific
-enough that it passed on one Chromium and failed on another.
+failure is a dead page that reloading cannot fix. Since nothing reads the
+preload, leaving it enabled would just mean a second discarded request for
+`index.html` on every navigation, so the worker turns it off after Godot's own
+handler turns it on.
 
 ### The "New version — tap to reload" banner
 

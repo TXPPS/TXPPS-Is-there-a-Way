@@ -36,7 +36,19 @@ function cacheControl(name) {
 	return 'no-cache, must-revalidate';
 }
 
-/** A server whose root is `state.dir`, reassignable at any time. */
+/**
+ * A server whose root is `state.dir`, reassignable at any time.
+ *
+ * `state.stale = { name, body }` answers *document* requests for that basename
+ * with `body` until a request carrying `?fresh=1` arrives, which disarms it.
+ *
+ * That models the failure worth reproducing -- a host still handing out a
+ * document from a previous build -- and it disarms on the one event that means
+ * the client has decided to start clean, so nothing has to race a directory
+ * swap against a reload it cannot see. Counting uses instead does not work:
+ * navigation preload can spend one, and whether it is enabled at any moment
+ * depends on how recently a worker activated.
+ */
 function serve(state, port) {
 	const server = http.createServer((req, res) => {
 		const root = path.resolve(state.dir);
@@ -47,7 +59,24 @@ function serve(state, port) {
 			res.writeHead(404);
 			return res.end('not found');
 		}
-		const body = fs.readFileSync(file);
+		const wantsDocument = req.headers['sec-fetch-mode'] === 'navigate'
+			|| /text\/html/.test(req.headers.accept || '');
+		let body;
+		if (state.stale && /[?&]fresh=1(&|$)/.test(req.url)) { state.stale = null; }
+		let servedStale = false;
+		if (state.stale && state.stale.name === path.basename(file) && wantsDocument) {
+			body = Buffer.from(state.stale.body);
+			servedStale = true;
+		} else {
+			body = fs.readFileSync(file);
+		}
+		// ITAW_SERVE_LOG=1 turns the server into a witness. Which request got
+		// the one-shot, and in what order, is the only way to tell a suite that
+		// is wrong from a browser that is different.
+		if (process.env.ITAW_SERVE_LOG) {
+			console.log(`[serve] ${rel} mode=${req.headers['sec-fetch-mode'] || '-'}`
+				+ ` dest=${req.headers['sec-fetch-dest'] || '-'} stale=${servedStale}`);
+		}
 		res.writeHead(200, {
 			'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream',
 			'Content-Length': body.length,

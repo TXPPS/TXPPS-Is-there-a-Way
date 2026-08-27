@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Is There a Way? — offline</title>
+<style>
+html, body {
+	margin: 0;
+	height: 100%;
+	background: #07080a;
+	color: #6a6f78;
+	font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	-webkit-user-select: none;
+	user-select: none;
+}
+main { padding: 2rem; max-width: 34ch; line-height: 2; }
+h1 {
+	font-size: 13px;
+	font-weight: 400;
+	letter-spacing: 0.42em;
+	text-indent: 0.42em;
+	text-transform: uppercase;
+	color: #9aa0a8;
+	margin: 0 0 1.5rem;
+}
+p { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; margin: 0 0 1.5rem; }
+.seam { width: 1px; height: 54px; margin: 0 auto 2rem; background: linear-gradient(#07080a, #c26018, #07080a); }
+button {
+	appearance: none; background: none; border: 1px solid #22262b;
+	color: #ffb054; font: inherit; font-size: 11px;
+	letter-spacing: 0.3em; text-indent: 0.3em; text-transform: uppercase;
+	padding: 14px 22px; min-height: 44px; cursor: pointer;
+}
+</style>
+</head>
+<body>
+<main>
+	<div class="seam"></div>
+	<h1>No Connection</h1>
+	<p>The first load needs a network. Once it has run, it runs offline.</p>
+	<button type="button" onclick="location.reload()">Retry</button>
+</main>
+</body>
+</html>

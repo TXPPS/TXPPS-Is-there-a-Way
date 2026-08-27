@@ -24,7 +24,6 @@ const { serve, openBrowser, tally } = require('./harness');
 
 const BUILD = path.resolve(process.argv[2] || 'build');
 const FORGED = `${BUILD}-forged`;
-const BROKEN = `${BUILD}-broken`;
 const PORT = 8098;
 const ORIGIN = `http://127.0.0.1:${PORT}`;
 const GATE = '#begin:not([hidden])';
@@ -141,52 +140,26 @@ function waitForCaches(page, predicateSource, timeout) {
 	);
 }
 
-/** A deploy whose engine script is rubbish. Same failure, no cache involved. */
-function breakBuild(from, to) {
-	const hash = payloadHash(from);
-	fs.rmSync(to, { recursive: true, force: true });
-	fs.cpSync(from, to, { recursive: true });
-	fs.writeFileSync(path.join(to, `index.${hash}.js`), 'throw new Error("broken deploy");\n');
-	return `index.${hash}.js`;
-}
-
 const recoveredFlag = (page) => page.evaluate(() => sessionStorage.getItem('itaw.recovered'));
 
 /**
- * Write rubbish into the worker's cache in place of the engine script, then
- * make sure the worker is actually in the path when the page asks for it.
+ * The build's own index.html, rewritten to name a payload that does not exist.
  *
- * Chromium keeps `immutable` subresources in its own HTTP cache across a reload
- * and hands them straight to the page, never dispatching a fetch event -- which
- * would quietly hide the poison and let this pass for the wrong reason. So the
- * HTTP cache is emptied *and* switched off for the rest of the run; Cache
- * Storage is untouched. That is the state a phone is in after Safari evicts or
- * the browser restarts, which is exactly when a bad cached build strands you.
+ * This is the failure worth reproducing, and the one a deploy actually
+ * produces: a document from a previous build, still held somewhere, naming
+ * engine files the new deploy has already deleted. Every reload 404s the same
+ * way, and no amount of reloading fixes it.
  *
- * The write is read back before reloading, because "the poison never landed" and
- * "the poison was ignored" look identical from the outside and are not the same
- * bug.
+ * Served through `state.stale`, which disarms itself the moment the client asks
+ * for ?fresh=1 -- so the recovery that follows finds a healthy server, with
+ * nothing timing-dependent in between.
  */
-async function poisonEnginePayload(page, cdp) {
-	const planted = await page.evaluate(async () => {
-		const keys = await caches.keys();
-		if (!keys.length) { return { ok: false, why: 'no cache to poison' }; }
-		const cache = await caches.open(keys[0]);
-		const target = `${location.origin}/${window.GODOT_CONFIG.executable}.js`;
-		await cache.put(new Request(target), new Response('throw new Error("poisoned cache entry");', {
-			headers: { 'Content-Type': 'text/javascript' },
-		}));
-		const back = await cache.match(target);
-		const body = back ? await back.text() : '';
-		return { ok: /poisoned/.test(body), why: back ? 'read back wrong' : 'not stored', target, key: keys[0] };
-	});
-	if (!planted.ok) {
-		throw new Error(`could not poison the cache: ${planted.why}`);
-	}
-	await cdp.send('Network.clearBrowserCache');
-	await cdp.send('Network.setCacheDisabled', { cacheDisabled: true });
-	await page.reload({ waitUntil: 'load' }).catch(() => {});
-	return planted.target;
+function staleDocument(from) {
+	const hash = payloadHash(from);
+	const html = fs.readFileSync(path.join(from, 'index.html'), 'utf8');
+	const stale = html.split(`index.${hash}`).join('index.0000000000');
+	if (stale === html) { throw new Error('stale document rewrote nothing'); }
+	return stale;
 }
 
 /** Resolves to whichever the page reaches first: playable, or asking for help. */
@@ -229,16 +202,13 @@ async function cycleBackground(page) {
 
 (async () => {
 	const originalHash = forgeRebuild(BUILD, FORGED);
-	breakBuild(BUILD, BROKEN);
-	const root = { dir: BUILD };
+	const root = { dir: BUILD, stale: null };
 	const server = await serve(root, PORT);
 	const { browser, context } = await openBrowser();
 	await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: ORIGIN });
 	const page = await context.newPage();
 	lastPage = page;
 	watch(page);
-	const cdp = await context.newCDPSession(page);
-	await cdp.send('Network.enable');
 
 	// ---- A. install --------------------------------------------------------
 	await page.goto(`${ORIGIN}/index.html`, { waitUntil: 'load' });
@@ -354,18 +324,25 @@ async function cycleBackground(page) {
 	t.check(await page.isVisible('#update'), 'C4 opening a menu releases the banner');
 	root.dir = BUILD;
 
-	// ---- D. the cache holds a broken build --------------------------------
+	// ---- D. a build that cannot load itself -------------------------------
 	// The recovery ladder, in the order a real failure climbs it: heal itself
-	// once, then say so and offer the way out by hand.
+	// once, then say so and offer the way out by hand. Throughout, the worker is
+	// registered and its cache is full -- that is what the purge has to clear.
 	await page.reload({ waitUntil: 'load' });
 	await page.waitForSelector(GATE, { timeout: BOOT_MS });
-	await page.evaluate(() => sessionStorage.removeItem('itaw.recovered'));
+	await page.evaluate(() => {
+		sessionStorage.removeItem('itaw.recovered');
+		sessionStorage.removeItem('itaw.purged');
+	});
 
-	const poisoned = await poisonEnginePayload(page, cdp);
-	await page.waitForURL((u) => !u.href.includes('fresh=1'), { timeout: SETTLE_MS });
+	const stale = { name: 'index.html', body: staleDocument(BUILD) };
+	root.stale = stale;
+	await page.reload({ waitUntil: 'load' }).catch(() => {});
+	// Reaching the gate at all is the assertion: the document that was served
+	// names nothing that exists, so the only road here is through the purge.
 	await page.waitForSelector(GATE, { timeout: BOOT_MS });
-	t.check(true, `D1 a poisoned engine payload heals itself and reloads (${poisoned})`);
-	t.check(await recoveredFlag(page) === '1', 'D2 and records that it had to');
+	t.check(true, 'D1 a document naming a payload the deploy no longer has comes back playable');
+	t.check(await recoveredFlag(page) === '1', 'D2 having purged itself to do it');
 	t.check(!page.url().includes('fresh=1'), `D3 onto a clean URL (${page.url()})`);
 
 	const report = JSON.parse((await page.evaluate(() => sessionStorage.getItem('itaw.purged'))) || '{}');
@@ -374,27 +351,15 @@ async function cycleBackground(page) {
 		`D4 having finished the purge before reloading, not on its deadline (${JSON.stringify(report)})`
 	);
 
-	// Second time in the same tab: no automatic purge, because a loop of
-	// purge-and-fail would be worse than a message.
-	//
-	// Broken at the server this time rather than in the cache. It is the same
-	// code path -- the engine script does not define Engine -- but it does not
-	// depend on which Chromium is running or on what its HTTP cache happens to
-	// be holding, both of which decided the outcome when this was a second
-	// poisoning.
-	await page.evaluate(async () => {
-		const regs = await navigator.serviceWorker.getRegistrations();
-		await Promise.all(regs.map((r) => r.unregister()));
-		const keys = await caches.keys();
-		await Promise.all(keys.map((k) => caches.delete(k)));
-	});
-	root.dir = BROKEN;
+	// The same failure a second time in the same tab. No automatic purge this
+	// time: a loop of purge-and-fail would be worse than a message.
+	await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: SETTLE_MS });
+	root.stale = { name: 'index.html', body: stale.body };
 	await page.reload({ waitUntil: 'load' }).catch(() => {});
 	const landed = await gateOrRecover(page, SETTLE_MS);
 	t.check(landed === 'recover', `D5 a second failure in the same tab is not purged automatically (${landed})`);
 	t.check(await page.isVisible('#recover'), 'D6 and offers "Reload cleanly" instead');
 
-	root.dir = BUILD;
 	await page.tap('#recover');
 	await page.waitForURL((u) => !u.href.includes('fresh=1'), { timeout: SETTLE_MS });
 	await page.waitForSelector(GATE, { timeout: BOOT_MS });
@@ -404,7 +369,6 @@ async function cycleBackground(page) {
 	await browser.close();
 	server.close();
 	fs.rmSync(FORGED, { recursive: true, force: true });
-	fs.rmSync(BROKEN, { recursive: true, force: true });
 	process.exit(t.report());
 })().catch(async (err) => {
 	console.error('smoke:pwa crashed', err);

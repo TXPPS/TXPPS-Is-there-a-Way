@@ -4,7 +4,7 @@
 Godot's worker is cache-first and, like every default service worker, installs a
 new version and then waits for every tab to close before taking over. On an
 installed iOS PWA "every tab closed" can be *never*, which strands the player on
-a stale build with no recourse from a phone. Four changes fix that:
+a stale build with no recourse from a phone. Five changes fix that:
 
 1. The cache name is keyed to a hash of the files it caches, so a rebuild is a
    different cache and the old one is deleted on activation.
@@ -16,6 +16,8 @@ a stale build with no recourse from a phone. Four changes fix that:
 4. Any request carrying `?fresh=1` -- in its own URL or its referrer -- bypasses
    the worker entirely, so the escape hatch in web/boot.js is reachable even when
    every cached file is broken.
+5. Navigation preload is switched back off, because nothing reads it and an
+   enabled preload is a second, discarded request for index.html per navigation.
 
 Every edit to generated code is asserted: if Godot's output changes shape, the
 build fails loudly here instead of silently shipping an unpatched worker.
@@ -119,7 +121,18 @@ self.addEventListener('install', () => {
 });
 
 self.addEventListener('activate', (event) => {
-\tevent.waitUntil(self.clients.claim());
+\tevent.waitUntil((async () => {
+\t\tawait self.clients.claim();
+\t\t// Godot's own activate handler switches navigation preload on. The
+\t\t// navigate branch above deliberately does not read event.preloadResponse
+\t\t// -- a preload that rejects would send it to the cache fallback and serve
+\t\t// the previous build's document -- so leaving preload enabled just means a
+\t\t// second, discarded request for index.html on every single navigation.
+\t\t// Turn it off, after Godot has turned it on.
+\t\tif (self.registration.navigationPreload) {
+\t\t\tawait self.registration.navigationPreload.disable();
+\t\t}
+\t})());
 });
 """
 
@@ -189,6 +202,8 @@ def assert_hardened(worker: pathlib.Path, version: str) -> None:
         "new worker claims open pages": "self.clients.claim()" in text,
         "navigation is network-first, and ignores navigation preload":
             "const doc = await self.fetch(event.request);" in text,
+        "navigation preload is off, since nothing reads it":
+            "navigationPreload.disable()" in text,
         "?fresh=1 bypasses the worker, document and sub-resources alike":
             "FRESH.test(event.request.url) || FRESH.test(event.request.referrer" in text
             and "const FRESH = " in text,
