@@ -126,6 +126,34 @@ function waitForCaches(page, predicateSource, timeout) {
 	);
 }
 
+const recoveredFlag = (page) => page.evaluate(() => sessionStorage.getItem('itaw.recovered'));
+
+/**
+ * Write rubbish into the worker's cache in place of the engine script, then
+ * make sure the worker is actually in the path when the page asks for it.
+ *
+ * Chromium keeps `immutable` subresources in its own HTTP cache across a reload
+ * and hands them straight to the page, never dispatching a fetch event -- which
+ * would quietly hide the poison. Clearing that cache (and only that cache;
+ * Cache Storage survives) is the state a phone is in after Safari evicts or the
+ * browser restarts, which is exactly when a bad cached build strands you.
+ */
+async function poisonEnginePayload(page, context) {
+	const url = await page.evaluate(async () => {
+		const key = (await caches.keys())[0];
+		const cache = await caches.open(key);
+		const target = `${location.origin}/${window.GODOT_CONFIG.executable}.js`;
+		await cache.put(new Request(target), new Response('throw new Error("poisoned cache entry");', {
+			headers: { 'Content-Type': 'text/javascript' },
+		}));
+		return target;
+	});
+	const cdp = await context.newCDPSession(page);
+	await cdp.send('Network.clearBrowserCache');
+	await page.reload({ waitUntil: 'load' }).catch(() => {});
+	return url;
+}
+
 async function clearToasts(page) {
 	await page.evaluate(() => document.querySelectorAll('.toast').forEach((el) => el.click()));
 	await page.waitForFunction(() => document.querySelectorAll('.toast').length === 0, null, { timeout: 15000 });
@@ -252,9 +280,16 @@ async function cycleBackground(page) {
 	await page.tap('#update');
 	await page.waitForSelector(GATE, { timeout: BOOT_MS });
 	t.check(await isForged(page), 'B5 taking the update swaps the live build');
+	// The banner's reload must land the new build outright. If the shell had to
+	// fall back on its own recovery, something served a stale document and the
+	// player paid for it with an extra purge and reload.
+	t.check(
+		await recoveredFlag(page) !== '1',
+		'B6 and lands it directly, without falling back on the recovery path'
+	);
 	await waitForCaches(page, `(keys) => keys.length === 1 && keys[0].endsWith('${FORGED_CACHE}')`, SETTLE_MS)
-		.then(() => t.check(true, 'B6 the rebuild invalidates the old cache'))
-		.catch(async () => t.check(false, `B6 the rebuild invalidates the old cache (${(await cacheKeys(page)).join(', ')})`));
+		.then(() => t.check(true, 'B7 the rebuild invalidates the old cache'))
+		.catch(async () => t.check(false, `B7 the rebuild invalidates the old cache (${(await cacheKeys(page)).join(', ')})`));
 
 	// ---- C. the other place a banner is allowed to appear ------------------
 	root.dir = BUILD;
@@ -274,39 +309,37 @@ async function cycleBackground(page) {
 	root.dir = BUILD;
 
 	// ---- D. the cache holds a broken build --------------------------------
+	// The recovery ladder, in the order a real failure climbs it: heal itself
+	// once, then say so and offer the way out by hand.
 	await page.reload({ waitUntil: 'load' });
 	await page.waitForSelector(GATE, { timeout: BOOT_MS });
-	const poisoned = await page.evaluate(async () => {
-		const key = (await caches.keys())[0];
-		const cache = await caches.open(key);
-		const url = `${location.origin}/${window.GODOT_CONFIG.executable}.js`;
-		await cache.put(new Request(url), new Response('throw new Error("poisoned cache entry");', {
-			headers: { 'Content-Type': 'text/javascript' },
-		}));
-		return url;
-	});
-	// Chromium keeps `immutable` subresources in its own HTTP cache across a
-	// reload and hands them straight to the page, never dispatching a fetch
-	// event -- which would quietly hide the poison. Clearing that cache (and
-	// only that cache; Cache Storage survives) is what puts the worker back in
-	// the path, and is the state a phone is in after Safari evicts or restarts.
-	const cdp = await context.newCDPSession(page);
-	await cdp.send('Network.clearBrowserCache');
-	await page.reload({ waitUntil: 'load' });
-	const stillBroken = await page.waitForSelector(GATE, { timeout: 8000 }).then(() => false, () => true);
-	t.check(stillBroken, `D1 a poisoned cache entry really does strand the build (${poisoned})`);
+	await page.evaluate(() => sessionStorage.removeItem('itaw.recovered'));
 
-	await page.goto(`${ORIGIN}/index.html?fresh=1`, { waitUntil: 'load' });
+	const poisoned = await poisonEnginePayload(page, context);
 	await page.waitForURL((u) => !u.href.includes('fresh=1'), { timeout: SETTLE_MS });
-	t.check(!page.url().includes('fresh=1'), `D2 the purge reloads onto a clean URL (${page.url()})`);
 	await page.waitForSelector(GATE, { timeout: BOOT_MS });
-	t.check(true, 'D3 ?fresh=1 recovers a build the cache had broken');
+	t.check(true, `D1 a poisoned engine payload heals itself and reloads (${poisoned})`);
+	t.check(await recoveredFlag(page) === '1', 'D2 and records that it had to');
+	t.check(!page.url().includes('fresh=1'), `D3 onto a clean URL (${page.url()})`);
 
 	const report = JSON.parse((await page.evaluate(() => sessionStorage.getItem('itaw.purged'))) || '{}');
 	t.check(
 		report.done === true && report.caches >= 1 && report.workers >= 1,
-		`D4 the purge finished before the reload, not on its deadline (${JSON.stringify(report)})`
+		`D4 having finished the purge before reloading, not on its deadline (${JSON.stringify(report)})`
 	);
+
+	// Second time in the same tab: no automatic purge, because a loop of
+	// purge-and-fail would be worse than a message.
+	await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: SETTLE_MS });
+	await poisonEnginePayload(page, context);
+	const stranded = await page.waitForSelector(GATE, { timeout: 8000 }).then(() => false, () => true);
+	t.check(stranded, 'D5 a second failure in the same tab is not purged automatically');
+	t.check(await page.isVisible('#recover'), 'D6 and offers "Reload cleanly" instead');
+
+	await page.tap('#recover');
+	await page.waitForURL((u) => !u.href.includes('fresh=1'), { timeout: SETTLE_MS });
+	await page.waitForSelector(GATE, { timeout: BOOT_MS });
+	t.check(true, 'D7 which recovers the build by hand');
 
 	console.log(`\n(original payload index.${originalHash}, forged index.${FORGED_HASH})`);
 	await browser.close();

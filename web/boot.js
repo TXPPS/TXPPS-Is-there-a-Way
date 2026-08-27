@@ -25,6 +25,7 @@
 	var beginBtn = document.getElementById('begin');
 	var hint = document.getElementById('hint');
 	var fault = document.getElementById('fault');
+	var recoverBtn = document.getElementById('recover');
 	var updateBtn = document.getElementById('update');
 	var toastHost = document.getElementById('toasts');
 	var stampEl = document.getElementById('stamp');
@@ -138,6 +139,13 @@
 	//
 	// Saves are deliberately untouched: this clears the code, not the player.
 	var PURGE_DEADLINE_MS = 6000;
+
+	function freshUrl() {
+		var query = location.search.replace(/^\?/, '');
+		var parts = query ? query.split('&').filter(Boolean) : [];
+		if (parts.indexOf('fresh=1') === -1) { parts.push('fresh=1'); }
+		return location.origin + location.pathname + '?' + parts.join('&') + location.hash;
+	}
 
 	function cleanUrl() {
 		var kept = location.search.replace(/^\?/, '').split('&').filter(function (part) {
@@ -378,15 +386,48 @@
 		lastTouchEnd = now;
 	}, { passive: false });
 
-	function showFault(err) {
+	// The failure that matters: the document is from a previous build and names
+	// a payload the current deploy has already removed, so every reload 404s the
+	// same way. That is a dead app on a phone with no console. Purge once,
+	// automatically, and only give up if the clean load fails too.
+	//
+	// One automatic recovery per tab, and then it asks: a loop of purge-and-fail
+	// would be worse than a message, and sessionStorage resets with the tab.
+	var RECOVERED_KEY = 'itaw.recovered';
+	var PAYLOAD_MISSING = /failed loading file|failed to load|404|networkerror|fetch/i;
+
+	function recoveredAlready() {
+		try { return sessionStorage.getItem(RECOVERED_KEY) === '1'; }
+		catch (e) { return true; }
+	}
+
+	function autoRecover() {
+		if (recoveredAlready()) { return false; }
+		if (!('serviceWorker' in navigator) && !window.caches) { return false; }
+		try { sessionStorage.setItem(RECOVERED_KEY, '1'); }
+		catch (e) { return false; }
+		readoutLabel.textContent = 'Recovering';
+		location.replace(freshUrl());
+		return true;
+	}
+
+	function showFault(err, recoverable) {
 		var msg = (err && err.message) ? err.message : String(err);
+		if ((recoverable || PAYLOAD_MISSING.test(msg)) && autoRecover()) { return; }
 		note(msg, 'error');
 		loading.style.display = 'none';
 		beginBtn.hidden = true;
 		hint.hidden = true;
 		fault.style.display = 'block';
 		fault.textContent = msg;
+		recoverBtn.hidden = false;
 	}
+
+	recoverBtn.addEventListener('click', function () { location.replace(freshUrl()); });
+	recoverBtn.addEventListener('touchend', function (e) {
+		e.preventDefault();
+		location.replace(freshUrl());
+	}, { passive: false });
 
 	// ---- build stamp -------------------------------------------------------
 	// Deliberately not a real button. A 44px tap target pinned over the canvas
@@ -497,6 +538,14 @@
 	window.__itaw_buildStamp = function () { return stampShort(); };
 
 	// ---- engine ------------------------------------------------------------
+	// A cached engine script that has been damaged throws here, before anything
+	// else in this file gets a chance to say so. Same fatality as a missing
+	// payload, same cure.
+	if (typeof Engine !== 'function') {
+		showFault(new Error('The engine script did not load. Its cached copy may be damaged.'), true);
+		return;
+	}
+
 	var missing = Engine.getMissingFeatures({ threads: THREADS });
 	if (missing.length !== 0) {
 		showFault(new Error('This browser is missing:\n' + missing.join('\n')));

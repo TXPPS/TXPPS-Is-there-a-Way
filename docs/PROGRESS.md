@@ -14,7 +14,7 @@ switch and on QA on the phone.** P1 does not start until that QA has been run.
 
 | | Status |
 |---|---|
-| Build | **green.** `build` job passes: export, budgets, 23-check gameplay smoke, 24-check update-path smoke. |
+| Build | **green.** `build` job passes: export, budgets, 23-check gameplay smoke, 28-check update-path smoke. |
 | Artifact | **published to every run.** `web-build` on the run page; `smoke-screenshots` too. |
 | **GitHub Pages** | **NOT switched on.** `deploy-pages` runs, asks the Pages API, gets a non-200, prints the setup into the run summary and skips the deploy. |
 | **Cloudflare Pages** | **no credentials.** `probe` reports no `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID`; `deploy-cloudflare` skips. |
@@ -103,6 +103,9 @@ account ID as repository secrets. Full walkthrough in `DEPLOY.md`.
   silence. Repeats fold into one toast with a count.
 - **A 120 Hz ballast hum** at the lamp, synthesised in `src/world/lamp_hum.gd`,
   so the audio unlock can be confirmed by ear. Deleted in P3.
+- **Self-healing.** If the engine payload will not load, the shell purges and
+  reloads itself once per tab; if the clean load fails too it stops and shows a
+  **Reload cleanly** button rather than looping.
 
 **P1 scaffolding, written but not wired to anything**
 `src/core/game_state.gd`, `settings_row.gd`, `settings_spec.gd`,
@@ -207,7 +210,8 @@ check that first, because everything else is meaningless if it does not.
     foreground. If it does, that is a bug.
 19. Tap it. The game reloads and the stamp shows the new commit.
 20. **Break it deliberately:** append `?fresh=1` to the URL. The page purges and
-    reloads onto the clean URL, and the game still loads.
+    reloads onto the clean URL, and the game still loads. (You should not
+    normally need this: a build that cannot load its payload purges itself.)
 
 **Installed PWA**
 21. Add to Home Screen. It launches full-screen, black, with the seam icon.

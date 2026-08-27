@@ -118,7 +118,7 @@ from a phone. Four phases, each building on the last:
 | **A install** | The worker registers, claims the open page, names its cache after the build hash, caches the payload once requests have been through it, and serves the game with the network switched off. Also: the build stamp reads version + short SHA, tapping it copies a full report, engine errors and unhandled JS exceptions become on-screen toasts, a repeating error is one toast with a count rather than a storm, and toasts dismiss. |
 | **B update** | With the game *running*, the document root is swapped to a forged rebuild. The new build is detected; the banner is **withheld** because the player is mid-scene; returning from the home screen releases it; taking it swaps the live build and the old cache is gone. |
 | **C gate** | The same withheld banner is also released by opening a menu (`window.__itaw_setUpdateGate(true)`). Rolling the deploy back restores the previous build and deletes the forged cache in turn. |
-| **D recovery** | A poisoned entry is written straight into the worker's cache in place of the engine payload. The build really does stop working. `?fresh=1` still loads, purges, and reloads onto a clean URL — and the purge report says it finished rather than timing out. |
+| **D recovery** | A poisoned entry is written straight into the worker's cache in place of the engine payload, and the whole recovery ladder is climbed: the page heals itself once (purge, clean reload, gate), records that it had to, and reports a completed purge rather than one that hit its deadline. Poisoned a second time in the same tab it does **not** purge again — it says so and offers "Reload cleanly", which then works. |
 
 ### The forged rebuild
 
@@ -129,6 +129,14 @@ and injecting a `<meta name="itaw-forged">` marker so the test can tell which
 build is on screen. Both of the shell's update signals — payload name and commit
 — therefore move, as they would on a real deploy.
 
+### Why the recovery is one-shot per tab
+
+A page that purges and reloads on every failure is a page that can loop forever
+on a deploy that is simply broken. So the automatic purge fires once per tab
+(`sessionStorage`, which resets with the tab) and after that the fault is shown
+with a button. Phase D asserts both halves, because the second half is the one
+that stops a bad build becoming an infinite one.
+
 ### Why phase D clears the HTTP cache
 
 Chromium keeps `immutable` subresources in its own HTTP cache across a reload
@@ -138,6 +146,22 @@ calls CDP `Network.clearBrowserCache` first, which empties the HTTP cache and
 leaves Cache Storage alone. That is also the state a phone is in after Safari
 evicts or the browser restarts, which is exactly when a bad cached build strands
 you.
+
+### The browser matters here
+
+CI runs Playwright's own `chrome-headless-shell`; a dev box with
+`CHROMIUM_PATH` set runs whatever full Chromium is on it. They do not agree
+about service workers. The bug that made this suite go red on CI and stay green
+locally was exactly that: Godot's `fetchAndCache` awaits
+`event.preloadResponse`, and where the navigation preload rejects, the
+network-first branch throws and the **cached** document is served — the previous
+build's `index.html`, naming a payload the new deploy has already removed. Four
+404s and a dead page. The navigate branch now fetches for itself and ignores
+preload entirely.
+
+If this suite ever disagrees between CI and a dev box again, that is the first
+thing to suspect, and `smoke_pwa.js`'s crash dump (console, page errors, failed
+requests, and what the page thinks its executable is) is what tells you.
 
 ### Ports
 

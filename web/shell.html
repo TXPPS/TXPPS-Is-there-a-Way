@@ -198,6 +198,27 @@ html, body {
 	margin-top: 26px;
 }
 
+/* --- the way out when the engine will not start -------------------------- */
+#recover {
+	appearance: none;
+	border: 1px solid rgba(208, 90, 74, 0.55);
+	border-radius: 3px;
+	background: none;
+	color: var(--fault);
+	font-family: var(--type);
+	font-size: 11px;
+	letter-spacing: 0.28em;
+	text-indent: 0.28em;
+	text-transform: uppercase;
+	padding: 14px 22px;
+	min-height: 44px;
+	margin-top: 22px;
+	cursor: pointer;
+	touch-action: manipulation;
+}
+#recover[hidden] { display: none; }
+#recover:active { color: #fff; }
+
 /* --- alerts: update banner and error toasts, one column ----------------- */
 #alerts {
 	position: absolute;
@@ -363,6 +384,7 @@ $GODOT_HEAD_INCLUDE
 	<button id="begin" type="button" hidden>Tap to Begin</button>
 	<p class="hint" id="hint" hidden>Headphones recommended<br>Landscape &middot; Rotate lock on</p>
 	<pre id="fault"></pre>
+	<button id="recover" type="button" hidden>Reload cleanly</button>
 </div>
 
 <!-- Tap to copy the full build report. Three-finger tap opens the in-game

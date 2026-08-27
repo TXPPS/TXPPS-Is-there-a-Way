@@ -61,8 +61,20 @@ _NAVIGATE_NETWORK_FIRST = """\t\t\t\tif (isNavigate) {
 \t\t\t\t\t// serving it from cache pins the player to whichever build they
 \t\t\t\t\t// first loaded. Offline still works: we fall back to the cached
 \t\t\t\t\t// document, and only then to the offline page.
+\t\t\t\t\t//
+\t\t\t\t\t// Deliberately not fetchAndCache(): that awaits
+\t\t\t\t\t// event.preloadResponse, and a navigation preload that rejects
+\t\t\t\t\t// sends us down the fallback below -- which serves the *previous*
+\t\t\t\t\t// build's document, whose payload the deploy we are trying to
+\t\t\t\t\t// pick up has already removed. A 404 on the engine wasm is the
+\t\t\t\t\t// symptom, and it is not recoverable by reloading.
 \t\t\t\t\ttry {
-\t\t\t\t\t\treturn await fetchAndCache(event, cache, true);
+\t\t\t\t\t\tconst doc = await self.fetch(event.request);
+\t\t\t\t\t\tif (!doc || !doc.ok) {
+\t\t\t\t\t\t\tthrow new Error(`document status ${doc && doc.status}`);
+\t\t\t\t\t\t}
+\t\t\t\t\t\tcache.put(event.request, doc.clone());
+\t\t\t\t\t\treturn doc;
 \t\t\t\t\t} catch (e) {
 \t\t\t\t\t\tconst offlineDoc = await cache.match(event.request) || await cache.match(CACHED_FILES[0]);
 \t\t\t\t\t\treturn offlineDoc || caches.match(OFFLINE_URL);
@@ -175,7 +187,8 @@ def assert_hardened(worker: pathlib.Path, version: str) -> None:
         "cache name is keyed to the build": f"const CACHE_VERSION = '{version}';" in text,
         "new worker takes over immediately": "self.skipWaiting();" in text,
         "new worker claims open pages": "self.clients.claim()" in text,
-        "navigation is network-first": "return await fetchAndCache(event, cache, true);" in text,
+        "navigation is network-first, and ignores navigation preload":
+            "const doc = await self.fetch(event.request);" in text,
         "?fresh=1 bypasses the worker, document and sub-resources alike":
             "FRESH.test(event.request.url) || FRESH.test(event.request.referrer" in text
             and "const FRESH = " in text,

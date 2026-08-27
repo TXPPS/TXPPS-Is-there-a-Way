@@ -125,6 +125,13 @@ worker. Four changes, and every one of them is tested by
    Engine assets stay cache-first, which is what makes the game work offline.
 4. **`?fresh=1` bypasses the worker entirely** — see below.
 
+The navigate branch also deliberately ignores `event.preloadResponse`. Godot's
+`fetchAndCache` awaits it, and a navigation preload that rejects sends the
+request down the cache fallback — serving the previous build's `index.html`,
+whose payload the deploy you are trying to pick up has already deleted. That
+failure is a dead page that reloading cannot fix, and it is browser-specific
+enough that it passed on one Chromium and failed on another.
+
 ### The "New version — tap to reload" banner
 
 The shell asks the server for `index.html` and compares it to what is running:
@@ -164,6 +171,16 @@ Use it when the corner build stamp does not match the commit you expect, or when
 the game will not start at all. It is faster and far less destructive than
 Safari → Settings → Clear History and Website Data, which nukes every site you
 have ever visited.
+
+### You should rarely need to type it
+
+The page climbs the ladder for you. If the engine payload will not load — the
+signature of a cached document from a previous build naming files the current
+deploy has removed — the shell purges and reloads through `?fresh=1` on its own,
+once per tab, and shows "Recovering" while it does. If that clean load fails
+too, it stops trying and shows the fault with a **Reload cleanly** button rather
+than looping. Typing `?fresh=1` by hand is the third rung, for when the page
+never got far enough to run any of this.
 
 ---
 
