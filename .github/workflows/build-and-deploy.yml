@@ -21,6 +21,12 @@ permissions:
   pages: write
   id-token: write
 
+# Action versions: the five the runner named as Node 20 are on their Node 24
+# majors. The warning does not go away entirely and cannot yet:
+# upload-artifact@v5 still targets Node 20 itself, upload-pages-artifact@v3 pins
+# upload-artifact@v4 internally, and configure-pages/deploy-pages have no Node
+# 24 release. Nothing here to bump -- do not go breaking the deploy to chase it.
+
 env:
   GODOT_VERSION: "4.6.3-stable"
   CLOUDFLARE_PROJECT: "is-there-a-way"

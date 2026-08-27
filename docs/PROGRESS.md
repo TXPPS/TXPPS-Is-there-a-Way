@@ -126,6 +126,11 @@ schema waiting for one.
 
 Report anything **not** on this list.
 
+- **The runner still warns about Node 20**, and it cannot be silenced yet: the
+  five actions it originally named are on their Node 24 majors, but
+  `upload-artifact@v5` targets Node 20 itself, `upload-pages-artifact@v3` pins
+  `upload-artifact@v4` internally, and `configure-pages` / `deploy-pages` have
+  no Node 24 release. Cosmetic; not worth breaking the deploy over.
 - **The `github-pages` environment still carries a branch policy naming the old
   branch.** It costs nothing now — the deploy job declares no environment — but
   it means the run page shows no environment URL. Fixable in Settings →
