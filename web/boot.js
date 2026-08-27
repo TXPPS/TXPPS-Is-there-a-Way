@@ -127,7 +127,15 @@
 	});
 	window.addEventListener('unhandledrejection', function (e) {
 		var r = e.reason;
-		note('Unhandled: ' + ((r && (r.message || r)) || 'promise rejection'), 'error');
+		var msg = 'Unhandled: ' + ((r && (r.message || r)) || 'promise rejection');
+		note(msg, 'error');
+		// Godot's loader rejects promises we were never handed, so a payload it
+		// cannot fetch arrives here rather than through loaded.catch(). Before
+		// the gate has been revealed that is fatal, and leaving it as a toast
+		// over a progress bar that will never finish is the worst of both.
+		if (!started && beginBtn && beginBtn.hidden && PAYLOAD_MISSING.test(msg)) {
+			showFault(new Error(msg));
+		}
 	});
 
 	// ---- hard escape hatch: ?fresh=1 ---------------------------------------

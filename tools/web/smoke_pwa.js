@@ -94,12 +94,19 @@ function forgeRebuild(from, to) {
 	for (const name of fs.readdirSync(from)) {
 		const src = path.join(from, name);
 		if (fs.statSync(src).isDirectory()) { continue; }
-		const dst = path.join(to, name.split(`index.${hash}.`).join(`index.${FORGED_HASH}.`));
+		// Replace the bare `index.<hash>` prefix, not `index.<hash>.` -- the
+		// shell's own config carries it without a trailing dot
+		// (`"executable":"index.<hash>"`), and leaving that one behind produces
+		// a forged build that still asks for the payload it replaced. It then
+		// loads anyway, from whichever cache still happens to hold the old
+		// files, and the suite passes for entirely the wrong reason.
+		const rename = (s) => s.split(`index.${hash}`).join(`index.${FORGED_HASH}`);
+		const dst = path.join(to, rename(name));
 		if (!REWRITTEN.has(path.extname(name))) {
 			fs.copyFileSync(src, dst);
 			continue;
 		}
-		let text = fs.readFileSync(src, 'utf8').split(`index.${hash}.`).join(`index.${FORGED_HASH}.`);
+		let text = rename(fs.readFileSync(src, 'utf8'));
 		if (name === 'index.html') {
 			text = text.replace(/"commit": "[0-9a-f]*"/, `"commit": "${FORGED_COMMIT}"`);
 			text = text.replace('<title>', `<meta name="${FORGED_MARK}" content="1">\n<title>`);
@@ -108,6 +115,13 @@ function forgeRebuild(from, to) {
 			text = text.replace(/const CACHE_VERSION = '[^']*';/, `const CACHE_VERSION = '${FORGED_CACHE}';`);
 		}
 		fs.writeFileSync(dst, text);
+	}
+	const served = fs.readFileSync(path.join(to, 'index.html'), 'utf8');
+	if (served.includes(`index.${hash}`)) {
+		throw new Error(`forged index.html still references index.${hash}`);
+	}
+	if (!served.includes(`"executable":"index.${FORGED_HASH}"`)) {
+		throw new Error('forged index.html does not name the forged executable');
 	}
 	return hash;
 }
