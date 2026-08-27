@@ -37,8 +37,28 @@ const MAX_TRIS = 150000;
 const MAX_CPU_MS_CI = 250;
 // Enough wall-clock for a playback head to have visibly moved.
 const AUDIO_SETTLE_MS = 1200;
+// The debug overlay publishes its sample four times a second; a gesture has to
+// outlive one interval before the readout can be trusted.
+const PROBE_MS = 400;
+// Between dispatched touch points, so the engine sees a gesture and not a jump.
+const TOUCH_STEP_MS = 30;
 
 const t = tally('smoke');
+
+/** Pairs of reserved rects that intersect. Empty is the contract. */
+function overlaps(list) {
+	const hits = [];
+	for (let i = 0; i < list.length; i++) {
+		for (let j = i + 1; j < list.length; j++) {
+			const a = list[i];
+			const b = list[j];
+			if (a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h) {
+				hits.push(`${a.id}/${b.id}`);
+			}
+		}
+	}
+	return hits;
+}
 
 (async () => {
 	fs.mkdirSync(SHOTS, { recursive: true });
@@ -89,60 +109,63 @@ const t = tally('smoke');
 	t.check(/single-threaded/.test(joined), 'engine build is single-threaded');
 
 	// Real touch events, dispatched through CDP -- the same event stream the
-	// phone produces. (Synthetic mouse drags do not reach the game: Chromium's
+	// phone produces, including the multi-touch sequences that broke the first
+	// control scheme. (Synthetic mouse drags do not reach the game: Chromium's
 	// mobile emulation swallows them, and the phone has no mouse anyway.)
+	// One changed point per call, which is what CDP models: it fills in the
+	// other live points as stationary and produces a single DOM event with the
+	// right changedTouches. Note that `touchEnd` takes the point being
+	// *released*, not the ones remaining -- passing the remainder releases the
+	// wrong finger, silently, and the suite then proves nothing.
 	const cdp = await context.newCDPSession(page);
-	const points = (list) => list.map((p, i) => ({ x: p[0], y: p[1], id: i + 1 }));
+	const down = new Map();
 
-	async function touchDrag(fromX, fromY, toX, toY, steps) {
+	async function dispatch(type, id, at) {
 		await cdp.send('Input.dispatchTouchEvent', {
-			type: 'touchStart', touchPoints: points([[fromX, fromY]]),
+			type, touchPoints: [{ x: at.x, y: at.y, id }],
 		});
+		await page.waitForTimeout(TOUCH_STEP_MS);
+	}
+	const press = (id, at) => { down.set(id, at); return dispatch('touchStart', id, at); };
+	const move = (id, at) => { down.set(id, at); return dispatch('touchMove', id, at); };
+	const lift = (id) => {
+		const at = down.get(id);
+		down.delete(id);
+		return dispatch('touchEnd', id, at);
+	};
+	async function slide(id, from, to, steps) {
+		await press(id, from);
 		for (let i = 1; i <= steps; i++) {
-			await cdp.send('Input.dispatchTouchEvent', {
-				type: 'touchMove',
-				touchPoints: points([[
-					fromX + ((toX - fromX) * i) / steps,
-					fromY + ((toY - fromY) * i) / steps,
-				]]),
+			await move(id, {
+				x: from.x + ((to.x - from.x) * i) / steps,
+				y: from.y + ((to.y - from.y) * i) / steps,
 			});
-			await page.waitForTimeout(30);
 		}
 	}
-	async function touchEnd() {
-		await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-	}
 	async function threeFingerTap() {
-		await cdp.send('Input.dispatchTouchEvent', {
-			type: 'touchStart', touchPoints: points([[440, 130], [480, 120], [520, 130]]),
-		});
-		await page.waitForTimeout(80);
-		await touchEnd();
+		await press(90, { x: 440, y: 130 });
+		await press(91, { x: 480, y: 118 });
+		await press(92, { x: 520, y: 130 });
+		await page.waitForTimeout(90);
+		await lift(90); await lift(91); await lift(92);
 		await page.waitForTimeout(700);
 	}
 
-	// Right half: drag to look. The camera must turn.
-	await touchDrag(700, 220, 520, 220, 10);
-	await touchEnd();
-	await page.waitForTimeout(800);
-	const looked = await page.screenshot({ path: path.join(SHOTS, '03-looked.png') });
-	t.check(!looked.equals(running), 'dragging the right half turns the camera');
-
-	// Left half: hold to raise the floating stick and walk forward.
-	await touchDrag(200, 300, 200, 230, 6);
-	await page.waitForTimeout(900);
-	const sticked = await page.screenshot({ path: path.join(SHOTS, '04-stick.png') });
-	await touchEnd();
-	t.check(!sticked.equals(looked), 'holding the left half raises the stick and moves the player');
+	const readProbe = () => page.evaluate(() => window.__itaw_probe);
+	async function sample() {
+		await page.waitForTimeout(PROBE_MS);
+		return readProbe();
+	}
 
 	// The debug overlay is the phone's only instrumentation, so it gets tested
-	// like a feature rather than trusted like a debug aid.
+	// like a feature rather than trusted like a debug aid. From here on it is
+	// also the readout the touch assertions are made against.
 	await page.evaluate(() => { window.__itaw_probe = null; });
 	await threeFingerTap();
-	const probe = await page.evaluate(() => window.__itaw_probe);
+	const probe = await readProbe();
 	t.check(!!probe && probe.visible === true, 'three-finger tap opens the debug overlay');
 	console.log('  probe: ' + JSON.stringify(probe));
-	await page.screenshot({ path: path.join(SHOTS, '05-overlay.png') });
+	await page.screenshot({ path: path.join(SHOTS, '02b-overlay.png') });
 
 	if (probe) {
 		t.check(probe.fps > 0, `overlay reports a live frame rate (${probe.fps} fps)`);
@@ -161,7 +184,7 @@ const t = tally('smoke');
 		// is a question only the device answers -- see docs/TESTING.md.
 		const before = probe.audio_source;
 		await page.waitForTimeout(AUDIO_SETTLE_MS);
-		const after = await page.evaluate(() => window.__itaw_probe.audio_source);
+		const after = (await readProbe()).audio_source;
 		const at = (s) => parseFloat(String(s).split(' ')[1] || '0');
 		t.check(
 			/^on /.test(after) && at(after) > at(before),
@@ -174,9 +197,137 @@ const t = tally('smoke');
 		);
 	}
 
+	// ---- the control scheme, at the device's real metrics -------------------
+	// Rects come back in viewport units; touches go out in CSS points. The
+	// overlay reports both sizes, so the conversion is measured rather than
+	// assumed -- which is the whole point of doing this in a browser as well as
+	// headless.
+	const size = (text) => String(text).split('x').map(Number);
+	const [viewW] = size(probe.view);
+	const [winW] = size(probe.window);
+	const k = winW / viewW;
+	const toCss = (r) => ({ x: (r.x + r.w / 2) * k, y: (r.y + r.h / 2) * k });
+	const byId = (list) => Object.fromEntries(list.map((r) => [r.id, r]));
+	const rects = byId(probe.hud.rects);
+
+	t.check(
+		['move_stick', 'look_stick', 'pause', 'action_arc_0'].every((id) => id in rects),
+		`the sticks, pause and action arc all reserve screen area (${Object.keys(rects).join(' ')})`
+	);
+	t.check(overlaps(probe.hud.rects).length === 0,
+		`no two reserved rects overlap (${overlaps(probe.hud.rects).join(', ') || 'none'})`);
+
+	const moveAt = toCss(rects.move_stick);
+	const lookAt = toCss(rects.look_stick);
+
+	// Both sticks, one at a time, against the screen they are actually drawn on.
+	// The baseline is taken here rather than earlier, so the overlay being open
+	// is not what makes the frames differ.
+	const rest = await page.screenshot({ path: path.join(SHOTS, '03-rest.png') });
+	await slide(1, lookAt, { x: lookAt.x - 60, y: lookAt.y }, 8);
+	await lift(1);
+	await page.waitForTimeout(800);
+	const looked = await page.screenshot({ path: path.join(SHOTS, '04-looked.png') });
+	t.check(!looked.equals(rest), 'the right stick turns the camera');
+
+	await slide(1, moveAt, { x: moveAt.x, y: moveAt.y - 55 }, 6);
+	await page.waitForTimeout(900);
+	const sticked = await page.screenshot({ path: path.join(SHOTS, '05-stick.png') });
+	await lift(1);
+	t.check(!sticked.equals(looked), 'the left stick lights up and moves the player');
+
+	// The assertion this whole pass exists for.
+	await press(1, moveAt);
+	await press(2, lookAt);
+	await move(1, { x: moveAt.x, y: moveAt.y - 50 });
+	await move(2, { x: lookAt.x + 55, y: lookAt.y });
+	const both = await sample();
+	t.check(both.hud.move[1] > 0.2, `left thumb walks forward (${both.hud.move[1].toFixed(2)})`);
+	t.check(both.hud.look[0] > 0.2, `right thumb turns the camera (${both.hud.look[0].toFixed(2)})`);
+	t.check(
+		JSON.stringify(byId(both.hud.rects).move_stick) === JSON.stringify(rects.move_stick),
+		'the stick base does not travel with the thumb'
+	);
+
+	await lift(2);
+	const afterLift = await sample();
+	t.check(
+		afterLift.hud.move[1] === both.hud.move[1] && afterLift.hud.move[0] === both.hud.move[0],
+		`lifting the right thumb leaves movement exactly unchanged `
+			+ `(${both.hud.move} -> ${afterLift.hud.move})`
+	);
+	t.check(afterLift.hud.look.every((v) => v === 0), 'the look stick recentres on release');
+
+	// Rapid replanting of the other thumb, which is what the device could not do.
+	await press(2, lookAt);
+	await move(2, { x: lookAt.x + 55, y: lookAt.y - 20 });
+	const held = (await sample()).hud.look;
+	let disturbed = false;
+	for (let i = 0; i < 4; i++) {
+		await lift(1);
+		await press(1, { x: moveAt.x, y: moveAt.y + 6 * i });
+		await move(1, { x: moveAt.x + 30, y: moveAt.y - 40 });
+		const now = await readProbe();
+		if (JSON.stringify(now.hud.look) !== JSON.stringify(held)) { disturbed = true; }
+	}
+	t.check(!disturbed, `four left-thumb replants leave the look stick at ${held}`);
+	await lift(1);
+	await lift(2);
+	await page.waitForTimeout(300);
+
+	// A touch that begins on a stick belongs to it wherever it ends up.
+	await press(1, moveAt);
+	await move(1, lookAt);
+	const wandered = await sample();
+	t.check(
+		wandered.hud.claims.move_stick === 1 && !('look_stick' in wandered.hud.claims),
+		`a touch dragged across the screen keeps its owner `
+			+ `(${JSON.stringify(wandered.hud.claims)})`
+	);
+	await lift(1);
+	await page.waitForTimeout(300);
+
+	// ---- pause --------------------------------------------------------------
+	await press(1, toCss(rects.pause));
+	await lift(1);
+	await page.waitForTimeout(500);
+	t.check(await page.evaluate(() => window.__itaw_paused === true), 'the pause button pauses');
+	await page.screenshot({ path: path.join(SHOTS, '06-paused.png') });
+	await page.keyboard.press('Escape');
+	await page.waitForTimeout(500);
+	t.check(await page.evaluate(() => window.__itaw_paused === false), 'the menu closes again');
+
+	// ---- settings survive a reload -----------------------------------------
+	const stored = await page.evaluate(() => window.__itaw_store.read('settings.v1'));
+	t.check(
+		!!stored && 'look_style' in JSON.parse(stored),
+		`settings are written to durable storage (${String(stored).slice(0, 60)})`
+	);
+	await page.evaluate(() => {
+		const kept = JSON.parse(window.__itaw_store.read('settings.v1'));
+		kept.look_style = 1;
+		kept.stick_deadzone = 0.31;
+		window.__itaw_store.write('settings.v1', JSON.stringify(kept));
+	});
+	await page.reload({ waitUntil: 'load' });
+	await page.waitForSelector('#begin:not([hidden])', { timeout: BOOT_MS });
+	await page.tap('#begin');
+	await page.waitForFunction(() => document.getElementById('veil').hidden, null, { timeout: BOOT_MS });
+	await page.waitForTimeout(2000);
 	await threeFingerTap();
-	const closed = await page.evaluate(() => window.__itaw_probe);
-	t.check(!!closed && closed.visible === false, 'a second three-finger tap closes it again');
+	const restored = await sample();
+	t.check(
+		restored && restored.hud.style === 'drag',
+		`a stored look style is applied on the next load (${restored && restored.hud.style})`
+	);
+	t.check(
+		!byId(restored.hud.rects).look_stick,
+		'the drag style takes the right stick off the screen'
+	);
+
+	await threeFingerTap();
+	const closed = await readProbe();
+	t.check(!!closed && closed.visible === false, 'a second three-finger tap closes the overlay');
 
 	t.check(pageErrors.length === 0, `no uncaught script errors (${pageErrors.length})`);
 	t.check(requestFailures.length === 0, `no failed requests (${requestFailures.length})`);

@@ -1,34 +1,37 @@
 class_name LookPad
-extends Control
+extends Node
 
-## Drag-to-look region. iOS has no pointer lock, so looking is a drag gesture:
-## the camera turns by however far the thumb travelled this frame, and stops
-## dead when the thumb stops. Emits raw pixel deltas; sensitivity, smoothing
-## and invert all belong to the thing being looked through (PlayerTuning).
+## Drag-to-look, kept as a first-class control rather than a fallback.
+##
+## iOS has no pointer lock, so this style turns the camera by however far the
+## thumb travelled this frame and stops dead when the thumb stops. It is the
+## more precise of the two styles and is one setting away at all times; the
+## default is the right stick because two fixed sticks are what a thumb can find
+## without looking.
+##
+## Emits raw travel in viewport units. Sensitivity, inversion and clamping
+## belong to whatever is being looked through.
 
 signal looked(pixels: Vector2)
 
-var _touch_index := -1
+var _index := -1
 
 
-func _ready() -> void:
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
+func is_held() -> bool:
+	return _index != -1
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventScreenTouch:
-		_handle_touch(event)
-	elif event is InputEventScreenDrag and event.index == _touch_index:
-		looked.emit(event.relative)
-		get_viewport().set_input_as_handled()
+func press(index: int, _position: Vector2) -> void:
+	_index = index
 
 
-func _handle_touch(event: InputEventScreenTouch) -> void:
-	if event.pressed:
-		if _touch_index != -1 or not get_global_rect().has_point(event.position):
-			return
-		_touch_index = event.index
-		get_viewport().set_input_as_handled()
-	elif event.index == _touch_index:
-		_touch_index = -1
-		get_viewport().set_input_as_handled()
+## `delta` is already first-move-guarded and clamped by TouchRouter.
+func drag(index: int, delta: Vector2) -> void:
+	if index != _index or delta == Vector2.ZERO:
+		return
+	looked.emit(delta)
+
+
+func release(index: int) -> void:
+	if index == _index:
+		_index = -1

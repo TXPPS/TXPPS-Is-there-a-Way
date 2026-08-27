@@ -1,12 +1,16 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://src/ui/hud.gd" id="1_hud"]
-[ext_resource type="Script" path="res://src/ui/safe_area_margin.gd" id="2_safe"]
+[ext_resource type="Script" path="res://src/ui/safe_area.gd" id="2_safe"]
 [ext_resource type="Script" path="res://src/input/virtual_stick.gd" id="3_stick"]
 [ext_resource type="Script" path="res://src/input/look_pad.gd" id="4_look"]
 [ext_resource type="Resource" path="res://src/input/touch_tuning.tres" id="5_touch"]
 [ext_resource type="Script" path="res://src/input/touch_watch.gd" id="6_watch"]
 [ext_resource type="Script" path="res://src/ui/debug_overlay.gd" id="7_debug"]
+[ext_resource type="Script" path="res://src/input/touch_router.gd" id="8_router"]
+[ext_resource type="Script" path="res://src/ui/hud_rects.gd" id="9_rects"]
+[ext_resource type="Resource" path="res://src/ui/hud_layout.tres" id="10_layout"]
+[ext_resource type="Script" path="res://src/ui/touch_button.gd" id="11_button"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_debug"]
 content_margin_left = 12.0
@@ -24,61 +28,66 @@ corner_radius_top_right = 3
 corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 
-
 [node name="Hud" type="CanvasLayer"]
 script = ExtResource("1_hud")
+layout = ExtResource("10_layout")
+tuning = ExtResource("5_touch")
 
-[node name="SafeArea" type="MarginContainer" parent="."]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="SafeArea" type="Control" parent="."]
 mouse_filter = 2
 script = ExtResource("2_safe")
 
-[node name="Layout" type="Control" parent="SafeArea"]
-layout_mode = 2
-mouse_filter = 2
-
-[node name="VirtualStick" type="Control" parent="SafeArea/Layout"]
+; Top-left, and pushed down past the build stamp the HTML shell draws there.
+; The pause button owns the opposite corner; nothing may share either.
+[node name="DebugOverlay" type="PanelContainer" parent="SafeArea"]
 layout_mode = 1
-anchors_preset = 9
-anchor_right = 0.5
-anchor_bottom = 1.0
-grow_vertical = 2
-mouse_filter = 2
-script = ExtResource("3_stick")
-tuning = ExtResource("5_touch")
-
-[node name="LookPad" type="Control" parent="SafeArea/Layout"]
-layout_mode = 1
-anchors_preset = 11
-anchor_left = 0.5
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 0
-grow_vertical = 2
-mouse_filter = 2
-script = ExtResource("4_look")
-
-[node name="DebugOverlay" type="PanelContainer" parent="SafeArea/Layout" node_paths=PackedStringArray("watch")]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-grow_horizontal = 0
+anchors_preset = 0
+offset_top = 38.0
+offset_right = 300.0
+offset_bottom = 260.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_debug")
 script = ExtResource("7_debug")
-watch = NodePath("../../../TouchWatch")
 
-[node name="Text" type="Label" parent="SafeArea/Layout/DebugOverlay"]
+[node name="Text" type="Label" parent="SafeArea/DebugOverlay"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.71, 0.757, 0.808, 1)
 theme_override_font_sizes/font_size = 13
 text = "..."
 
-[node name="TouchWatch" type="Node" parent="."]
+; Full-bleed on purpose: the controls are placed in viewport coordinates from
+; HudLayout, and this parent exists only to give them that coordinate space.
+[node name="Controls" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="MoveStick" type="Control" parent="Controls"]
+mouse_filter = 2
+script = ExtResource("3_stick")
+
+[node name="LookStick" type="Control" parent="Controls"]
+mouse_filter = 2
+script = ExtResource("3_stick")
+
+[node name="PauseButton" type="Control" parent="Controls"]
+mouse_filter = 2
+script = ExtResource("11_button")
+
+[node name="LookPad" type="Node" parent="."]
+script = ExtResource("4_look")
+
+[node name="TouchRouter" type="Node" parent="." node_paths=PackedStringArray("watch")]
+script = ExtResource("8_router")
+tuning = ExtResource("5_touch")
+watch = NodePath("TouchWatch")
+
+[node name="TouchWatch" type="Node" parent="TouchRouter"]
 script = ExtResource("6_watch")
+
+[node name="HudRects" type="Node" parent="."]
+script = ExtResource("9_rects")

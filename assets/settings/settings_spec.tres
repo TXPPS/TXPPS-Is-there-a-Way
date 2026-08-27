@@ -3,109 +3,114 @@
 [ext_resource type="Script" path="res://src/core/settings_row.gd" id="1_row"]
 [ext_resource type="Script" path="res://src/core/settings_spec.gd" id="2_spec"]
 
-[sub_resource type="Resource" id="Row_look_sensitivity"]
+[sub_resource type="Resource" id="Row_look_style"]
 script = ExtResource("1_row")
-key = &"look_sensitivity"
-label = "Look sensitivity"
-hint = "How far the camera turns per centimetre of thumb."
-group = "Look"
-default_value = 0.18
-minimum = 0.06
-maximum = 0.45
-step = 0.005
-display_scale = 100.0
-display_suffix = ""
+key = &"look_style"
+label = "Look style"
+hint = "Right stick is two fixed thumbs. Drag is more precise."
+group = "Controls"
+kind = 2
+default_value = 0.0
+choices = PackedStringArray("Right stick", "Drag")
+
+[sub_resource type="Resource" id="Row_look_sensitivity_x"]
+script = ExtResource("1_row")
+key = &"look_sensitivity_x"
+label = "Turn speed"
+hint = "How fast the camera turns left and right."
+group = "Controls"
+default_value = 1.0
+minimum = 0.3
+maximum = 2.5
+step = 0.05
+
+[sub_resource type="Resource" id="Row_look_sensitivity_y"]
+script = ExtResource("1_row")
+key = &"look_sensitivity_y"
+label = "Look speed"
+hint = "How fast the camera tilts up and down."
+group = "Controls"
+default_value = 1.0
+minimum = 0.3
+maximum = 2.5
+step = 0.05
 
 [sub_resource type="Resource" id="Row_invert_y"]
 script = ExtResource("1_row")
 key = &"invert_y"
 label = "Invert vertical look"
-hint = "Drag down to look up."
-group = "Look"
-kind = 0
-
-[sub_resource type="Resource" id="Row_field_of_view"]
-script = ExtResource("1_row")
-key = &"field_of_view"
-label = "Field of view"
-hint = "Wider sees more of the room and less of what is far away."
-group = "Look"
-default_value = 72.0
-minimum = 60.0
-maximum = 90.0
-step = 1.0
-display_scale = 1.0
-display_suffix = "°"
-
-[sub_resource type="Resource" id="Row_stick_radius"]
-script = ExtResource("1_row")
-key = &"stick_radius"
-label = "Stick size"
-hint = "How far the thumb travels for a full walk."
+hint = "Push down to look up."
 group = "Controls"
-default_value = 92.0
-minimum = 64.0
-maximum = 132.0
-step = 1.0
+kind = 0
+default_value = 0.0
+
+[sub_resource type="Resource" id="Row_stick_size"]
+script = ExtResource("1_row")
+key = &"stick_size"
+label = "Stick size"
+hint = "How far the thumb travels for a full push."
+group = "Controls"
+default_value = 1.0
+minimum = 0.7
+maximum = 1.45
+step = 0.05
+
+[sub_resource type="Resource" id="Row_stick_opacity"]
+script = ExtResource("1_row")
+key = &"stick_opacity"
+label = "Stick visibility"
+hint = "How strongly the sticks are drawn at rest."
+group = "Controls"
+default_value = 0.35
+minimum = 0.1
+maximum = 0.9
+step = 0.05
+
+[sub_resource type="Resource" id="Row_stick_offset_x"]
+script = ExtResource("1_row")
+key = &"stick_offset_x"
+label = "Stick inset"
+hint = "Moves both sticks in from the screen edges."
+group = "Controls"
+default_value = 0.0
+minimum = -40.0
+maximum = 90.0
+step = 2.0
 display_scale = 1.0
 display_suffix = ""
 
-[sub_resource type="Resource" id="Row_control_opacity"]
+[sub_resource type="Resource" id="Row_stick_offset_y"]
 script = ExtResource("1_row")
-key = &"control_opacity"
-label = "Control visibility"
-hint = "How strongly the on-screen controls are drawn."
+key = &"stick_offset_y"
+label = "Stick height"
+hint = "Raises both sticks up from the bottom edge."
 group = "Controls"
-default_value = 0.3
-minimum = 0.1
-maximum = 0.8
+default_value = 0.0
+minimum = -40.0
+maximum = 90.0
+step = 2.0
+display_scale = 1.0
+display_suffix = ""
+
+[sub_resource type="Resource" id="Row_stick_deadzone"]
+script = ExtResource("1_row")
+key = &"stick_deadzone"
+label = "Dead zone"
+hint = "How far a thumb may rest before anything moves."
+group = "Controls"
+default_value = 0.09
+minimum = 0.0
+maximum = 0.35
 step = 0.01
 
 [sub_resource type="Resource" id="Row_haptics"]
 script = ExtResource("1_row")
 key = &"haptics"
 label = "Haptics"
-hint = "Short taps on interaction. Not all phones allow this from a browser."
+hint = "A short tap on interaction. Not every phone allows this from a browser."
 group = "Controls"
 kind = 0
 default_value = 1.0
-
-[sub_resource type="Resource" id="Row_brightness"]
-script = ExtResource("1_row")
-key = &"brightness"
-label = "Brightness"
-hint = "Raise it only as far as you must. The dark is the game."
-group = "Display"
-default_value = 1.0
-minimum = 0.6
-maximum = 1.6
-step = 0.01
-
-[sub_resource type="Resource" id="Row_reduce_motion"]
-script = ExtResource("1_row")
-key = &"reduce_motion"
-label = "Reduce motion"
-hint = "Removes head bob, landing settle and camera easing."
-group = "Display"
-kind = 0
-
-[sub_resource type="Resource" id="Row_subtitle_size"]
-script = ExtResource("1_row")
-key = &"subtitle_size"
-label = "Subtitle size"
-group = "Display"
-kind = 2
-default_value = 1.0
-choices = PackedStringArray("Small", "Normal", "Large", "Very large")
-
-[sub_resource type="Resource" id="Row_cue_mode"]
-script = ExtResource("1_row")
-key = &"cue_mode"
-label = "Puzzle cues"
-hint = "Adds a shape to every cue that is otherwise only a colour."
-group = "Display"
-kind = 2
-choices = PackedStringArray("Colour", "Colour and shape")
 
 [sub_resource type="Resource" id="Row_volume_master"]
 script = ExtResource("1_row")
@@ -135,6 +140,58 @@ label = "Voice"
 group = "Audio"
 default_value = 1.0
 
+[sub_resource type="Resource" id="Row_brightness"]
+script = ExtResource("1_row")
+key = &"brightness"
+label = "Brightness"
+hint = "Raise it only as far as you must. The dark is the game."
+group = "Display"
+default_value = 1.0
+minimum = 0.6
+maximum = 1.6
+step = 0.02
+
+[sub_resource type="Resource" id="Row_field_of_view"]
+script = ExtResource("1_row")
+key = &"field_of_view"
+label = "Field of view"
+hint = "Wider sees more of the room and less of what is far away."
+group = "Display"
+default_value = 72.0
+minimum = 60.0
+maximum = 90.0
+step = 1.0
+display_scale = 1.0
+display_suffix = "°"
+
+[sub_resource type="Resource" id="Row_reduce_motion"]
+script = ExtResource("1_row")
+key = &"reduce_motion"
+label = "Reduce motion"
+hint = "Removes head bob and camera easing."
+group = "Display"
+kind = 0
+default_value = 0.0
+
+[sub_resource type="Resource" id="Row_subtitle_size"]
+script = ExtResource("1_row")
+key = &"subtitle_size"
+label = "Subtitle size"
+group = "Accessibility"
+kind = 2
+default_value = 1.0
+choices = PackedStringArray("Small", "Normal", "Large", "Very large")
+
+[sub_resource type="Resource" id="Row_cue_mode"]
+script = ExtResource("1_row")
+key = &"cue_mode"
+label = "Puzzle cues"
+hint = "Adds a shape to every cue that is otherwise only a colour."
+group = "Accessibility"
+kind = 2
+default_value = 0.0
+choices = PackedStringArray("Colour", "Colour and shape")
+
 [resource]
 script = ExtResource("2_spec")
-rows = Array[ExtResource("1_row")]([SubResource("Row_look_sensitivity"), SubResource("Row_invert_y"), SubResource("Row_field_of_view"), SubResource("Row_stick_radius"), SubResource("Row_control_opacity"), SubResource("Row_haptics"), SubResource("Row_brightness"), SubResource("Row_reduce_motion"), SubResource("Row_subtitle_size"), SubResource("Row_cue_mode"), SubResource("Row_volume_master"), SubResource("Row_volume_sfx"), SubResource("Row_volume_music"), SubResource("Row_volume_voice")])
+rows = Array[ExtResource("1_row")]([SubResource("Row_look_style"), SubResource("Row_look_sensitivity_x"), SubResource("Row_look_sensitivity_y"), SubResource("Row_invert_y"), SubResource("Row_stick_size"), SubResource("Row_stick_opacity"), SubResource("Row_stick_offset_x"), SubResource("Row_stick_offset_y"), SubResource("Row_stick_deadzone"), SubResource("Row_haptics"), SubResource("Row_volume_master"), SubResource("Row_volume_sfx"), SubResource("Row_volume_music"), SubResource("Row_volume_voice"), SubResource("Row_brightness"), SubResource("Row_field_of_view"), SubResource("Row_reduce_motion"), SubResource("Row_subtitle_size"), SubResource("Row_cue_mode")])

@@ -5,12 +5,66 @@ between a commit and knowing whether it works — except the phone, and the last
 section is about what only the phone can tell us.
 
 ```sh
+godot --headless --script res://tests/run_tests.gd   # controls, pause, layout, settings
 npm --prefix tools/web ci
 npm --prefix tools/web run smoke       # gameplay + instrumentation
 npm --prefix tools/web run smoke:pwa   # install, update, recovery
 ```
 
-Both suites want a build in `build/`. `bash tools/ci/build_web.sh` makes one.
+The browser suites want a build in `build/`. `bash tools/ci/build_web.sh` makes
+one, and runs the headless suite on the way past — a control scheme that fails
+its own assertions never reaches an export.
+
+---
+
+## `tests/` — the control scheme, headless
+
+The browser is the wrong place to assert arithmetic. Chromium's touch emulation
+is another layer to be wrong about, screenshots cannot tell you *why* a stick
+moved, and a wall-clock frame in a software rasteriser is not a frame. So
+everything that is a number lives here, in the real `main.tscn`, driven by real
+`InputEventScreenTouch` / `InputEventScreenDrag` pushed straight at the viewport.
+
+```
+tests/run_tests.gd     SceneTree entry point; sizes the window, runs the cases
+tests/expect.gd        assertion tally
+tests/touch.gd         synthetic touches, including deliberately wrong ones
+tests/case_input.gd    the control scheme
+tests/case_pause.gd    pause halts, releases, ducks, and resumes without a jump
+tests/case_layout.gd   the reserved rect contract
+tests/case_settings.gd persistence, clamping, and change announcements
+```
+
+Two things about the harness are worth knowing before adding a case.
+
+**The window has to be sized.** Headless opens a placeholder window, and the
+project's `canvas_items` stretch then scales it up to the design width — making
+every layout assertion a statement about a screen nobody has. `run_tests.gd`
+sets `root.size` to iPhone 16 Pro Max landscape in CSS points **after** the
+first frame, because the window is still settling into its own size before one.
+The viewport then reads 1286×592, and the point-to-unit scale is a real 1.35.
+
+**Touches are pushed as local coordinates.** `root.push_input(event, true)`.
+Without the `true`, Godot converts the position from window space to viewport
+space and the touch lands at a fraction of where the test aimed it.
+
+`tests/touch.gd` can set `relative` on a drag, and `case_input.gd` sets it to
+±9999 on purpose. Godot 4.6's web build computes that field against the wrong
+finger whenever more than one is down (see ARCHITECTURE.md, "Touch ownership");
+the assertion is that a lie in it changes nothing.
+
+### What each case is defending
+
+| Case | The device symptom it exists for |
+|---|---|
+| base is fixed | the stick's ring travelled across the screen with the thumb |
+| two thumbs are independent | lifting the left thumb disturbed the view |
+| replanting | the same, at speed, six times in a row |
+| ownership survives leaving the region | a thumb sliding onto the other stick stole it |
+| relative is never trusted | the camera spun when the second thumb landed |
+| first move is free | a jump on the first frame of a look gesture |
+| pause | a stick still held on resume; a camera that jumped |
+| layout | a prompt drawn under a thumb; a target below 44 pt |
 
 ---
 
@@ -73,8 +127,24 @@ Chromium's mobile emulation swallows them), and screenshots each stage into
 
 It asserts the export variant (single-threaded, Compatibility, no
 `SharedArrayBuffer`, no cross-origin isolation), that the canvas renders at CSS
-resolution rather than 3×, that dragging each half of the screen does what it
-should, and then opens the debug overlay and reads its numbers.
+resolution rather than 3×, and then opens the debug overlay and works through
+the control scheme, the pause button and settings persistence against it.
+
+### Multi-touch through CDP
+
+The touch cases are duplicated here on purpose. `tests/` proves the arithmetic
+against synthetic events; this proves the same behaviour survives a real browser
+at the device's real metrics — CSS pixels, `devicePixelRatio` 3, a canvas that
+is not the viewport, and a safe area the shell measured rather than one a test
+declared. The reserved rects come back through `window.__itaw_probe` in viewport
+units and the suite converts them to CSS points using the two sizes the overlay
+reports, so the conversion is measured rather than assumed.
+
+**`Input.dispatchTouchEvent`'s `touchEnd` takes the point being *released*, not
+the ones remaining.** Passing the remainder lifts the wrong finger, silently,
+and a suite that does it proves nothing while looking green. Chromium generates
+one DOM event per changed point and fills the other live points in as
+stationary, so the driver here sends exactly one changed point per call.
 
 ### Reading the overlay from the test
 

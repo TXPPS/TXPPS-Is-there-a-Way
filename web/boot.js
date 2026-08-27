@@ -545,6 +545,14 @@
 	}
 	window.__itaw_buildStamp = function () { return stampShort(); };
 
+	// The pause menu shows the same stamp at its foot and copies through here,
+	// so the report a player sends is byte-identical wherever they tapped it.
+	window.__itaw_copyStamp = function () { copyText(stampReport()); };
+
+	// A browser has no quit. "Return to Title" is a reload: everything is in the
+	// cache, so the page comes straight back up on the tap gate.
+	window.__itaw_returnToTitle = function () { location.reload(); };
+
 	// ---- engine ------------------------------------------------------------
 	// A cached engine script that has been damaged throws here, before anything
 	// else in this file gets a chance to say so. Same fatality as a missing
@@ -701,8 +709,8 @@
 		return true;
 	}
 
-	// Called by the game (src/core/diagnostics.gd) when it opens or closes a
-	// menu, i.e. when interrupting the player costs nothing.
+	// Called by src/ui/pause_menu.gd when it opens or closes, i.e. when
+	// interrupting the player costs nothing.
 	window.__itaw_setUpdateGate = function (open) {
 		atSafePoint = !!open;
 		presentUpdate('gate');

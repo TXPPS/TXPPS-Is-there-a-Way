@@ -1,0 +1,126 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://src/ui/pause_menu.gd" id="1_menu"]
+[ext_resource type="Script" path="res://src/ui/safe_area.gd" id="2_safe"]
+[ext_resource type="Script" path="res://src/ui/controls_diagram.gd" id="3_diagram"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.043, 0.047, 0.055, 0.96)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.478, 0.51, 0.549, 0.28)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_scroll"]
+bg_color = Color(0, 0, 0, 0.22)
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+
+[node name="PauseMenu" type="CanvasLayer"]
+process_mode = 3
+layer = 3
+visible = false
+script = ExtResource("1_menu")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.008, 0.01, 0.014, 0.88)
+
+[node name="Safe" type="Control" parent="."]
+mouse_filter = 2
+script = ExtResource("2_safe")
+
+[node name="Center" type="CenterContainer" parent="Safe"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="Safe/Center"]
+custom_minimum_size = Vector2(780, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Pad" type="MarginContainer" parent="Safe/Center/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 18
+
+[node name="Body" type="VBoxContainer" parent="Safe/Center/Panel/Pad"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="Safe/Center/Panel/Pad/Body"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Paused"
+
+[node name="Resume" type="Button" parent="Safe/Center/Panel/Pad/Body"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+text = "Resume"
+
+[node name="Diagram" type="Control" parent="Safe/Center/Panel/Pad/Body"]
+custom_minimum_size = Vector2(0, 168)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("3_diagram")
+
+[node name="Scroll" type="ScrollContainer" parent="Safe/Center/Panel/Pad/Body"]
+custom_minimum_size = Vector2(0, 250)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_scroll")
+horizontal_scroll_mode = 0
+
+[node name="Groups" type="VBoxContainer" parent="Safe/Center/Panel/Pad/Body/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="ReturnToTitle" type="Button" parent="Safe/Center/Panel/Pad/Body"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+text = "Return to Title"
+
+[node name="Confirm" type="HBoxContainer" parent="Safe/Center/Panel/Pad/Body"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Ask" type="Label" parent="Safe/Center/Panel/Pad/Body/Confirm"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+text = "Return to the title? Anything not saved is lost."
+
+[node name="Yes" type="Button" parent="Safe/Center/Panel/Pad/Body/Confirm"]
+custom_minimum_size = Vector2(140, 60)
+layout_mode = 2
+text = "Return"
+
+[node name="No" type="Button" parent="Safe/Center/Panel/Pad/Body/Confirm"]
+custom_minimum_size = Vector2(140, 60)
+layout_mode = 2
+text = "Cancel"
+
+[node name="Stamp" type="Button" parent="Safe/Center/Panel/Pad/Body"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+tooltip_text = "Copy the build stamp"
+flat = true
+text = "dev"

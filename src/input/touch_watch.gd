@@ -1,16 +1,16 @@
 class_name TouchWatch
 extends Node
 
-## Watches every screen touch without consuming any.
+## Watches every screen touch, claimed or not, and consumes none.
 ##
 ## Two things need to know about touches in general rather than about their own
 ## touch: the gesture that summons the debug overlay, and the overlay's readout
-## of which touch IDs are live. Neither belongs inside the stick or the look pad,
-## so both are served from here.
+## of which touch IDs are live. Neither belongs inside a control, so both are
+## served from here.
 ##
-## Uses `_input()` rather than `_unhandled_input()` on purpose -- the controls
-## consume the touches they claim, and this has to see them anyway. It never
-## marks an event handled, so nothing downstream changes because of it.
+## Events arrive via `observe()` from TouchRouter rather than from an `_input()`
+## of its own: the router consumes the touches it claims, so a second listener
+## would see an arbitrary subset depending on node order.
 
 signal three_finger_tapped
 
@@ -18,7 +18,7 @@ signal three_finger_tapped
 @export_range(2, 5, 1) var finger_count: int = 3
 ## A tap, not a hold. Fingers must start leaving within this many seconds.
 @export_range(0.1, 2.0, 0.05) var tap_window: float = 0.8
-## A tap, not a drag. No finger may travel further than this, in pixels.
+## A tap, not a drag. No finger may travel further than this, in viewport units.
 @export_range(4.0, 200.0, 1.0) var travel_limit: float = 48.0
 
 var _positions: Dictionary[int, Vector2] = {}
@@ -36,7 +36,7 @@ func active_indices() -> Array[int]:
 	return ids
 
 
-func _input(event: InputEvent) -> void:
+func observe(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		_on_touch(event as InputEventScreenTouch)
 	elif event is InputEventScreenDrag:
@@ -50,10 +50,12 @@ func _on_touch(event: InputEventScreenTouch) -> void:
 	_release(event.index)
 
 
+## Travel is measured from this finger's own last position rather than from the
+## event's `relative`, for the reason spelled out in TouchRouter.
 func _on_drag(event: InputEventScreenDrag) -> void:
-	if not _travel.has(event.index):
+	if not _positions.has(event.index):
 		return
-	_travel[event.index] += event.relative.length()
+	_travel[event.index] += (event.position - _positions[event.index]).length()
 	_positions[event.index] = event.position
 
 

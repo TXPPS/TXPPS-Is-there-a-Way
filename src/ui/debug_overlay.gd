@@ -25,19 +25,28 @@ const MS_PER_S := 1000.0
 ## it, so showing "-200 dB" on a phone would read as a fault that is not there.
 const PEAK_FLOOR := -199.0
 
-@export var watch: TouchWatch
-
 @onready var _text: Label = $Text
 
+var _watch: TouchWatch
+var _hud: Hud
+var _rects: HudRects
 var _env: Dictionary = {}
 var _since_sample := 0.0
 var _since_env := ENV_INTERVAL
 
 
 func _ready() -> void:
-	assert(watch != null, "DebugOverlay needs a TouchWatch assigned.")
 	visible = false
 	set_process(false)
+
+
+## Wired by Hud, which owns all three. Exporting NodePaths for them would put
+## the scene tree's shape into the inspector, where a rearrangement breaks it
+## silently.
+func bind(watch: TouchWatch, hud: Hud, rects: HudRects) -> void:
+	_watch = watch
+	_hud = hud
+	_rects = rects
 
 
 func toggle() -> void:
@@ -46,6 +55,10 @@ func toggle() -> void:
 	if visible:
 		_since_sample = SAMPLE_INTERVAL
 		_since_env = ENV_INTERVAL
+		# The overlay is the one HUD element allowed to be large, so it is also
+		# the one most likely to grow into a thumb. It asks every time it opens.
+		if _rects != null:
+			_rects.require_clear(&"debug_overlay", get_global_rect())
 		return
 	_publish({"visible": false})
 
@@ -83,6 +96,7 @@ func _sample() -> Dictionary:
 		"audio_source": _source_state(),
 		"listener": get_viewport().is_audio_listener_3d(),
 		"shell": _env,
+		"hud": _hud.probe() if _hud != null else {},
 	}
 
 
@@ -96,6 +110,8 @@ func _lines(s: Dictionary) -> PackedStringArray:
 	lines.append("css %s x %s   dpr %s" % [_env.get("css_w", "-"), _env.get("css_h", "-"), _env.get("dpr", "-")])
 	lines.append("safe %s" % _env.get("safe", "-"))
 	lines.append("touch %s" % ("none" if (s["touches"] as String).is_empty() else s["touches"]))
+	lines.append("owned %s" % _claims(s))
+	lines.append("stick %s" % _sticks(s))
 	lines.append("store %s   sw %s" % [_env.get("store", "-"), _env.get("worker", "-")])
 	lines.append("hum %s   %s" % [s["audio_source"], _peak_text(s["audio_db"])])
 	lines.append("mixer gap %s ms   lat %s ms" % [s["audio_gap_ms"], s["audio_latency_ms"]])
@@ -103,11 +119,31 @@ func _lines(s: Dictionary) -> PackedStringArray:
 	return lines
 
 
+## Which control holds which finger. The single most useful line on this overlay
+## while the control scheme is being tuned.
+func _claims(s: Dictionary) -> String:
+	var hud: Dictionary = s.get("hud", {})
+	var claims: Dictionary = hud.get("claims", {})
+	if claims.is_empty():
+		return "none  (%s)" % hud.get("style", "-")
+	var parts := PackedStringArray()
+	for id in claims:
+		parts.append("%s=%s" % [id, claims[id]])
+	return "%s  (%s)" % [" ".join(parts), hud.get("style", "-")]
+
+
+func _sticks(s: Dictionary) -> String:
+	var hud: Dictionary = s.get("hud", {})
+	var move: Array = hud.get("move", [0.0, 0.0])
+	var look: Array = hud.get("look", [0.0, 0.0])
+	return "move %+.2f,%+.2f   look %+.2f,%+.2f" % [move[0], move[1], look[0], look[1]]
+
+
 func _touch_ids() -> String:
-	if watch == null:
+	if _watch == null:
 		return ""
 	var parts := PackedStringArray()
-	for index in watch.active_indices():
+	for index in _watch.active_indices():
 		parts.append(str(index))
 	return ",".join(parts)
 

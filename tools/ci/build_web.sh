@@ -43,6 +43,17 @@ if grep -qiE '(SCRIPT ERROR|SCRIPT_ERROR|Parse Error|ERROR:|Failed to load)' "$L
 	exit 1
 fi
 
+echo "==> headless suite: input, pause, HUD layout, settings"
+# Everything a browser cannot see: multi-touch ownership, the reserved rect
+# contract, pause, and settings persistence. See docs/TESTING.md.
+TEST_LOG="$(mktemp)"
+"$GODOT" --headless --script res://tests/run_tests.gd 2>&1 | tee "$TEST_LOG"
+if grep -qiE '(SCRIPT ERROR|Parse Error|ERROR:)' "$TEST_LOG"; then
+	echo "error: the headless suite logged errors (see above)." >&2
+	exit 1
+fi
+grep -q "checks passed" "$TEST_LOG" || { echo "error: the headless suite did not pass." >&2; exit 1; }
+
 echo "==> exporting $PRESET"
 EXPORT_LOG="$(mktemp)"
 if ! "$GODOT" --headless --export-release "$PRESET" "$BUILD_DIR/index.html" 2>&1 | tee "$EXPORT_LOG"; then

@@ -123,3 +123,37 @@ stay `no-cache` and decide which build is live.
 Without it Godot imported the entire dependency tree into the game data pack and
 the `.pck` went from 74 KB to 25 MB. The build script also fences the output
 directory for the same reason.
+
+## D8 — Fixed twin sticks, with drag-look kept whole
+
+Device QA killed the floating stick. It planted its origin wherever a touch-down
+landed, which is the point of a floating stick — but *any* touch-down re-planted
+it, including the ones iOS re-issues after cancelling a gesture mid-drag, and
+the base appeared to slide across the screen with the thumb. A fixed base is not
+a workaround for that; it removes the mechanism. `VirtualStick` no longer has a
+line that writes its own position, and `HudLayout` is the only thing that does.
+
+The default is now two fixed sticks: left walks, right turns. The right stick is
+**rate-based** — deflection maps to angular velocity, not to a position — with a
+response curve so small deflections stay precise, separate X and Y sensitivity,
+and a hard ceiling on turn rate that no combination of sliders can exceed.
+
+Drag-look is kept whole behind *Look style*, not deprecated. It is the more
+precise of the two and there is a real chance of switching back to it; a code
+path that is one setting away stays honest, while one that is commented out
+stops compiling within a month. Both styles end at the same two methods on
+`Player`, so neither can drift.
+
+## D9 — Never read `InputEventScreenDrag.relative`
+
+Godot 4.6's web display server keys its previous-touch-position table by the
+touch's slot in the DOM event's `changedTouches` list, not by the touch
+identifier it stamps on the event it emits
+(`platform/web/display_server_web.cpp:748`). With one finger the two agree. With
+two they do not, and every move event for the second thumb reports travel
+measured from wherever the first thumb last was.
+
+That is an engine bug, upstream of anything in this repository, and the fix here
+is not to wait for it: `TouchRouter` derives every delta from `position`, keyed
+by touch index. The field is never read. `tests/case_input.gd` sets it to ±9999
+and asserts nothing moves, so if someone reaches for it later the suite says so.

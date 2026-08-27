@@ -4,9 +4,11 @@
 
 [resource]
 script = ExtResource("1_touch")
-stick_radius = 92.0
-knob_radius = 32.0
-stick_deadzone = 0.09
-opacity = 0.3
+deadzone = 0.09
+response_curve = 1.6
+max_touch_delta = 220.0
+rest_opacity = 0.35
+active_opacity = 0.7
 tint = Color(0.86, 0.88, 0.92, 1)
-fade_out_time = 0.18
+accent = Color(0.62, 0.79, 0.94, 1)
+fade_time = 0.16

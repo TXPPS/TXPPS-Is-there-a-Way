@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="HudLayout" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/ui/hud_layout.gd" id="1_layout"]
+
+[resource]
+script = ExtResource("1_layout")
+move_stick_inset = Vector2(132, 124)
+look_stick_inset = Vector2(132, 124)
+stick_radius = 96.0
+knob_radius = 34.0
+claim_padding = 52.0
+action_arc_radius = 230.0
+action_arc_start_degrees = 15.0
+action_arc_step_degrees = 40.0
+action_button_radius = 38.0
+pause_inset = Vector2(46, 44)
+pause_radius = 34.0
+min_touch_points = 44.0

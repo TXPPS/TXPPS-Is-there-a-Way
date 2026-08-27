@@ -2,26 +2,55 @@
 class_name TouchTuning
 extends Resource
 
-## Geometry and legibility of the on-screen touch controls. Separate from
-## PlayerTuning because these are ergonomics (thumb reach, contrast) rather
-## than character feel, and they get retuned whenever the HUD layout changes.
+## How the on-screen controls *feel*, as opposed to where they sit (HudLayout).
+##
+## Everything here is a default. The player's settings override the handful of
+## values that are exposed in the pause menu; the rest are authoring knobs.
 
-@export_group("Virtual Stick")
+@export_group("Response")
 
-## Distance in pixels from the stick's origin to full deflection. Roughly the
-## comfortable arc of a thumb resting on the lower-left of a 6.9" phone.
-@export_range(40.0, 180.0, 1.0) var stick_radius: float = 92.0
+## Fraction of the radius ignored, so a thumb resting on the glass does not
+## drift the player or the camera.
+@export_range(0.0, 0.5, 0.01) var deadzone: float = 0.09
 
-## Radius of the moving knob.
-@export_range(10.0, 70.0, 1.0) var knob_radius: float = 32.0
+## Shapes deflection into output. 1.0 is linear; above 1.0 the first half of the
+## travel is gentler, which is what makes small corrections possible with a
+## thumb that cannot feel where centre is.
+@export_range(1.0, 3.0, 0.05) var response_curve: float = 1.6
 
-## Fraction of the radius ignored, so resting a thumb does not drift the player.
-@export_range(0.0, 0.5, 0.01) var stick_deadzone: float = 0.09
+@export_group("Touch")
 
-## The controls should be visible enough to find and dim enough to disappear.
-@export_range(0.05, 1.0, 0.01) var opacity: float = 0.30
+## Largest single-frame travel any one touch may report, in viewport units.
+## Anything beyond this is a teleport, not a gesture: a touch that was cancelled
+## and re-issued somewhere else, or an engine-level delta measured against the
+## wrong finger. Clamping is cheap; the alternative is a camera that spins.
+@export_range(20.0, 800.0, 1.0) var max_touch_delta: float = 220.0
+
+@export_group("Presentation")
+
+## Alpha at rest. Low enough to stop the controls fighting the scene.
+@export_range(0.0, 1.0, 0.01) var rest_opacity: float = 0.35
+
+## Alpha while the thumb is down.
+@export_range(0.0, 1.0, 0.01) var active_opacity: float = 0.70
 
 @export var tint: Color = Color(0.86, 0.88, 0.92)
 
-## Seconds for the stick to fade out after the thumb lifts.
-@export_range(0.0, 1.0, 0.01) var fade_out_time: float = 0.18
+## Accent used for anything the player is meant to read as interactive.
+@export var accent: Color = Color(0.62, 0.79, 0.94)
+
+## Seconds for a stick to settle back to its rest look after the thumb lifts.
+@export_range(0.0, 1.0, 0.01) var fade_time: float = 0.16
+
+
+## Deflection shaped by the deadzone and the response curve.
+##
+## `raw` is (knob - centre) / radius, already clamped to length 1. Returns a
+## vector in the same direction whose length is 0 inside the deadzone and rises
+## to 1 at full travel.
+func shape(raw: Vector2) -> Vector2:
+	var magnitude := minf(raw.length(), 1.0)
+	if magnitude <= deadzone:
+		return Vector2.ZERO
+	var past := (magnitude - deadzone) / maxf(1.0 - deadzone, 0.001)
+	return (raw / magnitude) * pow(minf(past, 1.0), response_curve)
