@@ -22,17 +22,25 @@ const TITLE_CALL := "window.__itaw_returnToTitle && window.__itaw_returnToTitle(
 const COPY_CALL := "window.__itaw_copyStamp && window.__itaw_copyStamp()"
 ## The menu is the safe point the HTML shell holds its update banner for, and
 ## the flag the browser suite reads to know the game really did pause.
-const GATE_CALL := "window.__itaw_paused = %s; window.__itaw_setUpdateGate && window.__itaw_setUpdateGate(%s)"
+const GATE_CALL := "window.__itaw_paused = %s;"\
+	+ " window.__itaw_setUpdateGate && window.__itaw_setUpdateGate(%s);"\
+	+ " window.__itaw_showStamp && window.__itaw_showStamp(%s)"
+## Published on open so the browser suite can prove the menu fits on the screen
+## it is drawn on -- a panel taller than the viewport puts Resume out of reach,
+## and a screenshot of a canvas cannot be asked where its buttons are.
+const LAYOUT_CALL := "window.__itaw_menu = "
 const SAMPLE_TEXT := "\"Sample subtitle: something moved in the wet room.\""
 const SAMPLE_SIZES := [16, 20, 26, 34]
 const GROUP_ALPHA := 0.55
 
-@onready var _groups: VBoxContainer = $Safe/Center/Panel/Pad/Body/Scroll/Groups
-@onready var _diagram: ControlsDiagram = $Safe/Center/Panel/Pad/Body/Diagram
-@onready var _resume: Button = $Safe/Center/Panel/Pad/Body/Resume
-@onready var _title: Button = $Safe/Center/Panel/Pad/Body/ReturnToTitle
-@onready var _confirm: HBoxContainer = $Safe/Center/Panel/Pad/Body/Confirm
-@onready var _stamp: Button = $Safe/Center/Panel/Pad/Body/Stamp
+const COLUMN := "Safe/Panel/Pad/Body/Scroll/Column"
+
+@onready var _groups: VBoxContainer = get_node(COLUMN + "/Groups")
+@onready var _diagram: ControlsDiagram = get_node(COLUMN + "/Diagram")
+@onready var _resume: Button = $Safe/Panel/Pad/Body/Head/Resume
+@onready var _title: Button = get_node(COLUMN + "/ReturnToTitle")
+@onready var _confirm: HBoxContainer = get_node(COLUMN + "/Confirm")
+@onready var _stamp: Button = get_node(COLUMN + "/Stamp")
 
 var _settings: GameSettings
 var _tuning: TouchTuning
@@ -53,11 +61,12 @@ func bind(settings: GameSettings, tuning: TouchTuning) -> void:
 
 func _ready() -> void:
 	visible = false
+	set_process(false)
 	_resume.pressed.connect(close)
 	_title.pressed.connect(_ask_confirm)
 	_stamp.pressed.connect(_copy_stamp)
-	$Safe/Center/Panel/Pad/Body/Confirm/Yes.pressed.connect(_confirm_title)
-	$Safe/Center/Panel/Pad/Body/Confirm/No.pressed.connect(_cancel_confirm)
+	get_node(COLUMN + "/Confirm/Yes").pressed.connect(_confirm_title)
+	get_node(COLUMN + "/Confirm/No").pressed.connect(_cancel_confirm)
 	_stamp.text = BuildInfo.describe()
 	_confirm.visible = false
 
@@ -179,7 +188,27 @@ func _announce(open: bool) -> void:
 	if not OS.has_feature("web"):
 		return
 	var flag := "true" if open else "false"
-	JavaScriptBridge.eval(GATE_CALL % [flag, flag], true)
+	var hidden := "false" if open else "true"
+	JavaScriptBridge.eval(GATE_CALL % [flag, flag, hidden], true)
+	set_process(open)
+
+
+## Published a frame after opening, not on the open itself: containers are laid
+## out at the end of the frame, so anything asked for its rect before then
+## answers with where it used to be.
+func _process(_delta: float) -> void:
+	set_process(false)
+	if not OS.has_feature("web"):
+		return
+	JavaScriptBridge.eval(LAYOUT_CALL + JSON.stringify({
+		"view": _flat(get_viewport().get_visible_rect()),
+		"panel": _flat($Safe/Panel.get_global_rect()),
+		"resume": _flat(_resume.get_global_rect()),
+	}), true)
+
+
+static func _flat(r: Rect2) -> Array:
+	return [roundi(r.position.x), roundi(r.position.y), roundi(r.size.x), roundi(r.size.y)]
 
 
 func _copy_stamp() -> void:

@@ -14,6 +14,8 @@ const CAPTION_SIZE := 14
 const CORNER := 10.0
 
 var _drag_style := false
+## Radius of the ring most recently drawn, so a label clears the thing it names.
+var _last_radius := 0.0
 var _tint := Color(0.86, 0.88, 0.92)
 var _accent := Color(0.62, 0.79, 0.94)
 
@@ -26,7 +28,7 @@ func show_style(drag_style: bool, tint: Color, accent: Color) -> void:
 
 
 func _draw() -> void:
-	var screen := Rect2(Vector2(SCREEN_MARGIN, SCREEN_MARGIN), size - Vector2(SCREEN_MARGIN, SCREEN_MARGIN) * 2.0)
+	var screen := _screen_rect()
 	if screen.size.x <= 0.0 or screen.size.y <= 0.0:
 		return
 	draw_rect(screen, Color(_tint, 0.06), true)
@@ -39,22 +41,37 @@ func _draw() -> void:
 	_draw_pause(screen)
 
 
+## The picture is of a phone, so it is drawn at the phone's proportions and
+## centred in whatever width the menu gives it. Stretched to fill, the two
+## sticks end up a hand's width apart and the diagram stops being a diagram.
+func _screen_rect() -> Rect2:
+	var room := Vector2(size.x, size.y - CAPTION_SIZE * 2.0) - Vector2(SCREEN_MARGIN, SCREEN_MARGIN) * 2.0
+	if room.x <= 0.0 or room.y <= 0.0:
+		return Rect2()
+	var view := get_viewport_rect().size
+	var aspect := view.x / maxf(view.y, 1.0)
+	var width := minf(room.x, room.y * aspect)
+	return Rect2(
+		Vector2(SCREEN_MARGIN + (room.x - width) * 0.5, SCREEN_MARGIN), Vector2(width, room.y)
+	)
+
+
 func _draw_frame(screen: Rect2) -> void:
 	draw_rect(screen, Color(_tint, 0.30), false, 1.5)
 	_caption(
-		Vector2(screen.position.x, screen.end.y + CAPTION_SIZE + 2.0),
+		Vector2(screen.position.x, screen.end.y + CAPTION_SIZE + 6.0),
 		"Drag to look" if _drag_style else "Fixed twin sticks"
 	)
 
 
 func _draw_move(screen: Rect2) -> void:
-	var centre := Vector2(screen.position.x + screen.size.x * 0.13, screen.end.y - screen.size.y * 0.28)
+	var centre := Vector2(screen.position.x + screen.size.x * 0.13, screen.end.y - screen.size.y * 0.34)
 	_ring(centre, screen.size.y * 0.17, _accent)
 	_label(centre, "Move")
 
 
 func _draw_look(screen: Rect2) -> void:
-	var centre := Vector2(screen.end.x - screen.size.x * 0.13, screen.end.y - screen.size.y * 0.28)
+	var centre := Vector2(screen.end.x - screen.size.x * 0.13, screen.end.y - screen.size.y * 0.34)
 	_ring(centre, screen.size.y * 0.17, _accent)
 	_label(centre, "Look")
 
@@ -67,6 +84,7 @@ func _draw_drag(screen: Rect2) -> void:
 	)
 	draw_rect(area, Color(_accent, 0.12), true)
 	draw_rect(area, Color(_accent, 0.55), false, 1.5)
+	_last_radius = 0.0
 	_label(area.get_center(), "Drag")
 
 
@@ -83,13 +101,14 @@ func _draw_pause(screen: Rect2) -> void:
 func _ring(centre: Vector2, radius: float, colour: Color) -> void:
 	draw_arc(centre, radius, 0.0, TAU, 32, Color(colour, 0.75), 1.5, true)
 	draw_circle(centre, radius * 0.34, Color(colour, 0.55))
+	_last_radius = radius
 
 
 func _label(centre: Vector2, text: String) -> void:
 	var font := ThemeDB.fallback_font
 	var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_SIZE).x
 	draw_string(
-		font, centre + Vector2(-width * 0.5, LABEL_SIZE * 2.2), text,
+		font, centre + Vector2(-width * 0.5, _last_radius + LABEL_SIZE + 4.0), text,
 		HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_SIZE, Color(_tint, 0.9)
 	)
 

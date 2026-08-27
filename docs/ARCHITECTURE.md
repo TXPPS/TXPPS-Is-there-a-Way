@@ -68,7 +68,7 @@ Main (Node3D)                        src/main.gd -- composition root
 │   └── Head (Node3D)  ── Camera (Camera3D) ── Interactor (Node3D)
 ├── Hud (CanvasLayer)                src/ui/hud.tscn
 │   ├── SafeArea (Control)           insets read from CSS via JavaScriptBridge
-│   │   └── DebugOverlay             hidden until a three-finger tap
+│   │   └── DebugOverlay             two columns, hidden until a three-finger tap
 │   ├── Controls (Control)           full-bleed; children placed in viewport units
 │   │   ├── MoveStick (VirtualStick) fixed, bottom-left of the safe rect
 │   │   ├── LookStick (VirtualStick) fixed, bottom-right; hidden under drag look

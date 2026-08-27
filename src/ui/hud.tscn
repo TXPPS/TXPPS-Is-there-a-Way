@@ -39,22 +39,34 @@ script = ExtResource("2_safe")
 
 ; Top-left, and pushed down past the build stamp the HTML shell draws there.
 ; The pause button owns the opposite corner; nothing may share either.
+; Two columns, and that is not cosmetic: one column of fifteen lines is taller
+; than the space above the movement stick, and the overlay may not be drawn on
+; top of a control. Hud sets offset_top; the panel sizes itself to its content.
 [node name="DebugOverlay" type="PanelContainer" parent="SafeArea"]
 layout_mode = 1
 anchors_preset = 0
-offset_top = 38.0
-offset_right = 300.0
-offset_bottom = 260.0
+offset_top = 64.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_debug")
 script = ExtResource("7_debug")
 
-[node name="Text" type="Label" parent="SafeArea/DebugOverlay"]
+[node name="Columns" type="HBoxContainer" parent="SafeArea/DebugOverlay"]
+layout_mode = 2
+theme_override_constants/separation = 22
+
+[node name="Left" type="Label" parent="SafeArea/DebugOverlay/Columns"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.71, 0.757, 0.808, 1)
 theme_override_font_sizes/font_size = 13
 text = "..."
+
+[node name="Right" type="Label" parent="SafeArea/DebugOverlay/Columns"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.71, 0.757, 0.808, 1)
+theme_override_font_sizes/font_size = 13
+text = ""
 
 ; Full-bleed on purpose: the controls are placed in viewport coordinates from
 ; HudLayout, and this parent exists only to give them that coordinate space.

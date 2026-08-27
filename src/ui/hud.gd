@@ -34,6 +34,10 @@ const ACTION_ARC := &"action_arc"
 const PROMPT := &"prompt"
 ## Room reserved for the interact/flashlight/crouch buttons P1 puts on the arc.
 const ACTION_SLOTS := 3
+## How far below the safe-area top the debug overlay starts, in points. The HTML
+## shell draws the build stamp in that corner and Godot cannot see it, so the
+## clearance is measured in the shell's units and converted here.
+const OVERLAY_TOP_POINTS := 56.0
 
 @export var layout: HudLayout
 @export var tuning: TouchTuning
@@ -183,6 +187,7 @@ func _relayout() -> void:
 	_move.position = layout.move_stick_centre(safe, _stick_offset)
 	_look.position = layout.look_stick_centre(safe, _stick_offset)
 	_pause.position = layout.pause_centre(safe)
+	_overlay.offset_top = OVERLAY_TOP_POINTS * scale
 	_action.position = layout.action_centre(safe, _stick_offset, 0)
 	_action.radius = maxf(layout.action_button_radius, layout.min_touch_points * scale * 0.5)
 	_place_prompt(safe)

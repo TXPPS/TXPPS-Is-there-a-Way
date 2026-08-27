@@ -153,6 +153,20 @@ and a suite that does it proves nothing while looking green. Chromium generates
 one DOM event per changed point and fills the other live points in as
 stationary, so the driver here sends exactly one changed point per call.
 
+### What only a browser can be asked
+
+Three assertions here have no headless equivalent because they are about the
+canvas and the HTML shell sharing a screen:
+
+- the debug overlay clears the build stamp the shell draws in the same corner,
+  and is not drawn on top of any reserved rect;
+- the pause panel fits the viewport and Resume is inside it — a menu taller than
+  the screen puts its own buttons out of reach, and a screenshot of a canvas
+  cannot be asked where its buttons are, so `PauseMenu` publishes the rects a
+  frame after opening (before that, containers have not been laid out and every
+  child answers with where it used to be);
+- the shell's stamp hides while the menu is open and comes back when it closes.
+
 ### Reading the overlay from the test
 
 While the overlay is open, `src/ui/debug_overlay.gd` publishes its sample to

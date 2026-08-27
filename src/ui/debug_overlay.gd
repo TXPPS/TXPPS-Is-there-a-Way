@@ -25,7 +25,8 @@ const MS_PER_S := 1000.0
 ## it, so showing "-200 dB" on a phone would read as a fault that is not there.
 const PEAK_FLOOR := -199.0
 
-@onready var _text: Label = $Text
+@onready var _left: Label = $Columns/Left
+@onready var _right: Label = $Columns/Right
 
 var _watch: TouchWatch
 var _hud: Hud
@@ -33,6 +34,7 @@ var _rects: HudRects
 var _env: Dictionary = {}
 var _since_sample := 0.0
 var _since_env := ENV_INTERVAL
+var _checked := false
 
 
 func _ready() -> void:
@@ -55,10 +57,7 @@ func toggle() -> void:
 	if visible:
 		_since_sample = SAMPLE_INTERVAL
 		_since_env = ENV_INTERVAL
-		# The overlay is the one HUD element allowed to be large, so it is also
-		# the one most likely to grow into a thumb. It asks every time it opens.
-		if _rects != null:
-			_rects.require_clear(&"debug_overlay", get_global_rect())
+		_checked = false
 		return
 	_publish({"visible": false})
 
@@ -73,8 +72,27 @@ func _process(delta: float) -> void:
 		return
 	_since_sample = 0.0
 	var sample := _sample()
-	_text.text = "\n".join(_lines(sample))
+	_fill(_lines(sample))
 	_publish(sample)
+	_check_placement()
+
+
+## The overlay is the largest thing on this HUD, so it is the one most likely to
+## grow into a thumb. Checked once per opening, and after a sample rather than
+## on the toggle: before the first layout pass the panel has not been given the
+## size its content needs, and an empty box clears everything.
+func _check_placement() -> void:
+	if _checked or _rects == null:
+		return
+	_checked = true
+	_rects.require_clear(&"debug_overlay", get_global_rect())
+
+
+## Split down the middle, left column first.
+func _fill(lines: PackedStringArray) -> void:
+	var half := int(ceil(float(lines.size()) * 0.5))
+	_left.text = "\n".join(lines.slice(0, half))
+	_right.text = "\n".join(lines.slice(half))
 
 
 func _sample() -> Dictionary:
@@ -97,6 +115,7 @@ func _sample() -> Dictionary:
 		"listener": get_viewport().is_audio_listener_3d(),
 		"shell": _env,
 		"hud": _hud.probe() if _hud != null else {},
+		"overlay": _own_rect(),
 	}
 
 
@@ -137,6 +156,13 @@ func _sticks(s: Dictionary) -> String:
 	var move: Array = hud.get("move", [0.0, 0.0])
 	var look: Array = hud.get("look", [0.0, 0.0])
 	return "move %+.2f,%+.2f   look %+.2f,%+.2f" % [move[0], move[1], look[0], look[1]]
+
+
+## Where the overlay itself is, so the browser suite can prove it does not sit
+## on top of the build stamp the HTML shell draws in the same corner.
+func _own_rect() -> Array:
+	var r := get_global_rect()
+	return [roundi(r.position.x), roundi(r.position.y), roundi(r.size.x), roundi(r.size.y)]
 
 
 func _touch_ids() -> String:

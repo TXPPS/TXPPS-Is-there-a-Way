@@ -42,8 +42,18 @@ const AUDIO_SETTLE_MS = 1200;
 const PROBE_MS = 400;
 // Between dispatched touch points, so the engine sees a gesture and not a jump.
 const TOUCH_STEP_MS = 30;
+// The canvas and the HTML shell share the top-left corner. Enough of a gap that
+// a font change cannot silently close it.
+const STAMP_CLEARANCE_PX = 6;
 
 const t = tally('smoke');
+
+/** Whether [x,y,w,h] `inner` sits entirely within [x,y,w,h] `outer`. */
+function encloses(outer, inner) {
+	return inner[0] >= outer[0] && inner[1] >= outer[1]
+		&& inner[0] + inner[2] <= outer[0] + outer[2]
+		&& inner[1] + inner[3] <= outer[1] + outer[3];
+}
 
 /** Pairs of reserved rects that intersect. Empty is the contract. */
 function overlaps(list) {
@@ -217,6 +227,25 @@ function overlaps(list) {
 	t.check(overlaps(probe.hud.rects).length === 0,
 		`no two reserved rects overlap (${overlaps(probe.hud.rects).join(', ') || 'none'})`);
 
+	// The one place the canvas and the HTML shell share a corner. Godot cannot
+	// see the stamp, so only a browser can check this.
+	const stampBox = await page.evaluate(() => {
+		const el = document.getElementById('stamp');
+		const r = el.getBoundingClientRect();
+		return { x: r.x, y: r.y, w: r.width, h: r.height };
+	});
+	const [ox, oy, ow, oh] = probe.overlay;
+	const overlayCss = { x: ox * k, y: oy * k, w: ow * k, h: oh * k };
+	t.check(
+		overlayCss.y >= stampBox.y + stampBox.h + STAMP_CLEARANCE_PX,
+		`the debug overlay clears the build stamp `
+			+ `(overlay top ${overlayCss.y.toFixed(0)}, stamp bottom ${(stampBox.y + stampBox.h).toFixed(0)})`
+	);
+	t.check(
+		overlaps([...probe.hud.rects, { id: 'debug_overlay', x: ox, y: oy, w: ow, h: oh }]).length === 0,
+		'the debug overlay is not drawn on top of a control'
+	);
+
 	const moveAt = toCss(rects.move_stick);
 	const lookAt = toCss(rects.look_stick);
 
@@ -292,10 +321,21 @@ function overlaps(list) {
 	await lift(1);
 	await page.waitForTimeout(500);
 	t.check(await page.evaluate(() => window.__itaw_paused === true), 'the pause button pauses');
+	const menu = await page.evaluate(() => window.__itaw_menu);
+	t.check(encloses(menu.view, menu.panel), `the menu fits the screen (${menu.panel} in ${menu.view})`);
+	t.check(encloses(menu.panel, menu.resume), `Resume is inside the panel (${menu.resume})`);
+	t.check(
+		await page.evaluate(() => document.getElementById('stamp').hidden),
+		"the shell's build stamp steps aside for the menu's own"
+	);
 	await page.screenshot({ path: path.join(SHOTS, '06-paused.png') });
 	await page.keyboard.press('Escape');
 	await page.waitForTimeout(500);
 	t.check(await page.evaluate(() => window.__itaw_paused === false), 'the menu closes again');
+	t.check(
+		await page.evaluate(() => !document.getElementById('stamp').hidden),
+		'and comes back when it closes'
+	);
 
 	// ---- settings survive a reload -----------------------------------------
 	const stored = await page.evaluate(() => window.__itaw_store.read('settings.v1'));

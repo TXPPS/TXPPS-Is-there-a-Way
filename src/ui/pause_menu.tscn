@@ -18,11 +18,15 @@ corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_scroll"]
 bg_color = Color(0, 0, 0, 0.22)
-content_margin_left = 10.0
-content_margin_top = 8.0
-content_margin_right = 10.0
-content_margin_bottom = 8.0
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
 
+; The panel fills the safe area rather than being centred at its natural size.
+; Its natural size is over 700 units tall and the design viewport is 592, so a
+; CenterContainer would push Resume off the top and the build stamp off the
+; bottom. Everything below the title scrolls; Resume never does.
 [node name="PauseMenu" type="CanvasLayer"]
 process_mode = 3
 layer = 3
@@ -41,84 +45,91 @@ color = Color(0.008, 0.01, 0.014, 0.88)
 mouse_filter = 2
 script = ExtResource("2_safe")
 
-[node name="Center" type="CenterContainer" parent="Safe"]
+[node name="Panel" type="PanelContainer" parent="Safe"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="Panel" type="PanelContainer" parent="Safe/Center"]
-custom_minimum_size = Vector2(780, 0)
-layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="Pad" type="MarginContainer" parent="Safe/Center/Panel"]
+[node name="Pad" type="MarginContainer" parent="Safe/Panel"]
 layout_mode = 2
-theme_override_constants/margin_left = 22
-theme_override_constants/margin_top = 18
-theme_override_constants/margin_right = 22
-theme_override_constants/margin_bottom = 18
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 16
 
-[node name="Body" type="VBoxContainer" parent="Safe/Center/Panel/Pad"]
+[node name="Body" type="VBoxContainer" parent="Safe/Panel/Pad"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 
-[node name="Title" type="Label" parent="Safe/Center/Panel/Pad/Body"]
+[node name="Head" type="HBoxContainer" parent="Safe/Panel/Pad/Body"]
 layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="Safe/Panel/Pad/Body/Head"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
 theme_override_font_sizes/font_size = 22
 text = "Paused"
 
-[node name="Resume" type="Button" parent="Safe/Center/Panel/Pad/Body"]
-custom_minimum_size = Vector2(0, 60)
+[node name="Resume" type="Button" parent="Safe/Panel/Pad/Body/Head"]
+custom_minimum_size = Vector2(220, 60)
 layout_mode = 2
 text = "Resume"
 
-[node name="Diagram" type="Control" parent="Safe/Center/Panel/Pad/Body"]
-custom_minimum_size = Vector2(0, 168)
+[node name="Scroll" type="ScrollContainer" parent="Safe/Panel/Pad/Body"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_scroll")
+horizontal_scroll_mode = 0
+
+[node name="Column" type="VBoxContainer" parent="Safe/Panel/Pad/Body/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="Diagram" type="Control" parent="Safe/Panel/Pad/Body/Scroll/Column"]
+custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 mouse_filter = 2
 script = ExtResource("3_diagram")
 
-[node name="Scroll" type="ScrollContainer" parent="Safe/Center/Panel/Pad/Body"]
-custom_minimum_size = Vector2(0, 250)
+[node name="Groups" type="VBoxContainer" parent="Safe/Panel/Pad/Body/Scroll/Column"]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_scroll")
-horizontal_scroll_mode = 0
+theme_override_constants/separation = 12
 
-[node name="Groups" type="VBoxContainer" parent="Safe/Center/Panel/Pad/Body/Scroll"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 10
-
-[node name="ReturnToTitle" type="Button" parent="Safe/Center/Panel/Pad/Body"]
+[node name="ReturnToTitle" type="Button" parent="Safe/Panel/Pad/Body/Scroll/Column"]
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 text = "Return to Title"
 
-[node name="Confirm" type="HBoxContainer" parent="Safe/Center/Panel/Pad/Body"]
+[node name="Confirm" type="HBoxContainer" parent="Safe/Panel/Pad/Body/Scroll/Column"]
 visible = false
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 
-[node name="Ask" type="Label" parent="Safe/Center/Panel/Pad/Body/Confirm"]
+[node name="Ask" type="Label" parent="Safe/Panel/Pad/Body/Scroll/Column/Confirm"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
+autowrap_mode = 3
 text = "Return to the title? Anything not saved is lost."
 
-[node name="Yes" type="Button" parent="Safe/Center/Panel/Pad/Body/Confirm"]
-custom_minimum_size = Vector2(140, 60)
+[node name="Yes" type="Button" parent="Safe/Panel/Pad/Body/Scroll/Column/Confirm"]
+custom_minimum_size = Vector2(150, 60)
 layout_mode = 2
 text = "Return"
 
-[node name="No" type="Button" parent="Safe/Center/Panel/Pad/Body/Confirm"]
-custom_minimum_size = Vector2(140, 60)
+[node name="No" type="Button" parent="Safe/Panel/Pad/Body/Scroll/Column/Confirm"]
+custom_minimum_size = Vector2(150, 60)
 layout_mode = 2
 text = "Cancel"
 
-[node name="Stamp" type="Button" parent="Safe/Center/Panel/Pad/Body"]
+[node name="Stamp" type="Button" parent="Safe/Panel/Pad/Body/Scroll/Column"]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 tooltip_text = "Copy the build stamp"

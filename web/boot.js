@@ -549,6 +549,13 @@
 	// so the report a player sends is byte-identical wherever they tapped it.
 	window.__itaw_copyStamp = function () { copyText(stampReport()); };
 
+	// The pause menu draws over the whole canvas and shows this same string at
+	// its own foot, so the shell's copy steps aside rather than sitting on top
+	// of whatever the menu puts in that corner.
+	window.__itaw_showStamp = function (on) {
+		if (stampEl) { stampEl.hidden = !on; }
+	};
+
 	// A browser has no quit. "Return to Title" is a reload: everything is in the
 	// cache, so the page comes straight back up on the tap gate.
 	window.__itaw_returnToTitle = function () { location.reload(); };

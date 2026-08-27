@@ -127,10 +127,14 @@ refuse.
 - **Build stamp**, top-left, 13 px: `v0.1.0 abc1234`. Tap it to copy a full
   report (branch, build time, payload hash, storage health, worker state,
   viewport, safe area, user agent) to the clipboard.
-- **Debug overlay**, top-right, summoned by a **three-finger tap**: pack and
-  shell build, fps, CPU frame time, draw calls, primitives, viewport / window /
-  CSS size, DPR, safe-area insets, live touch IDs, storage health, worker state,
-  hum playback position, mixer latency, update state, PWA install state.
+- **Debug overlay**, top-left under the stamp, summoned by a **three-finger
+  tap**, in two columns: pack and shell build, fps, CPU frame time, draw calls,
+  primitives, viewport / window / CSS size, DPR, safe-area insets, live touch
+  IDs, **which control owns which finger**, both sticks' deflection, storage
+  health, worker state, hum playback position, mixer latency, update state, PWA
+  install state. Two columns because one is taller than the space above the
+  movement stick, and the overlay may not be drawn on a control — the browser
+  suite asserts both that and its clearance from the build stamp.
 - **Error toasts**, top-centre: any GDScript error, engine error, or unhandled
   JavaScript exception becomes a dismissible on-screen message instead of a
   silence. Repeats fold into one toast with a count.
