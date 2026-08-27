@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"d06_battery_tag"
+title = "Battery room service tag"
+byline = "wired to the rack. Filled in monthly."
+hand = 1
+body = "STATION BATTERY — 125 VDC — 60 CELL
+SERVICE RECORD
+
+11/94   sp.gr. 1.215   129 V   electrolyte OK   E.O.
+12/94   sp.gr. 1.215   129 V   electrolyte OK   E.O.
+01/95   sp.gr. 1.210   128 V   topped up       E.O.
+
+Forty-one more lines follow, one a month, in the
+same pencil. There are no gaps.
+
+01/98   sp.gr. 1.205   127 V   topped up       E.O.
+02/98   sp.gr. 1.205   127 V   electrolyte OK   E.O.
+03/98   sp.gr. 1.200   126 V   electrolyte OK   E.O."

@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=24 format=3]
 
 ; Phase 0 gray-box. Grid unit is 0.5 m and every dimension here is a multiple
 ; of it, so the modular kit built in P2 drops straight into this footprint.
@@ -15,6 +15,8 @@
 [ext_resource type="Script" path="res://src/world/surface_tag.gd" id="10_tag"]
 [ext_resource type="Resource" path="res://assets/surfaces/concrete.tres" id="11_concrete"]
 [ext_resource type="PackedScene" path="res://src/world/puzzles/dial_lock.tscn" id="5_lock"]
+[ext_resource type="PackedScene" path="res://src/world/readable.tscn" id="12_page"]
+[ext_resource type="Resource" path="res://assets/documents/d04_sequence_card.tres" id="13_seqcard"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_unit"]
 size = Vector3(1, 1, 1)
@@ -181,3 +183,10 @@ predelay_msec = 34.0
 
 [node name="Shape" type="CollisionShape3D" parent="Reverb"]
 shape = SubResource("BoxShape3D_reverb")
+
+; On the north wall beside the lock, where a laminated operating card would be:
+; at the panel it describes.
+[node name="SequenceCard" parent="." instance=ExtResource("12_page")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 1.5, -4.44)
+document = ExtResource("13_seqcard")
+prompt_override = "Read the card"

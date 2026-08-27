@@ -22,6 +22,7 @@ const CASES: Array[String] = [
 	"res://tests/case_save.gd",
 	"res://tests/case_render.gd",
 	"res://tests/case_audio.gd",
+	"res://tests/case_reading.gd",
 ]
 
 

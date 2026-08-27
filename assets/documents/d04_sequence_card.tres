@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"d04_sequence_card"
+title = "Flood response — operating sequence"
+byline = "Laminated card at the panel. Corps of Engineers, 1954."
+hand = 3
+body = "FLOOD RESPONSE — AUTOMATIC\n\nON STAGE ABOVE 30.0 FT AT UPPER GAUGE:\n\n 1  ALARM, 30 SEC\n 2  BULKHEADS CLOSE — STAIR TOWER, GATE PIER,\n    GALLERY ACCESS\n 3  POWERHOUSE BUS TRIPS\n 4  SEQUENCE LATCHES\n\nSEQ HOLDS WHILE STAGE > 30.0 FT.\nLATCH RESETS AT CONTROL HOUSE ONLY.\n\nBULKHEADS FAIL CLOSED ON LOSS OF PERMISSIVE.\nTHIS IS INTENDED. DO NOT DEFEAT."

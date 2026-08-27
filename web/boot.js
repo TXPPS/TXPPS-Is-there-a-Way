@@ -653,11 +653,14 @@
 		}
 	};
 
-	// The pause menu draws over the whole canvas and shows this same string at
-	// its own foot, so the shell's copy steps aside rather than sitting on top
-	// of whatever the menu puts in that corner.
-	window.__itaw_showStamp = function (on) {
-		if (stampEl) { stampEl.hidden = !on; }
+	// More than one full-screen thing wants that corner -- the pause menu draws
+	// its title there, a document draws its heading -- and they can be open at
+	// once. Reference-counted by reason rather than a boolean, so closing the
+	// menu over an open page does not put the stamp back on top of the page.
+	var stampCovers = {};
+	window.__itaw_coverStamp = function (reason, on) {
+		if (on) { stampCovers[reason] = true; } else { delete stampCovers[reason]; }
+		if (stampEl) { stampEl.hidden = Object.keys(stampCovers).length > 0; }
 	};
 
 	// A browser has no quit. "Return to Title" is a reload: everything is in the

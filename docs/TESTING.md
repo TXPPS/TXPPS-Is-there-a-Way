@@ -37,6 +37,7 @@ tests/case_settings.gd persistence, clamping, and change announcements
 tests/case_save.gd     round-trip, codes, migration, and failing to save
 tests/case_render.gd   post-stack wiring, reduce motion, and the fear number
 tests/case_audio.gd    buses, the score's layers, occlusion, reverb, footsteps
+tests/case_reading.gd  picking a page up, scrolling it, and remembering it
 ```
 
 Two things about the harness are worth knowing before adding a case.
@@ -91,6 +92,7 @@ mix untestable until the wire comes off for the duration.
 | save | a slot that does not come back; a code that crashes on a bad paste; a browser that refuses storage taking the game down with it |
 | render | an accessibility setting that does not reach the shader; a fear number that leaves 0..1 and takes the grain with it |
 | audio | a volume slider moved while ducked staying ducked; a wall that is not heard as a wall; one stride making three footsteps |
+| reading | a page that scrolls the wrong way; a document read in Act 1 that a reload forgets |
 
 A case that leaves the world somewhere runs before one that assumes where it is.
 `case_interact.gd` puts the player where it needs them **and** calls

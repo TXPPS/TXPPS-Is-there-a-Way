@@ -340,6 +340,16 @@ function overlaps(list) {
 		await page.evaluate(() => document.getElementById('stamp').hidden),
 		"the shell's build stamp steps aside for the menu's own"
 	);
+	// Two things want that corner and can be open at once, so the cover is
+	// counted by reason: uncovering for one must not uncover for the other.
+	await page.evaluate(() => window.__itaw_coverStamp('page', true));
+	await page.evaluate(() => window.__itaw_coverStamp('menu', false));
+	t.check(
+		await page.evaluate(() => document.getElementById('stamp').hidden),
+		'and stays aside while a page is still open'
+	);
+	await page.evaluate(() => window.__itaw_coverStamp('page', false));
+	await page.evaluate(() => window.__itaw_coverStamp('menu', true));
 	await page.screenshot({ path: path.join(SHOTS, '06-paused.png') });
 	await page.keyboard.press('Escape');
 	await page.waitForTimeout(500);

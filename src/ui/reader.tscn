@@ -1,0 +1,93 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/ui/reader.gd" id="1_reader"]
+[ext_resource type="Script" path="res://src/ui/safe_area.gd" id="2_safe"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_page"]
+bg_color = Color(0.035, 0.035, 0.033, 0.97)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.42, 0.40, 0.35, 0.35)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_scroll"]
+
+; Layer 2: above the HUD, below the pause menu. Reading is part of the game and
+; pausing is not, so pausing over a page has to work.
+[node name="Reader" type="CanvasLayer"]
+layer = 2
+visible = false
+script = ExtResource("1_reader")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.004, 0.004, 0.006, 0.82)
+
+[node name="Safe" type="Control" parent="."]
+mouse_filter = 2
+script = ExtResource("2_safe")
+
+; The page fills the safe area rather than floating in it. A document held up to
+; read is the whole of what you are looking at.
+[node name="Panel" type="PanelContainer" parent="Safe"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_page")
+
+[node name="Pad" type="MarginContainer" parent="Safe/Panel"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 34
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 34
+theme_override_constants/margin_bottom = 22
+
+[node name="Body" type="VBoxContainer" parent="Safe/Panel/Pad"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Title" type="Label" parent="Safe/Panel/Pad/Body"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.87, 0.86, 0.82, 1)
+theme_override_font_sizes/font_size = 28
+text = "—"
+
+[node name="Byline" type="Label" parent="Safe/Panel/Pad/Body"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.55, 0.54, 0.5, 1)
+theme_override_font_sizes/font_size = 14
+
+[node name="Scroll" type="ScrollContainer" parent="Safe/Panel/Pad/Body"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_scroll")
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="Text" type="Label" parent="Safe/Panel/Pad/Body/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.78, 0.77, 0.74, 1)
+theme_override_constants/line_spacing = 6
+theme_override_font_sizes/font_size = 21
+autowrap_mode = 3

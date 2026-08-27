@@ -1,0 +1,31 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://src/world/readable.gd" id="1_readable"]
+[ext_resource type="Script" path="res://src/world/interactable.gd" id="2_zone"]
+[ext_resource type="Material" path="res://assets/materials/graybox_paint.tres" id="3_paper"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_page"]
+size = Vector3(0.21, 0.297, 0.004)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_reach"]
+size = Vector3(0.34, 0.42, 0.16)
+
+[node name="Readable" type="Node3D" groups=["readable"]]
+script = ExtResource("1_readable")
+
+; A4, because this is a building full of forms.
+[node name="Mesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_page")
+surface_material_override/0 = ExtResource("3_paper")
+
+[node name="Zone" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.06)
+collision_layer = 4
+collision_mask = 0
+monitoring = false
+script = ExtResource("2_zone")
+prompt = "Read it"
+release_prompt = "Put it down"
+
+[node name="Shape" type="CollisionShape3D" parent="Zone"]
+shape = SubResource("BoxShape3D_reach")

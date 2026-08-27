@@ -308,6 +308,35 @@ the hook `src/core/surface_type.gd` has carried since P1. It emits `stepped`
 with the surface's `loudness` — nothing listens yet; that signal is what P6's
 hearing model is for.
 
+## Documents
+
+A `Document` (`src/core/document.gd`) is a resource with an id, a title, a
+byline, a **hand**, and a body. The hand — typed, pencil, stencil, printed —
+drives how the reader draws it, because the difference between a 1966 protocol
+and a pencil note on a service card is most of what the player learns from
+finding one.
+
+`Readable` is a prop with a `Document` and an `Interactable` zone, following
+`DialLock`'s shape: the zone stays a dumb component and the prop owns the
+behaviour. Engaging opens the full-screen `Reader`; the drag that would have
+turned the camera scrolls the page instead. That is the focused-interaction
+contract doing exactly what it was built for, with no new machinery.
+
+Body size follows the **Subtitle size** setting, which had nothing to read until
+this existed. `Journal` records what has been read, is saveable, and is the
+first save state in this game that is about the player rather than the world.
+
+Two constraints worth knowing before writing a page:
+
+- **No document may depend on column alignment.** The reader has one
+  proportional font; there is no licensed monospace in this project and no
+  budget for a generated one. Records are written one line per field, which on
+  a 956-point screen reads better anyway.
+- **No document addresses the player.** Everything was written for somebody
+  else. That is a writing rule with a mechanical consequence: a page never
+  contains an instruction, so the reader needs no hint affordance and the player
+  is never told they have found the answer.
+
 ## Settings
 
 One `SettingsSpec` resource is the whole menu and the whole preference set.

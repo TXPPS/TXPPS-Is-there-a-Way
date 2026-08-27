@@ -596,5 +596,10 @@ one voice.
 - **No document addresses the player.** No note is left for you. Everything you
   read was written for somebody else, which is why finding it is worth
   something.
+- **No document may depend on column alignment.** The reader has one
+  proportional font — there is no licensed monospace in this project and no
+  budget for a generated one — so a four-column table does not line up. Write
+  records as one line per field. On a 956-point screen that reads better anyway,
+  which is the usual shape of a constraint worth having.
 - **The word "kindness" never appears.** Neither does "experiment", "subject 9's
   fate", or any sentence that tells the player how to feel.

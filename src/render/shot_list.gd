@@ -26,9 +26,12 @@ const SETTLE_FRAMES := 8
 
 ## name, position, yaw degrees, pitch degrees.
 ## name, position (y is floor level; the eye is 1.62 above it), yaw and pitch in
-## degrees. Computed from the room's own geometry rather than eyeballed:
-## forward(yaw) is (-sin yaw, 0, -cos yaw), which is not the sign anyone guesses
-## the first time.
+## degrees, and optionally a Document to hold up. Computed from the room's own
+## geometry rather than eyeballed: forward(yaw) is (-sin yaw, 0, -cos yaw),
+## which is not the sign anyone guesses the first time.
+##
+## The document column is there because a page is art too, and a page nobody has
+## looked at is a page whose line breaks are wrong.
 const SHOTS: Array = [
 	["01-establishing", Vector3(0.50, 0.0, 3.20), 60.6, 5.1],
 	["02-lamp-close", Vector3(-4.40, 0.0, -0.80), 90.0, 18.4],
@@ -38,18 +41,24 @@ const SHOTS: Array = [
 	["06-waterline", Vector3(-3.00, 0.0, 1.00), 90.0, -13.0],
 	["07-ceiling", Vector3(-5.20, 0.0, 0.00), 90.0, 44.7],
 	["08-floor-falloff", Vector3(-6.00, 0.0, 2.60), 14.0, -21.6],
+	["09-page-typed", Vector3(-1.50, 0.0, -3.00), 0.0, 0.0,
+		"res://assets/documents/d04_sequence_card.tres"],
+	["10-page-pencil", Vector3(-1.50, 0.0, -3.00), 0.0, 0.0,
+		"res://assets/documents/d03_emil_log.tres"],
 ]
 
 var _player: Player
 var _hud: CanvasLayer
+var _reader: Reader
 var _index := -1
 var _settle := 0
 var _advance: JavaScriptObject
 
 
-func bind(player: Player, hud: CanvasLayer) -> void:
+func bind(player: Player, hud: CanvasLayer, reader: Reader) -> void:
 	_player = player
 	_hud = hud
+	_reader = reader
 
 
 func _ready() -> void:
@@ -95,6 +104,10 @@ func _next() -> void:
 	_player.global_position = shot[1]
 	_player.velocity = Vector3.ZERO
 	_player.face(deg_to_rad(shot[2]), deg_to_rad(shot[3]))
+	if shot.size() > 4 and _reader != null:
+		_reader.show_document(load(String(shot[4])) as Document)
+	elif _reader != null:
+		_reader.close()
 	_settle = SETTLE_FRAMES
 	_publish(false)
 

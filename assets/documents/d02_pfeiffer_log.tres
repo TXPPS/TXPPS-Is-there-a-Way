@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"d02_pfeiffer_log"
+title = "Lockmaster's log, 1993–94"
+byline = "G. Pfeiffer, lockmaster"
+hand = 1
+body = "14 SEP 93 — pool 9.1, no traffic, gates exercised
+15 SEP 93 — pool 9.1, no traffic
+16 SEP 93 — pool 9.0, no traffic, E.O. replaced
+            LT-6 ballast
+
+The book runs like this for four hundred pages.
+
+28 OCT 94 — pool 8.8, no traffic
+
+29 OCT 94 — Last day. Chamber secured. Keys to
+            District except electrical, E. Ostrander
+            retains. Thirty-one years. G.P."

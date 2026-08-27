@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"d05_third_step"
+title = "Card, hand-lettered"
+byline = "taped to the stair tower rail. The tape is new."
+hand = 1
+body = "WATCH THE THIRD STEP"

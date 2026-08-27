@@ -24,7 +24,7 @@ const COPY_CALL := "window.__itaw_copyStamp && window.__itaw_copyStamp()"
 ## the flag the browser suite reads to know the game really did pause.
 const GATE_CALL := "window.__itaw_paused = %s;"\
 	+ " window.__itaw_setUpdateGate && window.__itaw_setUpdateGate(%s);"\
-	+ " window.__itaw_showStamp && window.__itaw_showStamp(%s)"
+	+ " window.__itaw_coverStamp && window.__itaw_coverStamp('menu', %s)"
 ## Published on open so the browser suite can prove the menu fits on the screen
 ## it is drawn on -- a panel taller than the viewport puts Resume out of reach,
 ## and a screenshot of a canvas cannot be asked where its buttons are.
@@ -196,8 +196,7 @@ func _announce(open: bool) -> void:
 	if not OS.has_feature("web"):
 		return
 	var flag := "true" if open else "false"
-	var hidden := "false" if open else "true"
-	JavaScriptBridge.eval(GATE_CALL % [flag, flag, hidden], true)
+	JavaScriptBridge.eval(GATE_CALL % [flag, flag, flag], true)
 	set_process(open)
 
 

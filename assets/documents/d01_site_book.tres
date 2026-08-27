@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"d01_site_book"
+title = "Site sign-in book"
+byline = "Corps of Engineers — property control"
+hand = 0
+body = "RIDGEWATER L&D 9 1/2 — VISITOR RECORD
+
+11 AUG 97 — R. TANNEHILL
+gauge service. out 1420.
+
+02 DEC 97 — R. TANNEHILL
+gauge service. out 1105.
+
+19 MAR 98 — MERRICK, D.
+condition survey. out ______
+
+The four pages before this one are the same
+two names, twice a year, going back to 1994."

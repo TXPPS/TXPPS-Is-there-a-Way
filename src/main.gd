@@ -17,6 +17,8 @@ extends Node3D
 @onready var _post: PostStack = $PostStack
 @onready var _shots: ShotList = $Shots
 @onready var _score: AudioDirector = $Score
+@onready var _reader: Reader = $Reader
+@onready var _journal: Journal = $Journal
 @onready var _world: WorldEnvironment = $WorldEnvironment
 @onready var _interactor: Interactor = $Player/Head/Camera/Interactor
 
@@ -36,6 +38,7 @@ func _ready() -> void:
 	_settings.changed.connect(_hud.on_setting)
 	_settings.changed.connect(_on_setting)
 	_settings.changed.connect(_post.on_setting)
+	_settings.changed.connect(_reader.on_setting)
 	_fear.changed.connect(_post.set_fear)
 	_fear.changed.connect(_score.set_fear)
 	_hud.action_pressed.connect(_on_action)
@@ -45,7 +48,8 @@ func _ready() -> void:
 	_interactor.occluded = _hud.blocks_world_point
 	_interactor.target_changed.connect(_on_target_changed)
 	if is_instance_valid(_shots):
-		_shots.bind(_player, _hud)
+		_shots.bind(_player, _hud, _reader)
+	_wire_readables()
 	_settings.apply_all()
 	_state.enter(GameState.State.FREE)
 	print("Is There a Way? — build %s" % BuildInfo.describe())
@@ -80,6 +84,21 @@ func _on_paused() -> void:
 func _on_resumed() -> void:
 	_hud.set_input_enabled(true)
 	_state.close_menu()
+
+
+## Every page in the level, wired here rather than each one finding the reader
+## for itself. A Readable that had to locate a service would be a Readable that
+## works differently in a test scene, and the whole point of the group is that
+## adding a page to a room is adding a node.
+func _wire_readables() -> void:
+	for node in get_tree().get_nodes_in_group(&"readable"):
+		var page := node as Readable
+		if page == null:
+			continue
+		page.opened.connect(_reader.show_document)
+		page.opened.connect(_journal.mark_read)
+		page.closed.connect(_reader.close)
+		page.scrolled.connect(_reader.scroll_by)
 
 
 ## Whether the player is inside the useful reach of any lit practical. The
