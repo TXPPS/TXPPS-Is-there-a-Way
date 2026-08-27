@@ -15,8 +15,9 @@ python3 tools/ci/stamp_build.py
 echo "==> regenerating art (must be byte-identical to what is committed)"
 python3 tools/gen/make_icons.py
 if ! git diff --quiet -- assets/icons; then
-	echo "error: assets/icons differs from tools/gen/make_icons.py output." >&2
-	echo "       Generated art must never be hand-edited; re-run the generator and commit." >&2
+	echo "error: committed art does not match tools/gen/make_icons.py output." >&2
+	echo "       Either the generator changed and the output was not re-committed," >&2
+	echo "       or the art was hand-edited. Run the generator and commit the result." >&2
 	git --no-pager diff --stat -- assets/icons >&2
 	exit 1
 fi
