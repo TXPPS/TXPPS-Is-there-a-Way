@@ -1,12 +1,35 @@
-[gd_resource type="StandardMaterial3D" format=3]
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
 
-; Gray-box placeholder. P2 replaces this with a procedural wet-concrete
-; material (triplanar, real normal + roughness variation). Kept deliberately
-; dark and slightly cool so the sodium practical reads warm against it.
+; Every large surface in the dam. Broad roughness variation, a tide mark a
+; third of the way up every wall, mineral bloom where water has been sitting
+; for sixty years, and silt on anything facing up.
+
+[ext_resource type="Shader" path="res://src/render/surface.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://assets/textures/surface_noise.png" id="2_noise"]
 
 [resource]
-resource_name = "Graybox Concrete"
-albedo_color = Color(0.196, 0.204, 0.216, 1)
-metallic = 0.0
-metallic_specular = 0.28
-roughness = 0.92
+resource_name = "Wet Concrete"
+shader = ExtResource("1_shader")
+shader_parameter/noise_tex = ExtResource("2_noise")
+shader_parameter/albedo_dark = Color(0.098, 0.106, 0.118, 1)
+shader_parameter/albedo_light = Color(0.196, 0.204, 0.227, 1)
+shader_parameter/albedo_weights = Vector4(0.45, 0.35, 0.2, 0)
+shader_parameter/metallic_amount = 0.0
+shader_parameter/specular_amount = 0.32
+shader_parameter/tile_metres = 1.1
+shader_parameter/roughness_low = 0.55
+shader_parameter/roughness_high = 0.94
+shader_parameter/roughness_weights = Vector4(0.6, 0.3, 0.1, 0.0)
+shader_parameter/breakup_colour = Color(0.3, 0.29, 0.26, 1)
+shader_parameter/breakup_amount = 0.22
+shader_parameter/breakup_threshold = 0.68
+shader_parameter/breakup_softness = 0.12
+shader_parameter/breakup_roughness = 0.98
+shader_parameter/silt_colour = Color(0.18, 0.161, 0.122, 1)
+shader_parameter/silt_amount = 0.5
+shader_parameter/stain_colour = Color(0.18, 0.161, 0.122, 1)
+shader_parameter/stain_amount = 0.45
+shader_parameter/waterline_y = 1.05
+shader_parameter/waterline_fuzz = 0.5
+shader_parameter/wet_darkening = 0.35
+shader_parameter/wet_roughness = 0.25

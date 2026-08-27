@@ -35,6 +35,7 @@ tests/case_pause.gd    pause halts, releases, ducks, and resumes without a jump
 tests/case_layout.gd   the reserved rect contract
 tests/case_settings.gd persistence, clamping, and change announcements
 tests/case_save.gd     round-trip, codes, migration, and failing to save
+tests/case_render.gd   post-stack wiring, reduce motion, and the fear number
 ```
 
 Two things about the harness are worth knowing before adding a case.
@@ -69,6 +70,7 @@ the assertion is that a lie in it changes nothing.
 | layout | a prompt drawn under a thumb; a target below 44 pt |
 | interact | a target offered through a control; a drag turning the wrong wheel |
 | save | a slot that does not come back; a code that crashes on a bad paste; a browser that refuses storage taking the game down with it |
+| render | an accessibility setting that does not reach the shader; a fear number that leaves 0..1 and takes the grain with it |
 
 A case that leaves the world somewhere runs before one that assumes where it is.
 `case_interact.gd` puts the player where it needs them **and** calls
@@ -126,6 +128,30 @@ wants a service worker in a particular state — and a shared abstraction over
 that would be a place for bugs to hide rather than a saving.
 
 ---
+
+## `capture_shots.js` — what it looks like
+
+Not a test. It is how art gets reviewed by somebody who has no desktop editor
+session and cannot run the game.
+
+```sh
+npm --prefix tools/web run shots     # -> docs/shots/, committed
+```
+
+`src/render/shot_list.gd` exists only when the page carries `?shots=1`, walks a
+fixed list of poses, and holds each still until it has been photographed. Fixed
+poses are the whole point: a suite that walks the player around produces two
+screenshots of two different walls, and nothing can be said about a change
+between them.
+
+It is not silent about failure. A uniformly black frame compresses to a couple
+of kilobytes, so any shot under 4 kB fails the capture rather than quietly
+committing a gallery of black — which is exactly what the first run of the post
+stack would have produced, because the LUT's contrast pivot was at 0.5 and this
+game's image lives below 0.25.
+
+The poses are computed from the room's geometry, not eyeballed. `forward(yaw)`
+is `(-sin yaw, 0, -cos yaw)`, which is not the sign anyone guesses first.
 
 ## `smoke_web.js` — does the game run
 

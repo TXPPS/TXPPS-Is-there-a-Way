@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="RenderTuning" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/render/render_tuning.gd" id="1_render"]
+
+[resource]
+script = ExtResource("1_render")
+barrel = 0.045
+chroma = 0.0035
+bloom_threshold = 0.78
+bloom_strength = 0.55
+bloom_tint = Color(1, 0.78, 0.52, 1)
+lut_amount = 1.0
+grain_calm = 0.028
+grain_afraid = 0.085
+anisotropy_calm = 1.0
+anisotropy_afraid = 3.4
+grain_speed = 24.0
+grain_reduced = 0.4
+dither = 1.0
+dither_ceiling = 0.35
+vignette = 0.0

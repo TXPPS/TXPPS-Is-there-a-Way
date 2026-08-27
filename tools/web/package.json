@@ -6,7 +6,8 @@
   "scripts": {
     "smoke": "node smoke_web.js ../../build ../../build-smoke",
     "smoke:pwa": "node smoke_pwa.js ../../build",
-    "deploy": "wrangler pages deploy ../../build"
+    "deploy": "wrangler pages deploy ../../build",
+    "shots": "node capture_shots.js ../../build ../../docs/shots"
   },
   "devDependencies": {
     "playwright": "1.62.1",

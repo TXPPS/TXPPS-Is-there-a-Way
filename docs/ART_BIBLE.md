@@ -116,7 +116,11 @@ power is both the win condition and the risk. It also comes straight out of the
 programme's methodology, which is what D2 asks for — what the facility did to
 people in the dark is what the entity now does with the light.
 
-## Post-process stack (P2)
+## Post-process stack — **built**
+
+Built in P2. `src/render/post.gdshader` plus two stages that turned out to
+belong to the engine. See `ARCHITECTURE.md`, "Rendering", for where each one
+ended up and why; the list below is the intent, and the status is what happened.
 
 One fullscreen shader, every parameter drivable from gameplay:
 
@@ -129,5 +133,21 @@ One fullscreen shader, every parameter drivable from gameplay:
    P0 screenshots
 7. optional 1970s-camera vignette, off by default, on for tape playback
 
-Verify each stage under Compatibility before building on it. `reduce-motion`
-must disable 4 and soften 5.
+| # | Status |
+|---|---|
+| 1 filmic tonemap | **engine.** `WorldEnvironment`, the hardware path. Doing it twice makes the grade fight the curve. |
+| 2 LUT grade | **built.** `tools/gen/make_lut.py` writes it as a function. Act 1 only so far. |
+| 3 thresholded bloom | **engine.** `Environment.glow`. A hand-rolled version from the screen's mip chain produced no halo: Compatibility gives the backbuffer no mips. |
+| 4 CA + barrel | **built**, edge-weighted, one lens. Off under `reduce motion`. |
+| 5 anisotropic grain | **built**, breathing with the fear state. Softened, not removed, under `reduce motion` — it also hides banding the dither does not reach. |
+| 6 ordered dither | **built.** 8×8 Bayer, computed not looked up, in the shadows only. This is the fix for the P0 banding. |
+| 7 vignette | **built**, off by default, ready for tape playback. |
+
+`reduce-motion` disables 4 and softens 5, as required. It deliberately does not
+touch 6: that is legibility, not motion.
+
+**Both P0 defects are fixed.** The lamp panel clipped to flat white because its
+emissive sat above the filmic shoulder; it is 1.5 rather than 2.6 and the glow
+does the work of making it read as bright. The banding in the falloff is the
+dither. Both are visible in `docs/shots/`, and neither has been seen on a
+phone.

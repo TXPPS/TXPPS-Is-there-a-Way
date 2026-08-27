@@ -271,3 +271,55 @@ Cost to reverse: high, and rising. Every document, every piece of equipment and
 the whole plot-hole audit rest on it. This is the one decision in this run that
 would be genuinely expensive to undo, which is why it is written down with its
 reasons rather than assumed.
+
+## D17 — Tonemap and bloom stay with the engine; everything else is ours
+
+**Decided:** `WorldEnvironment` keeps filmic tonemapping and does the bloom
+through `Environment.glow`; the fullscreen shader does the lens, the grade, the
+grain, the dither and the vignette. **Alternatives:** put all seven stages in
+one shader, as `ART_BIBLE.md` originally described.
+
+Tonemapping twice makes a grade fight a curve, and the engine's is free on the
+hardware path. Bloom was tried in the shader first, sampling the screen
+texture's mip chain — the standard cheap trick — and produced no halo at all,
+because the Compatibility renderer does not give the backbuffer a mip chain and
+every `textureLod` returned level 0. That is a fact about the target, not a
+preference, and it is written into `ARCHITECTURE.md` so nobody re-tries it.
+
+Cost to reverse: low. The uniforms for a hand-rolled bloom are still in the
+shader's history and the glow settings are four lines of scene.
+
+## D18 — One texture for the whole game
+
+**Decided:** every surface is one triplanar shader reading one 256×256 RGBA
+tile, with no normal maps anywhere. **Alternatives:** per-material albedo,
+roughness and normal maps generated in Python (six materials × three maps ≈ 3-4
+MB); shader-only procedural noise with no texture at all.
+
+Generated map sets are the obvious answer and cost thirty times the payload for
+a game whose whole thesis is that it is too dark to see them. Pure shader noise
+avoids the texture but costs instructions per pixel on a phone GPU, and value
+noise in a fragment shader is not free. One tile, four channels at four scales,
+triplanar, is the middle: 236 kB for the entire surface vocabulary.
+
+Normal maps are the part most likely to be wrong. Under one sodium practical
+with hard falloff, roughness variation does carry a surface — but "does it read
+as material on a phone" is a device question and is queued rather than assumed.
+Cost to reverse: moderate. Adding a normal channel means a second texture or a
+repacking, and every material would want retuning.
+
+## D19 — Reference photography is a committed tool, not a test
+
+**Decided:** `src/render/shot_list.gd` + `tools/web/capture_shots.js` walk a
+fixed pose list and commit the results to `docs/shots/`. **Alternatives:**
+screenshot whatever the smoke suite happens to be looking at; review nothing and
+queue all of it.
+
+The smoke suite's camera is not deterministic — its poses come from timing —
+so two runs photograph two different walls and no change can be reviewed. That
+was not a hypothetical: the first attempt to compare a material tuning failed
+exactly this way. Fixed poses make the gallery comparable between commits,
+which is the only way art gets reviewed in a session with no eyes on it.
+
+The cost is a node in the shipped scene, which frees itself in one branch at
+startup when the URL flag is absent. Cost to reverse: nil.

@@ -1,0 +1,28 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
+
+; Concrete under a cold ceiling. Roughness near zero in the droplets only,
+; which is the whole trick: the surface is matte and the water is not.
+; Used from Act 3 -- the tank room -- and defined here so the vocabulary
+; in ART_BIBLE.md is complete rather than promised.
+
+[ext_resource type="Shader" path="res://src/render/surface.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://assets/textures/surface_noise.png" id="2_noise"]
+
+[resource]
+resource_name = "Condensation"
+shader = ExtResource("1_shader")
+shader_parameter/noise_tex = ExtResource("2_noise")
+shader_parameter/albedo_dark = Color(0.082, 0.09, 0.1, 1)
+shader_parameter/albedo_light = Color(0.145, 0.157, 0.176, 1)
+shader_parameter/albedo_weights = Vector4(0.5, 0.3, 0.2, 0.0)
+shader_parameter/metallic_amount = 0.0
+shader_parameter/specular_amount = 0.6
+shader_parameter/tile_metres = 0.6
+shader_parameter/roughness_low = 0.06
+shader_parameter/roughness_high = 0.86
+shader_parameter/roughness_weights = Vector4(0.85, 0.15, 0.0, 0.0)
+shader_parameter/breakup_amount = 0.0
+shader_parameter/silt_amount = 0.0
+shader_parameter/stain_colour = Color(0.13, 0.15, 0.16, 1)
+shader_parameter/stain_amount = 0.5
+shader_parameter/waterline_y = -100.0

@@ -13,8 +13,8 @@ next begins.
 
 | | |
 |---|---|
-| **Done** | A — save/load, persistence, save codes, Add-to-Home-Screen offer. B — `STORY.md` and `PUZZLES.md`. |
-| **Next** | C — the P2 rendering stack, built from `ART_BIBLE.md` and dressed for Act 1 |
+| **Done** | A — save/load and persistence. B — `STORY.md` and `PUZZLES.md`. C — the rendering stack, both P0 render defects, and a committed shot gallery. |
+| **Next** | D — P3 audio: generators in `tools/audio/`, the fear-driven score, spatialisation |
 | **Blocked on a human** | nothing; everything unverifiable is queued in `NEEDS_DEVICE_QA.md` |
 | **Frozen** | the input layer. No change to touch semantics, layout or the router without a failing test to justify it. It has never run on a real device. |
 
@@ -32,7 +32,7 @@ built and green and that no human has ever seen run.
 
 | | Status |
 |---|---|
-| Build | **green.** Export, budgets, **126-check headless suite**, 52-check gameplay smoke, 28-check update-path smoke. |
+| Build | **green.** Export, budgets (download *and* texture size), **141-check headless suite**, 52-check gameplay smoke, 28-check update-path smoke. |
 | Publish | **automatic.** Every push to `main` deploys, and so does a manual **Run workflow** on `main` — both proven, runs #15 and #16. |
 | Verified | the `verify` job fetches the live URL after every deploy and fails the build unless it serves *this* commit with every payload file answering 200 and the wasm as `application/wasm`. |
 | Cloudflare Pages | still no credentials; that job skips. Optional — it buys `web/_headers` and nothing else. See `DEPLOY.md`. |
@@ -74,7 +74,7 @@ refuse.
 | P0 | Repo, CI, deploy, PWA shell, gray-box room live on the phone | **live; awaiting device QA** |
 | P1 | Player controller, touch input, interaction system, settings, save/load | **done.** Controls, HUD, pause, settings, focused interaction, save/load. The interaction *grammar* — what there is to interact with — comes from P5. |
 | P4 | `STORY.md` bible + plot-hole audit + narrative/document systems | **bible and puzzle set done** (moved before P2: art and puzzles are both derived from it). The narrative/document *systems* — how a page is read on a phone — belong to P5. |
-| P2 | Rendering stack: post-process, materials, lighting rig, test scene | not started |
+| P2 | Rendering stack: post-process, materials, lighting rig, test scene | **done for Act 1's vocabulary.** Post stack, LUT grade, one triplanar material shader covering six surfaces, both P0 defects fixed. Later acts need a second LUT and a fluorescent practical. |
 | P3 | Audio engine, generation pipeline, adaptive score prototype | not started |
 | P5 | Act 1 vertical slice, fully dressed and scored | not started |
 | P6 | Acts 2–4 content, entity AI, endings | not started |
@@ -171,6 +171,21 @@ refuse.
   after about a week idle.
 - Storage persistence is requested at boot and reported on the debug overlay.
 - One-time **Add to Home Screen** offer, ninety seconds in, iOS only.
+
+**Rendering**
+- One triplanar shader (`src/render/surface.gdshader`) and one 256×256 RGBA
+  tile are the whole surface vocabulary: wet concrete, oxidised steel, flaking
+  marine paint, river silt, condensation, and staining as a parameter on all of
+  them. No normal maps — roughness carries it, which is the most likely thing
+  in the stack to be wrong on a phone.
+- Post stack on a CanvasLayer below the HUD: lens (barrel + CA), LUT grade,
+  fear-driven grain, ordered dither, vignette. Tonemap and bloom stayed with
+  the engine, for reasons in `DECISIONS.md` D17.
+- **Both P0 render defects fixed.** The lamp no longer clips to white; the
+  falloff no longer bands.
+- `docs/shots/` is a committed gallery of eight fixed poses, captured by
+  `npm --prefix tools/web run shots`. It is how art gets reviewed without eyes
+  on a device.
 
 **Written down, not yet built**
 - `docs/STORY.md` — the bible. Premise, the 1998 present, the four levels, the

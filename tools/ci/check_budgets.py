@@ -15,10 +15,38 @@ import sys
 TOTAL_GZ_LIMIT = 40 * 1024 * 1024        # hard constraint: <= 40 MB gzipped
 AUDIO_GZ_LIMIT = 12 * 1024 * 1024        # hard constraint: audio <= 12 MB gzipped
 AUDIO_SUFFIXES = (".wav", ".ogg", ".mp3")
+TEXTURE_MAX_PX = 1024                    # hard constraint: no texture over 1024px
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
 
 def gz_size(path: pathlib.Path) -> int:
     return len(gzip.compress(path.read_bytes(), 9))
+
+
+def png_size(path: pathlib.Path) -> tuple[int, int]:
+    """Width and height straight out of the IHDR. Reading eight bytes beats
+    taking a dependency on an image library CI would have to install."""
+    with path.open("rb") as fh:
+        if fh.read(8) != PNG_SIGNATURE:
+            raise ValueError(f"{path} is not a PNG")
+        fh.read(4)
+        if fh.read(4) != b"IHDR":
+            raise ValueError(f"{path} has no IHDR where one must be")
+        return int.from_bytes(fh.read(4), "big"), int.from_bytes(fh.read(4), "big")
+
+
+def check_textures(root: pathlib.Path) -> list[str]:
+    """Every committed PNG, against the texture ceiling. Run against the source
+    tree rather than the export, because by export time a texture is inside a
+    pack and its dimensions are no longer a file anyone can read."""
+    problems = []
+    for path in sorted(root.rglob("*.png")):
+        width, height = png_size(path)
+        if max(width, height) > TEXTURE_MAX_PX:
+            problems.append(
+                f"{path}: {width}x{height} exceeds the {TEXTURE_MAX_PX}px ceiling"
+            )
+    return problems
 
 
 def human(n: int) -> str:
@@ -28,6 +56,7 @@ def human(n: int) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--build", default="build")
+    ap.add_argument("--assets", default="assets")
     args = ap.parse_args()
 
     build = pathlib.Path(args.build)
@@ -50,7 +79,15 @@ def main() -> int:
     print(f"total gzipped : {human(total_gz)}  (budget {human(TOTAL_GZ_LIMIT)})")
     print(f"audio gzipped : {human(audio_gz)}  (budget {human(AUDIO_GZ_LIMIT)})")
 
-    failed = False
+    texture_problems = check_textures(pathlib.Path(args.assets))
+    if texture_problems:
+        print()
+        for problem in texture_problems:
+            print(f"error: {problem}", file=sys.stderr)
+    else:
+        print(f"textures      : all within {TEXTURE_MAX_PX}px")
+
+    failed = bool(texture_problems)
     if total_gz > TOTAL_GZ_LIMIT:
         print(f"error: total download {human(total_gz)} exceeds {human(TOTAL_GZ_LIMIT)}", file=sys.stderr)
         failed = True

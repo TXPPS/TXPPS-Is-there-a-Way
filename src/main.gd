@@ -13,6 +13,9 @@ extends Node3D
 @onready var _settings: GameSettings = $Settings
 @onready var _state: GameState = $State
 @onready var _saves: SaveService = $Saves
+@onready var _fear: FearState = $Fear
+@onready var _post: PostStack = $PostStack
+@onready var _shots: ShotList = $Shots
 @onready var _world: WorldEnvironment = $WorldEnvironment
 @onready var _interactor: Interactor = $Player/Head/Camera/Interactor
 
@@ -31,12 +34,16 @@ func _ready() -> void:
 	_settings.changed.connect(_player.on_setting)
 	_settings.changed.connect(_hud.on_setting)
 	_settings.changed.connect(_on_setting)
+	_settings.changed.connect(_post.on_setting)
+	_fear.changed.connect(_post.set_fear)
 	_hud.action_pressed.connect(_on_action)
 	_hud.puzzle_pressed.connect(_on_puzzle_pressed)
 	_hud.puzzle_dragged.connect(_on_puzzle_dragged)
 	_hud.puzzle_lifted.connect(_on_puzzle_lifted)
 	_interactor.occluded = _hud.blocks_world_point
 	_interactor.target_changed.connect(_on_target_changed)
+	if is_instance_valid(_shots):
+		_shots.bind(_player, _hud)
 	_settings.apply_all()
 	_state.enter(GameState.State.FREE)
 	print("Is There a Way? — build %s" % BuildInfo.describe())
@@ -49,6 +56,7 @@ func _physics_process(_delta: float) -> void:
 		return
 	_player.set_move_intent(_hud.get_move_intent())
 	_player.set_look_intent(_hud.get_look_intent())
+	_fear.set_in_light(_standing_in_light())
 
 
 func _on_setting(key: StringName, value: float) -> void:
@@ -57,7 +65,6 @@ func _on_setting(key: StringName, value: float) -> void:
 		&"volume_sfx": AudioBuses.set_volume(AudioBuses.SFX, value)
 		&"volume_music": AudioBuses.set_volume(AudioBuses.MUSIC, value)
 		&"volume_voice": AudioBuses.set_volume(AudioBuses.VOICE, value)
-		&"brightness": _world.environment.tonemap_exposure = value
 
 
 ## Every touch is dropped before the tree stops delivering input, so no stick is
@@ -71,6 +78,22 @@ func _on_paused() -> void:
 func _on_resumed() -> void:
 	_hud.set_input_enabled(true)
 	_state.close_menu()
+
+
+## Whether the player is inside the useful reach of any lit practical. The
+## fraction is not 1.0 because the edge of a sodium lamp's range is not light --
+## it is where the falloff has already gone to nothing.
+const LIT_FRACTION := 0.62
+
+
+func _standing_in_light() -> bool:
+	for node in get_tree().get_nodes_in_group(&"practical"):
+		var lamp := node as OmniLight3D
+		if lamp == null or not lamp.visible or lamp.light_energy <= 0.0:
+			continue
+		if lamp.global_position.distance_to(_player.global_position) <= lamp.omni_range * LIT_FRACTION:
+			return true
+	return false
 
 
 func _on_target_changed(target: Interactable) -> void:

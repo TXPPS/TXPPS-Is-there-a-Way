@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://src/world/graybox/graybox_room.tscn" id="2_room"]
@@ -9,6 +9,9 @@
 [ext_resource type="Resource" path="res://assets/settings/settings_spec.tres" id="7_spec"]
 [ext_resource type="Script" path="res://src/core/game_state.gd" id="8_state"]
 [ext_resource type="Script" path="res://src/core/save_service.gd" id="9_saves"]
+[ext_resource type="PackedScene" path="res://src/render/post_stack.tscn" id="10_post"]
+[ext_resource type="Script" path="res://src/core/fear_state.gd" id="11_fear"]
+[ext_resource type="Script" path="res://src/render/shot_list.gd" id="12_shots"]
 
 [sub_resource type="Environment" id="Environment_main"]
 background_mode = 1
@@ -19,6 +22,18 @@ ambient_light_energy = 0.45
 tonemap_mode = 2
 tonemap_exposure = 1.0
 tonemap_white = 4.0
+glow_enabled = true
+glow_normalized = true
+glow_intensity = 0.55
+glow_strength = 1.0
+glow_bloom = 0.0
+glow_blend_mode = 0
+glow_hdr_threshold = 0.92
+glow_hdr_scale = 2.0
+glow_levels/2 = 0.0
+glow_levels/3 = 1.0
+glow_levels/4 = 1.0
+glow_levels/5 = 0.6
 fog_enabled = true
 fog_mode = 1
 fog_light_color = Color(0.043, 0.047, 0.055, 1)
@@ -44,10 +59,18 @@ script = ExtResource("8_state")
 [node name="Saves" type="Node" parent="."]
 script = ExtResource("9_saves")
 
+[node name="Fear" type="Node" parent="."]
+script = ExtResource("11_fear")
+
+[node name="Shots" type="Node" parent="."]
+script = ExtResource("12_shots")
+
 [node name="GrayboxRoom" parent="." instance=ExtResource("2_room")]
 
 [node name="Player" parent="." instance=ExtResource("3_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.05, 3.2)
+
+[node name="PostStack" parent="." instance=ExtResource("10_post")]
 
 [node name="Hud" parent="." instance=ExtResource("4_hud")]
 

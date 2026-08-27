@@ -62,3 +62,16 @@ GODOT=/path/to/godot bash tools/ci/build_web.sh   # prints the full size table
 ```
 
 On device: Safari → Develop → Timelines, or the in-game overlay planned for P7.
+
+## Textures — asserted since P2
+
+The ceiling is **1024 px on the longest side**, and `tools/ci/check_budgets.py`
+now reads the IHDR of every committed PNG under `assets/` and fails the build on
+anything over it. Reading eight bytes beats taking a dependency on an image
+library CI would have to install.
+
+The whole game's surface vocabulary is **one 256×256 RGBA tile** (~236 kB
+committed, imported lossless with mipmaps and pinned against Godot's
+`detect_3d` auto-recompression) plus a 256×16 LUT strip. Six materials share
+them. That is the entire texture spend, and it is deliberate: the payload
+headroom belongs to geometry and audio, not to pictures of concrete.

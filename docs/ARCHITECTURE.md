@@ -195,6 +195,60 @@ that a drag on the right wheel turns the right wheel (picked by screen distance,
 because the player is pointing at what they can see), and that letting go gives
 the camera back. `tests/case_interact.gd` asserts each of those.
 
+## Rendering
+
+One shader for every surface, one fullscreen pass, one texture, and one LUT.
+
+**Surfaces.** `src/render/surface.gdshader` is triplanar PBR composed from a
+single committed 256×256 RGBA tile (`tools/gen/make_noise.py`) whose four
+channels are four scales of the same idea — 4 px micro, 16 px patches, 64 px
+broad, and a channel stretched 8:1 for staining that runs *down*. Six materials
+are that shader with different parameters: wet concrete, oxidised steel, flaking
+marine paint, river silt, condensation, and staining as a parameter on all of
+them. Rust and paint chipping are the same mechanism — a threshold on the noise
+with a soft or a hard edge — so neither is ever a decal that can be caught
+repeating.
+
+Deliberately **no normal maps**. Under one sodium practical with hard falloff,
+roughness variation carries the surface, and the alternative costs texture
+budget this target does not have. Whether that is enough is a device question
+and is queued.
+
+**Post.** `src/render/post.gdshader` on a `CanvasLayer` at layer **0** — above
+the 3D scene, below the HUD (1) and the pause menu (3). Grading and graining the
+interface would make small text harder to read on a phone in daylight, which is
+the real viewing condition. In order: barrel and chromatic aberration (edge
+weighted, one lens), the LUT grade, grain, ordered dither, vignette.
+
+Two things are **not** in that shader and are the engine's instead:
+
+- **Tonemapping** stays on `WorldEnvironment` (filmic), because it is the
+  hardware path and doing it twice makes a grade fight a curve.
+- **Bloom** is `Environment.glow`, thresholded high so only the practicals
+  bloom. A hand-rolled bloom from the screen texture's mip chain was tried first
+  and produced no halo at all: the Compatibility renderer does not give the
+  backbuffer a mip chain, so every `textureLod` returned level 0.
+
+**The grade** is a 16×16×16 LUT strip written as a function in
+`tools/gen/make_lut.py`, so it is reviewable as code rather than as a picture
+somebody tweaked. Its one non-obvious property: the contrast pivot is **0.22**,
+not 0.5. This game's image lives below a quarter brightness, and contrast about
+the usual pivot does not add contrast to it — it deletes it. The shadow tint is
+applied toward the cold fill's *direction at the pixel's own luminance*, not
+toward the colour, because tinting toward the colour lifts true black to a grey
+haze. Both mistakes were made first and are visible in the git history.
+
+**Fear** is one float (`src/core/fear_state.gd`, `DECISIONS.md` D15) assembled
+from exposure, proximity and time in the dark. `PostStack` reads it and nothing
+else does yet; the score will.
+
+**Reference photography.** `src/render/shot_list.gd` exists only when the page
+is opened with `?shots=1` and frees itself otherwise. It walks a fixed list of
+poses, holds each still, and lets `tools/web/capture_shots.js` photograph it
+into `docs/shots/`, which is committed. Art cannot be reviewed from a test that
+walks the player around: two runs point the camera at different walls and the
+screenshots are not comparable.
+
 ## Settings
 
 One `SettingsSpec` resource is the whole menu and the whole preference set.

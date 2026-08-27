@@ -1,0 +1,25 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
+
+; Matte, near-zero specular, and the only material in the game with no
+; highlight to give. It reads as depth because everything around it shines.
+
+[ext_resource type="Shader" path="res://src/render/surface.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://assets/textures/surface_noise.png" id="2_noise"]
+
+[resource]
+resource_name = "River Silt"
+shader = ExtResource("1_shader")
+shader_parameter/noise_tex = ExtResource("2_noise")
+shader_parameter/albedo_dark = Color(0.086, 0.076, 0.058, 1)
+shader_parameter/albedo_light = Color(0.161, 0.141, 0.102, 1)
+shader_parameter/albedo_weights = Vector4(0.35, 0.45, 0.2, 0.0)
+shader_parameter/metallic_amount = 0.0
+shader_parameter/specular_amount = 0.04
+shader_parameter/tile_metres = 0.8
+shader_parameter/roughness_low = 0.88
+shader_parameter/roughness_high = 1.0
+shader_parameter/roughness_weights = Vector4(0.6, 0.4, 0.0, 0.0)
+shader_parameter/breakup_amount = 0.0
+shader_parameter/silt_amount = 0.0
+shader_parameter/stain_amount = 0.0
+shader_parameter/waterline_y = -100.0

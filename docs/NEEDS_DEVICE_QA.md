@@ -142,6 +142,35 @@ append `?fresh=1` and start again.
     Add to Home Screen**. It must appear once and never again, in this session
     or any later one.
 
+**Rendering** — everything here was tuned by looking at `docs/shots/`, which is
+a software rasteriser's idea of the picture, at 956×440, on a monitor
+50. Stand under the bulkhead lamp. The panel must read as **sodium**, not as a
+    white rectangle. If its centre is white, the emissive is still too hot.
+51. Look at the lit wall and follow the falloff into the dark. There must be no
+    **banding** — no visible steps or rings. This is the one thing the ordered
+    dither exists for, and a phone's display is where it either works or does
+    not.
+52. Look at the concrete close up, then at two metres, then across the room. Does
+    it read as **concrete**, or as noise? There are no normal maps: roughness
+    variation is doing all of it, and this is the single most likely thing in
+    the render stack to be wrong.
+53. Find the **tide mark** — the wall goes darker and smoother about a third of
+    the way up. Does it read as a waterline or as a seam in the shading?
+54. Look at the painted crate. The chipping should read as **paint lifted off
+    primer**, with a hard edge. If it reads as a pattern, the tile is too small.
+55. **The dark must be navigable.** Take the phone somewhere genuinely bright —
+    outdoors, or a window at noon — and confirm you can still find your way
+    across the unlit half of the room. This is the real viewing condition and no
+    monitor can stand in for it.
+56. **Frame rate.** Three-finger tap and read `fps` while walking. The post pass
+    is a fullscreen shader with six texture fetches plus the engine's glow; it
+    is the most likely thing to have cost the 60 fps budget. Report the number
+    with and without **Reduce motion** on.
+57. Turn **Reduce motion** on. The edge distortion must go completely, the grain
+    must soften but not vanish, and the falloff must still be smooth.
+58. Move **Brightness**. It must change the image immediately and must not wash
+    the blacks to grey at the top of its range.
+
 **Errors**
-50. If anything at all goes wrong, a toast should say what. If something goes
+59. If anything at all goes wrong, a toast should say what. If something goes
     wrong **silently**, that is itself the bug worth reporting.
