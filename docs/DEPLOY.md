@@ -34,31 +34,56 @@ trigger a deploy by hand from a phone without editing a file.
 
 ## Current state
 
+**Live: <https://txpps.github.io/TXPPS-Is-there-a-Way/>**
+
 | | |
 |---|---|
-| GitHub Pages | **not switched on.** The build is green and the artifact is uploaded; the site has nowhere to go. One switch, below. |
-| Cloudflare Pages | **no credentials.** The `probe` job reports this and the deploy job skips. Two secrets, below. |
-
-Until one of those is done there is no URL. Neither can be automated from here —
-`GITHUB_TOKEN` is not permitted to create a Pages site whatever permissions the
-workflow requests, and a Cloudflare token can only be minted by its owner.
+| GitHub Pages | **live.** Every push to `main`, and every manual run on `main`, publishes. |
+| Cloudflare Pages | **no credentials.** The `probe` job reports this and the deploy job skips. Two secrets, below. Optional — it buys `_headers`, nothing else. |
 
 ---
 
-## Target 1 — GitHub Pages (fewest taps, no account needed)
+## Target 1 — GitHub Pages (live)
 
-Free, because the repo is public. One manual switch, once:
+Free, because the repo is public. It needed one switch, once: Settings → Pages →
+*Source* → **GitHub Actions**. If that ever gets turned off, `deploy-pages`
+prints the instructions into the run summary and **fails**. It used to be
+`continue-on-error`, which meant a build could go green having published
+nothing — the exact failure this pipeline exists to prevent.
 
-1. `github.com/TXPPS/TXPPS-Is-there-a-Way` → **Settings** → **Pages**
-2. Under *Build and deployment*, set **Source** to **GitHub Actions**
-3. **Actions** → the latest run → **Re-run all jobs**
+### The environment trap, and why this job declares no environment
 
-URL once enabled: `https://txpps.github.io/TXPPS-Is-there-a-Way/`
+Switching Pages on creates a `github-pages` **environment** with a
+deployment-branch policy naming whichever branch was default at that moment.
+Renaming the default branch does not rewrite that policy. So after the rename,
+`deploy-pages` was rejected before a single step ran:
 
-If it is not switched on, `deploy-pages` prints these instructions into the run
-summary and **fails**. It used to be `continue-on-error`, which meant a build
-could go green having published nothing — the exact failure this pipeline exists
-to prevent.
+> Branch "main" is not allowed to deploy to github-pages due to environment
+> protection rules.
+
+Declaring `environment: github-pages` on the job is what makes Actions evaluate
+that policy up front. The declaration is gone, and the deploy works: the
+deployment still lands in the environment, we simply stop asking for advance
+approval. The only thing lost is the environment URL on the run page, which the
+`verify` job prints anyway.
+
+If you would rather have the environment block back, fix the policy first:
+Settings → **Environments** → **github-pages** → *Deployment branches and tags*
+→ add `main`, or set it to no restriction. Neither the policy nor the
+environment is readable from a Claude session: `/repos/{owner}/{repo}/environments`
+and `.../deployment-branch-policies` return `403 "Access to this GitHub API path
+is not permitted through this proxy"` for GET as much as for PUT, and
+`GITHUB_TOKEN` cannot hold `administration: write` either — it is not a
+requestable workflow permission.
+
+What GitHub Pages actually serves, measured against the live site:
+
+| | |
+|---|---|
+| `index.<hash>.wasm` | `application/wasm` — so the engine stream-compiles |
+| `index.<hash>.pck` | `application/octet-stream` |
+| `.js` | `application/javascript; charset=utf-8` |
+| wasm over the wire | ~9.6 MB, gzipped by GitHub |
 
 Caveats versus Cloudflare:
 

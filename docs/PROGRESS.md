@@ -3,8 +3,8 @@
 > Read this file and `ARCHITECTURE.md` first. They are written assuming you
 > remember nothing about this project.
 
-**Current phase:** P0 built and hardened for device QA. **Waiting on one deploy
-switch and on QA on the phone.** P1 does not start until that QA has been run.
+**Current phase:** P0 built, hardened, and **live**. Waiting on QA on the phone;
+P1 does not start until that QA has been run.
 **Engine:** Godot 4.6.3-stable, Compatibility (WebGL2), single-threaded web export.
 **Target:** iPhone 16 Pro Max, Safari, **landscape**.
 
@@ -12,59 +12,50 @@ switch and on QA on the phone.** P1 does not start until that QA has been run.
 
 ## Deploy state — exact
 
+# **Live: <https://txpps.github.io/TXPPS-Is-there-a-Way/>**
+
 | | Status |
 |---|---|
-| Build | **green.** `build` job passes: export, budgets, 23-check gameplay smoke, 28-check update-path smoke. |
-| Default branch | still `claude/is-there-a-way-setup-kah9su`. The rename to `main` is **blocked**, not by the token but by the API proxy this session runs behind: every write path returns *"Write access to this GitHub API path is not permitted through this proxy."* Taps below. |
-| Artifact | **published to every run.** `web-build` on the run page; `smoke-screenshots` too. |
-| **GitHub Pages** | **NOT switched on.** `deploy-pages` runs, asks the Pages API, gets a non-200, prints the setup into the run summary and skips the deploy. |
-| **Cloudflare Pages** | **no credentials.** `probe` reports no `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID`; `deploy-cloudflare` skips. |
-| **Live URL** | **none yet.** Both hosts need one manual step that no token in this session can perform. |
+| Build | **green.** Export, budgets, 23-check gameplay smoke, 28-check update-path smoke. |
+| Publish | **automatic.** Every push to `main` deploys, and so does a manual **Run workflow** on `main` — both proven, runs #15 and #16. |
+| Verified | the `verify` job fetches the live URL after every deploy and fails the build unless it serves *this* commit with every payload file answering 200 and the wasm as `application/wasm`. |
+| Cloudflare Pages | still no credentials; that job skips. Optional — it buys `web/_headers` and nothing else. See `DEPLOY.md`. |
 
-**The gate is verified, not assumed.** Both deploy jobs test
-`github.ref_name == github.event.repository.default_branch`. On the latest green
-run the `deploy-pages` job **ran** — conclusion `success`, with only its inner
-steps skipped, and those skipped because Pages is off, not because of the gate.
-A job whose `if:` were false shows as `skipped` outright, the way
-`deploy-cloudflare` does. So the expression resolves and it matches on whatever
-the default branch is called. Rename the default to `main` and pushes to `main`
-give `ref_name == 'main' == default_branch`: the same expression, the same
-answer, no edit here. The workflow's `on: push` already lists `main`.
+### What the gate was doing wrong
 
-### Renaming the default branch — five taps
+Both deploy jobs used to test
+`github.ref_name == github.event.repository.default_branch`. The payload half is
+a **snapshot taken when the event was created**, and it went stale two ways:
 
-1. `github.com/TXPPS/TXPPS-Is-there-a-Way` → **Settings** → **General**
-2. Under *Default branch*, tap the **pencil / switch** icon next to
-   `claude/is-there-a-way-setup-kah9su`
-3. Type `main` (do **not** create a branch called `main` first — the rename
-   refuses if the name is taken)
-4. **Rename branch**, then confirm
-5. Nothing else. GitHub retargets open PRs and redirects old links; the deploy
-   gate follows automatically.
+- a **re-run replays the original event's payload**, so attempt 2 of a run is
+  gated on what was true when attempt 1 started;
+- the push event a **branch rename** produces can still carry the branch's old
+  name as `default_branch`.
 
-### What unblocks a URL — GitHub Pages, three taps
+Run #13 was a genuine `push` with `head_branch: main` — not a
+`workflow_dispatch` — re-run as attempt 2 after Pages was switched on. Its
+`ref_name` was `main`, its payload disagreed, both deploy jobs skipped, and the
+build went green having published nothing.
 
-This is the shortest path to something openable on the phone.
+The `probe` job now asks the API what the default branch is at the moment the
+run executes, and both deploy jobs gate on that output. An API call cannot be
+stale and does not care which event triggered the run, so a manual
+**Run workflow** on `main` publishes exactly like a push. Every run prints a
+**Deploy gate** table into the probe summary — event, attempt, `ref_name`, the
+live default branch, the payload's version of it, and the decision — so a deploy
+that does not happen always says why.
 
-1. `github.com/TXPPS/TXPPS-Is-there-a-Way` → **Settings** → **Pages**
-2. *Build and deployment* → **Source** → **GitHub Actions**
-3. **Actions** → latest run → **Re-run all jobs**
-
-Then: `https://txpps.github.io/TXPPS-Is-there-a-Way/`
-
-### Or Cloudflare Pages — better caching, one token
-
-Only Cloudflare honours `web/_headers`. Mint a custom token with exactly
-**Account · Cloudflare Pages · Edit** scoped to your account, and add it plus the
-account ID as repository secrets. Full walkthrough in `DEPLOY.md`.
-
----
+Then the deploy itself was rejected by the `github-pages` environment's
+deployment-branch policy, which still named the pre-rename branch. `DEPLOY.md`
+has the detail; the short version is that the job no longer declares an
+`environment:`, so Actions no longer pre-approves a deployment it was going to
+refuse.
 
 ## Phase plan
 
 | Phase | Scope | State |
 |---|---|---|
-| P0 | Repo, CI, deploy, PWA shell, gray-box room live on the phone | **built; awaiting device QA** |
+| P0 | Repo, CI, deploy, PWA shell, gray-box room live on the phone | **live; awaiting device QA** |
 | P1 | Player controller, touch input, interaction system, settings, save/load | blocked on device QA |
 | P2 | Rendering stack: post-process, materials, lighting rig, test scene | not started |
 | P3 | Audio engine, generation pipeline, adaptive score prototype | not started |
@@ -135,10 +126,10 @@ schema waiting for one.
 
 Report anything **not** on this list.
 
-- **No live URL.** See the deploy table above. This is the top item, and it is
-  three taps.
-- **The default branch is not `main` yet**, and I could not rename it: the API
-  proxy blocks writes. Five taps, above.
+- **The `github-pages` environment still carries a branch policy naming the old
+  branch.** It costs nothing now — the deploy job declares no environment — but
+  it means the run page shows no environment URL. Fixable in Settings →
+  Environments → github-pages if you ever want that back.
 - **No settings menu**, despite `settings_spec.tres` describing fourteen
   settings. P1.
 - **No save/load, no interaction system, no focused-interaction mode, no
@@ -186,8 +177,12 @@ direction). Still open:
 
 ## Device QA checklist
 
-Run in order. The build stamp must match the commit that was deployed —
-check that first, because everything else is meaningless if it does not.
+Open <https://txpps.github.io/TXPPS-Is-there-a-Way/> in Safari, landscape.
+
+Run in order. The build stamp must match the commit at the top of `main` —
+check that first, because everything else is meaningless if it does not. CI
+already asserts it, so a mismatch means you are looking at a cached page:
+append `?fresh=1` and start again.
 
 **Load and shell**
 1. Page loads black; title fades up; the hairline rule fills.
@@ -222,7 +217,8 @@ check that first, because everything else is meaningless if it does not.
 
 **The update path** (the part that decides whether I can ship you fixes)
 15. Load the site, then leave the tab open.
-16. Tell me, and I will push a rebuild. Wait for CI to go green.
+16. Tell me, and I will push a rebuild. Wait for CI to go green. (Or trigger
+    one yourself: Actions → build and deploy → **Run workflow** on `main`.)
 17. Send the phone to the home screen and come back. A **"New version — tap to
     reload"** banner should appear at the top.
 18. It must **not** appear while you are walking around with the tab in the

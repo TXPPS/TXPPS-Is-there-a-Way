@@ -104,15 +104,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
       - name: Cache Godot ${{ env.GODOT_VERSION }}
         id: godot-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             .godot-sdk
@@ -139,7 +139,7 @@ jobs:
       - name: Build the web export
         run: GODOT="$PWD/.godot-sdk/godot" bash tools/ci/build_web.sh
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: "22"
 
@@ -158,14 +158,14 @@ jobs:
       - name: Smoke test the update path
         run: node tools/web/smoke_pwa.js build
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: always()
         with:
           name: smoke-screenshots
           path: build-smoke
           retention-days: 14
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: web-build
           path: build
@@ -186,8 +186,8 @@ jobs:
       name: cloudflare-pages
       url: ${{ steps.deploy.outputs.url }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: "22"
       - uses: actions/download-artifact@v4
@@ -270,7 +270,7 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # A deploy can be refused by things no step of ours can see. Say what,
       # with status codes, rather than leaving a bare "failure".
