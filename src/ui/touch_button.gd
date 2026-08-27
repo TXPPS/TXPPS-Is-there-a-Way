@@ -14,9 +14,13 @@ signal pressed
 ## Shown inside the button. One or two glyphs, drawn as geometry by `_draw`.
 enum Glyph { PAUSE, DOT }
 
+const LABEL_SIZE := 15
+
 var tuning: TouchTuning
 var radius := 34.0
 var glyph: Glyph = Glyph.PAUSE
+## Drawn under the ring. Empty for the pause button, which is a glyph.
+var label := ""
 
 var _index := -1
 var _inside := false
@@ -71,3 +75,14 @@ func _draw() -> void:
 			draw_rect(Rect2(Vector2(gap, -bar.y), bar), ink)
 		Glyph.DOT:
 			draw_circle(Vector2.ZERO, radius * 0.30, ink)
+	if not label.is_empty():
+		_draw_label(ink)
+
+
+func _draw_label(ink: Color) -> void:
+	var font := ThemeDB.fallback_font
+	var width := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_SIZE).x
+	draw_string(
+		font, Vector2(-width * 0.5, radius + LABEL_SIZE + 4.0), label,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_SIZE, ink
+	)

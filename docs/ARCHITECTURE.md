@@ -56,21 +56,25 @@ into the game data pack. It did, once. The `.pck` went from 74 KB to 25 MB.
 Main (Node3D)                        src/main.gd -- composition root
 ├── WorldEnvironment                 filmic tonemap, depth fog, cold ambient fill
 ├── Settings (Node)                  src/core/game_settings.gd + settings_spec.tres
+├── State (Node)                     src/core/game_state.gd -- FREE/FOCUSED/MENU/...
 ├── GrayboxRoom (Node3D)             src/world/graybox/graybox_room.tscn
 │   ├── Shell (StaticBody3D)         6 box shapes: floor, ceiling, 4 walls
 │   ├── Surfaces (Node3D)            6 MeshInstance3D sharing one unit BoxMesh
 │   ├── Crate (StaticBody3D)         the thing you walk into
-│   └── BulkheadLamp (Node3D)        housing + emissive glass + OmniLight3D + Hum
+│   ├── BulkheadLamp (Node3D)        housing + emissive glass + OmniLight3D + Hum
+│   └── DialLock (Node3D)            three wheels and a latch; the throwaway demo
 ├── Player (CharacterBody3D)         src/player/player.tscn
 │   ├── Body (CollisionShape3D)      capsule, r=0.32, h=1.78
-│   └── Head (Node3D)  ── Camera (Camera3D)
+│   └── Head (Node3D)  ── Camera (Camera3D) ── Interactor (Node3D)
 ├── Hud (CanvasLayer)                src/ui/hud.tscn
 │   ├── SafeArea (Control)           insets read from CSS via JavaScriptBridge
 │   │   └── DebugOverlay             hidden until a three-finger tap
 │   ├── Controls (Control)           full-bleed; children placed in viewport units
 │   │   ├── MoveStick (VirtualStick) fixed, bottom-left of the safe rect
 │   │   ├── LookStick (VirtualStick) fixed, bottom-right; hidden under drag look
-│   │   └── PauseButton (TouchButton) top-right
+│   │   ├── PauseButton (TouchButton) top-right
+│   │   ├── ActionButton (TouchButton) first slot on the action arc
+│   │   └── Prompt (Label)           what the action button will do
 │   ├── LookPad (Node)               drag-to-look, when that style is selected
 │   ├── TouchRouter (Node)           owns every touch
 │   │   └── TouchWatch (Node)        sees them all, consumes none
@@ -87,11 +91,10 @@ identical wherever it was tapped.
 **No autoloads.** Global state is a decision, not a convenience. `Settings` is a
 node in the composition root and is handed to whoever needs it by `src/main.gd`.
 
-`src/core/` still holds P1 scaffolding that is written but **not yet wired**:
-`game_state.gd` (the FREE/FOCUSED/MENU/CINEMATIC/DISABLED machine),
-`surface_type.gd` and `src/world/surface_tag.gd` (the footstep-audio hook P3
-needs). They cost nothing at runtime and are listed here so nobody goes looking
-for the systems they imply.
+`src/core/` still holds one piece of P1 scaffolding that is written but **not
+yet wired**: `surface_type.gd` and `src/world/surface_tag.gd`, the footstep-audio
+hook P3 needs. It costs nothing at runtime and is listed here so nobody goes
+looking for the system it implies.
 
 ## Touch ownership
 
@@ -158,6 +161,37 @@ what is *drawn*, which is why the two are asserted separately.
 Action buttons (interact, flashlight, crouch) are already reserved, three slots
 on an arc swung around the look stick, before any of them exist — so nothing
 else settles into the space they will need.
+
+## Focused interaction
+
+Three pieces, none of which knows what the others are attached to.
+
+**`Interactable`** is an `Area3D` on physics layer 3 with a prompt and a handful
+of signals. It holds no puzzle logic and no base class: a dial, a valve and a
+keypad share the targeting system without sharing an ancestor. Gestures reach it
+through `push_press` / `push_drag` / `push_lift` — methods rather than signals
+fired from outside, so the owner of a signal stays the only thing that emits it.
+
+**`Interactor`** hangs off the camera and casts a ray from the centre of the
+view. Not a tap on the world: a thumb cannot point accurately at something small
+on a phone, and a centre-screen ray means the player aims with the camera they
+are already aiming. Before accepting a target it asks `HudRects.blocks_point()`
+via `Hud.blocks_world_point`, so the player is never offered something their own
+thumb is covering — the reserved rects are load-bearing here, not decorative.
+
+**`src/main.gd`** joins them. One button does both jobs: engage with what is in
+front of you, or step back from what you are holding. There is never a moment
+when both are offered, so there is never a wrong one to press. Engaging enters
+`GameState.FOCUSED`, which takes the sticks off the screen and gives every
+gesture that is not a button to the focused thing; stepping back returns to
+`FREE`.
+
+`src/world/puzzles/dial_lock.gd` is the first user and is explicitly
+disposable — three wheels, a combination, and a latch. What it is proving is the
+machinery: that the ray finds a target, that engaging hands the gestures over,
+that a drag on the right wheel turns the right wheel (picked by screen distance,
+because the player is pointing at what they can see), and that letting go gives
+the camera back. `tests/case_interact.gd` asserts each of those.
 
 ## Settings
 

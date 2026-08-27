@@ -16,6 +16,7 @@ const DEVICE_POINTS := Vector2i(956, 440)
 const CASES: Array[String] = [
 	"res://tests/case_input.gd",
 	"res://tests/case_pause.gd",
+	"res://tests/case_interact.gd",
 	"res://tests/case_layout.gd",
 	"res://tests/case_settings.gd",
 ]

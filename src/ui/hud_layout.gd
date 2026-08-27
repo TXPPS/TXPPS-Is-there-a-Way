@@ -56,6 +56,18 @@ extends Resource
 
 @export_range(24.0, 90.0, 1.0) var pause_radius: float = 34.0
 
+@export_group("Prompt")
+
+@export var prompt_size: Vector2 = Vector2(420.0, 44.0)
+
+## Clearance between the prompt and the topmost action button.
+##
+## The prompt is anchored to the arc rather than to the middle of the screen so
+## that it stays clear of it at any aspect ratio: the arc is pinned to the bottom
+## edge and the screen centre is not, so on a short window a centred prompt walks
+## straight into the buttons it belongs to.
+@export_range(0.0, 160.0, 1.0) var prompt_gap: float = 26.0
+
 @export_group("Reach")
 
 ## Apple's floor for a touch target, in points. Enforced at runtime against the
@@ -76,6 +88,14 @@ func look_stick_centre(safe: Rect2, offset: Vector2) -> Vector2:
 	return Vector2(
 		safe.end.x - look_stick_inset.x - offset.x,
 		safe.end.y - look_stick_inset.y - offset.y
+	)
+
+
+func prompt_rect(safe: Rect2, offset: Vector2) -> Rect2:
+	var bottom := action_centre(safe, offset, 0).y - action_button_radius - prompt_gap
+	return Rect2(
+		Vector2(safe.get_center().x - prompt_size.x * 0.5, bottom - prompt_size.y),
+		prompt_size
 	)
 
 

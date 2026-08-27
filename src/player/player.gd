@@ -44,6 +44,16 @@ func set_move_intent(intent: Vector2) -> void:
 	_move_intent = intent.limit_length(1.0)
 
 
+## Points the eyes now, with no chase and no bob carried over. Spawn placement
+## and scripted cameras need this; ordinary looking must not use it.
+func face(yaw: float, pitch: float) -> void:
+	var limit := deg_to_rad(tuning.pitch_limit_degrees)
+	_look_target = Vector2(yaw, clampf(pitch, -limit, limit))
+	_look_smoothed = _look_target
+	rotation.y = _look_smoothed.x
+	_head.rotation.x = _look_smoothed.y
+
+
 ## Look stick deflection: x = right, y = up, each -1..1. Held rather than
 ## consumed, because a stick is a rate and a rate applies every frame.
 func set_look_intent(intent: Vector2) -> void:

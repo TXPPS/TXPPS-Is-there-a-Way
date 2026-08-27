@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://src/world/graybox/graybox_room.tscn" id="2_room"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://src/ui/pause_menu.tscn" id="5_menu"]
 [ext_resource type="Script" path="res://src/core/game_settings.gd" id="6_settings"]
 [ext_resource type="Resource" path="res://assets/settings/settings_spec.tres" id="7_spec"]
+[ext_resource type="Script" path="res://src/core/game_state.gd" id="8_state"]
 
 [sub_resource type="Environment" id="Environment_main"]
 background_mode = 1
@@ -35,6 +36,9 @@ environment = SubResource("Environment_main")
 [node name="Settings" type="Node" parent="."]
 script = ExtResource("6_settings")
 spec = ExtResource("7_spec")
+
+[node name="State" type="Node" parent="."]
+script = ExtResource("8_state")
 
 [node name="GrayboxRoom" parent="." instance=ExtResource("2_room")]
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 ; Phase 0 gray-box. Grid unit is 0.5 m and every dimension here is a multiple
 ; of it, so the modular kit built in P2 drops straight into this footprint.
@@ -8,6 +8,7 @@
 [ext_resource type="Material" path="res://assets/materials/graybox_steel.tres" id="2_steel"]
 [ext_resource type="Material" path="res://assets/materials/graybox_lamp_glass.tres" id="3_lamp"]
 [ext_resource type="Script" path="res://src/world/lamp_hum.gd" id="4_hum"]
+[ext_resource type="PackedScene" path="res://src/world/puzzles/dial_lock.tscn" id="5_lock"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_unit"]
 size = Vector3(1, 1, 1)
@@ -131,3 +132,9 @@ shadow_enabled = true
 shadow_bias = 0.04
 omni_range = 14.0
 omni_attenuation = 1.6
+
+; On the north wall, facing the spawn: the player is looking straight at it and
+; has to walk the length of the room to reach it. That is the whole gray-box
+; loop -- walk, look, engage -- in one object.
+[node name="DialLock" parent="." instance=ExtResource("5_lock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1.55, -4.46)

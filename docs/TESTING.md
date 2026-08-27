@@ -30,6 +30,7 @@ tests/run_tests.gd     SceneTree entry point; sizes the window, runs the cases
 tests/expect.gd        assertion tally
 tests/touch.gd         synthetic touches, including deliberately wrong ones
 tests/case_input.gd    the control scheme
+tests/case_interact.gd targeting, engaging, gestures reaching the focused thing
 tests/case_pause.gd    pause halts, releases, ducks, and resumes without a jump
 tests/case_layout.gd   the reserved rect contract
 tests/case_settings.gd persistence, clamping, and change announcements
@@ -65,6 +66,12 @@ the assertion is that a lie in it changes nothing.
 | first move is free | a jump on the first frame of a look gesture |
 | pause | a stick still held on resume; a camera that jumped |
 | layout | a prompt drawn under a thumb; a target below 44 pt |
+| interact | a target offered through a control; a drag turning the wrong wheel |
+
+A case that leaves the world somewhere runs before one that assumes where it is.
+`case_interact.gd` puts the player where it needs them **and** calls
+`Player.face()`, because the input cases before it turned the camera 27° and a
+ray does not care that the test meant to look forward.
 
 ---
 

@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://src/player/player.gd" id="1_player"]
 [ext_resource type="Resource" path="res://src/player/player_tuning.tres" id="2_tuning"]
+[ext_resource type="Script" path="res://src/player/interactor.gd" id="3_interactor"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.32
@@ -24,3 +25,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)
 [node name="Camera" type="Camera3D" parent="Head"]
 near = 0.05
 far = 90.0
+
+; On the camera, so it aims with the view rather than with the body.
+[node name="Interactor" type="Node3D" parent="Head/Camera"]
+script = ExtResource("3_interactor")

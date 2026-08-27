@@ -1,0 +1,14 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+; The only emissive surface in the gray-box besides the lamp glass. It is
+; duplicated at runtime by src/world/puzzles/dial_lock.gd, which recolours the
+; copy -- the resource on disk stays red.
+
+[resource]
+resource_name = "graybox_indicator"
+albedo_color = Color(0.62, 0.16, 0.13, 1)
+metallic = 0.0
+roughness = 0.55
+emission_enabled = true
+emission = Color(0.62, 0.16, 0.13, 1)
+emission_energy_multiplier = 1.6
