@@ -151,7 +151,10 @@ jobs:
           echo "url=$URL" >> "$GITHUB_OUTPUT"
           echo "### Live on Cloudflare: $URL" >> "$GITHUB_STEP_SUMMARY"
 
-  # Fallback, and a permanently useful second URL. Free on a public repo.
+  # Fallback, and a permanently useful second URL. Free on a public repo, but
+  # it has to be switched on by hand once: GITHUB_TOKEN is not allowed to create
+  # a Pages site, whatever permissions the workflow asks for. So probe first and
+  # print instructions instead of failing red every push.
   deploy-pages:
     needs: build
     if: github.event_name != 'pull_request'
@@ -161,10 +164,44 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - uses: actions/configure-pages@v5
-        with:
-          enablement: true
+      - name: Is GitHub Pages switched on?
+        id: state
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          CODE="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pages")"
+          if [ "$CODE" = "200" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "## GitHub Pages is not switched on yet"
+              echo
+              echo "The build is green and the site is ready; it just has nowhere to go."
+              echo "One-time switch, about four taps:"
+              echo
+              echo "1. Repo → **Settings** → **Pages**"
+              echo "2. Under *Build and deployment*, set **Source** to **GitHub Actions**"
+              echo "3. Come back here and **Re-run all jobs**"
+              echo
+              echo "The site will then be at https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+              echo
+              echo "Cloudflare Pages is the primary target and needs no Pages switch — see \`docs/DEPLOY.md\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - if: steps.state.outputs.enabled == 'true'
+        uses: actions/configure-pages@v5
+
       - id: deploy
+        if: steps.state.outputs.enabled == 'true'
         uses: actions/deploy-pages@v4
-      - run: |
-          echo "### Live on GitHub Pages: ${{ steps.deploy.outputs.page_url }}" >> "$GITHUB_STEP_SUMMARY"
+
+      - if: steps.state.outputs.enabled == 'true'
+        run: |
+          echo "## Live on GitHub Pages" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ steps.deploy.outputs.page_url }}" >> "$GITHUB_STEP_SUMMARY"

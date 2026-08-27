@@ -52,11 +52,18 @@ GitHub Pages ignores `_headers` and applies its own, weaker, caching.
 
 ## Target 2 — GitHub Pages (fallback, always on)
 
-Runs on every push regardless of Cloudflare, on the free tier because the repo
-is public. The workflow enables Pages itself via `actions/configure-pages`
-(`enablement: true`), so there is nothing to click.
+Free, because the repo is public. It needs **one manual switch, once**:
 
-URL: `https://txpps.github.io/TXPPS-Is-there-a-Way/`
+1. Repo → **Settings** → **Pages**
+2. Under *Build and deployment*, set **Source** to **GitHub Actions**
+3. **Actions** → the latest run → **Re-run all jobs**
+
+That is the whole setup — no secrets, no tokens. GitHub's workflow token is not
+permitted to create a Pages site no matter what permissions the workflow asks
+for, so this cannot be automated. Until it is switched on, the `deploy-pages`
+job prints these instructions in the run summary and does not fail the build.
+
+URL once enabled: `https://txpps.github.io/TXPPS-Is-there-a-Way/`
 
 The job is marked `continue-on-error`, so if an environment branch policy
 refuses a deployment from a non-default branch, the build still passes and
