@@ -1,7 +1,22 @@
-[gd_resource type="AudioBusLayout" format=3]
+[gd_resource type="AudioBusLayout" load_steps=2 format=3]
 
-; Wired now, while nearly everything is still silent, because routing is the
-; part that is expensive to retrofit. See src/core/audio_buses.gd.
+; Wired in P1 while everything was silent, given effects in P3.
+;
+; The reverb is on SFX and not on Music, deliberately: the score is written as
+; four rooms the space can be in, and putting a room on top of it smears the one
+; thing in the mix that is supposed to be placeless. See src/core/audio_buses.gd
+; for how the player's volume sliders and the pause duck reach these.
+
+[sub_resource type="AudioEffectReverb" id="AudioEffectReverb_rooms"]
+; Defaults for the powerhouse: a big damp concrete box. ReverbZone overrides
+; these per space (src/audio/reverb_zone.gd).
+room_size = 0.72
+damping = 0.42
+spread = 0.7
+dry = 1.0
+wet = 0.24
+predelay_msec = 34.0
+predelay_feedback = 0.28
 
 [resource]
 bus/0/name = &"Master"
@@ -16,6 +31,8 @@ bus/1/mute = false
 bus/1/bypass_fx = false
 bus/1/volume_db = 0.0
 bus/1/send = &"Master"
+bus/1/effect/0/effect = SubResource("AudioEffectReverb_rooms")
+bus/1/effect/0/enabled = true
 bus/2/name = &"Music"
 bus/2/solo = false
 bus/2/mute = false

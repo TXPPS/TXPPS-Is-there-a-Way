@@ -57,6 +57,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--build", default="build")
     ap.add_argument("--assets", default="assets")
+    ap.add_argument("--imported", default=".godot/imported")
     args = ap.parse_args()
 
     build = pathlib.Path(args.build)
@@ -69,7 +70,18 @@ def main() -> int:
     rows.sort(key=lambda r: -r[2])
 
     total_gz = sum(r[2] for r in rows)
-    audio_gz = sum(r[2] for r in rows if r[0].endswith(AUDIO_SUFFIXES))
+    # By export time every sound is inside the pack and there is no file left
+    # whose size is the audio budget -- so this measures the *imported* samples,
+    # which are byte for byte what the pack carries. The committed WAVs are five
+    # times larger and measuring those would refuse a legitimate addition on the
+    # strength of a number that never ships.
+    imported = pathlib.Path(args.imported)
+    audio_files = sorted(imported.glob("*.sample")) if imported.is_dir() else []
+    audio_gz = sum(gz_size(p) for p in audio_files)
+    source_gz = sum(
+        gz_size(p) for p in sorted(pathlib.Path(args.assets).rglob("*"))
+        if p.is_file() and p.suffix in AUDIO_SUFFIXES
+    )
 
     width = max(len(r[0]) for r in rows)
     print(f"{'file'.ljust(width)}  {'raw':>12}  {'gzip':>12}")
@@ -77,7 +89,8 @@ def main() -> int:
         print(f"{name.ljust(width)}  {raw:>12,}  {gz:>12,}")
     print()
     print(f"total gzipped : {human(total_gz)}  (budget {human(TOTAL_GZ_LIMIT)})")
-    print(f"audio gzipped : {human(audio_gz)}  (budget {human(AUDIO_GZ_LIMIT)})")
+    print(f"audio shipped : {human(audio_gz)}  (budget {human(AUDIO_GZ_LIMIT)}) "
+          f"from {human(source_gz)} of committed WAV")
 
     texture_problems = check_textures(pathlib.Path(args.assets))
     if texture_problems:
@@ -92,7 +105,7 @@ def main() -> int:
         print(f"error: total download {human(total_gz)} exceeds {human(TOTAL_GZ_LIMIT)}", file=sys.stderr)
         failed = True
     if audio_gz > AUDIO_GZ_LIMIT:
-        print(f"error: audio {human(audio_gz)} exceeds {human(AUDIO_GZ_LIMIT)}", file=sys.stderr)
+        print(f"error: shipped audio {human(audio_gz)} exceeds {human(AUDIO_GZ_LIMIT)}", file=sys.stderr)
         failed = True
     return 1 if failed else 0
 

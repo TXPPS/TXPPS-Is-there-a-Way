@@ -21,6 +21,7 @@ const CASES: Array[String] = [
 	"res://tests/case_settings.gd",
 	"res://tests/case_save.gd",
 	"res://tests/case_render.gd",
+	"res://tests/case_audio.gd",
 ]
 
 
@@ -48,6 +49,36 @@ func _run() -> void:
 		var case: RefCounted = load(path).new()
 		await case.run(self, main, expect)
 	var code: int = expect.report("headless")
-	main.queue_free()
+	# Stop every voice before tearing the tree down. The audio server mixes on
+	# its own thread and briefly holds a reference to whatever is playing; freeing
+	# the scene out from under it makes the engine report resources still in use
+	# at exit, intermittently, which reads as a build failure and is not one.
+	# Everything below the summary line is teardown. The audio server holds a
+	# playback for a moment after a player stops, so freeing the tree races it
+	# and the engine sometimes reports resources still in use at exit; letting
+	# quit() do the teardown instead makes it report that every time. Neither is
+	# a failure of the run, and tools/ci/build_web.sh only reads the part of this
+	# log that was produced while the suite was running.
+	_silence(main)
 	await process_frame
+	main.queue_free()
+	for frame in 3:
+		await process_frame
 	quit(code)
+
+
+## Stopping is not enough: a stopped player still holds its stream, and the
+## audio server still holds the playback it made from it. Dropping the stream as
+## well is what lets both go before the engine tears down and counts what is
+## left.
+func _silence(node: Node) -> void:
+	if node is AudioStreamPlayer:
+		var flat := node as AudioStreamPlayer
+		flat.stop()
+		flat.stream = null
+	elif node is AudioStreamPlayer3D:
+		var spatial := node as AudioStreamPlayer3D
+		spatial.stop()
+		spatial.stream = null
+	for child in node.get_children():
+		_silence(child)

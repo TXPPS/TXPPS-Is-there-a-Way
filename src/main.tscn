@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://src/world/graybox/graybox_room.tscn" id="2_room"]
@@ -12,6 +12,8 @@
 [ext_resource type="PackedScene" path="res://src/render/post_stack.tscn" id="10_post"]
 [ext_resource type="Script" path="res://src/core/fear_state.gd" id="11_fear"]
 [ext_resource type="Script" path="res://src/render/shot_list.gd" id="12_shots"]
+[ext_resource type="Script" path="res://src/audio/audio_director.gd" id="13_score"]
+[ext_resource type="Resource" path="res://src/audio/score_tuning.tres" id="14_scoretune"]
 
 [sub_resource type="Environment" id="Environment_main"]
 background_mode = 1
@@ -64,6 +66,10 @@ script = ExtResource("11_fear")
 
 [node name="Shots" type="Node" parent="."]
 script = ExtResource("12_shots")
+
+[node name="Score" type="Node" parent="." groups=["score"]]
+script = ExtResource("13_score")
+tuning = ExtResource("14_scoretune")
 
 [node name="GrayboxRoom" parent="." instance=ExtResource("2_room")]
 

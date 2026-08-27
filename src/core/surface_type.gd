@@ -4,10 +4,9 @@ extends Resource
 
 ## What a floor sounds and feels like underfoot.
 ##
-## P1 ships this silent: the player emits footstep events carrying a SurfaceType
-## and nothing listens yet. P3 hooks the audio generator to `footstep_bus` and
-## the entity's hearing model to `loudness`. Defining the interface now means P3
-## adds a listener rather than rewriting the controller.
+## P1 shipped this silent. P3 wired it: `src/audio/footsteps.gd` reads `sounds`
+## and `bus` and plays the generated variants; `loudness` is still waiting for
+## P6's hearing model, which is the one field nothing reads yet.
 
 ## Stable identifier. Used as a dictionary key and in save data, so changing one
 ## is a migration, not a rename.
@@ -35,3 +34,10 @@ extends Resource
 ## Which audio bus the footstep plays on. Named rather than referenced so the
 ## bus layout can change without touching every surface resource.
 @export var bus: StringName = &"SFX"
+
+## Basename of the generated footstep variants in assets/audio/, without the
+## index: "step_concrete" finds step_concrete_1 .. step_concrete_N. Named rather
+## than a list of paths, so adding a variant is regenerating and bumping a count.
+@export var sounds: StringName = &"step_concrete"
+
+@export_range(1, 8, 1) var variants: int = 3

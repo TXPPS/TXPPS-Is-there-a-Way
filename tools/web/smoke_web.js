@@ -201,6 +201,18 @@ function overlaps(list) {
 			`audio unlocked and the mixer is consuming the stream (${before} -> ${after})`
 		);
 		t.check(probe.listener === true, 'the scene has a 3D audio listener');
+		// The score is four layers crossfaded by the fear number. At rest only
+		// the bed should be up: if the upper layers are audible in an empty
+		// room, the mix is narrating.
+		t.check(
+			!!probe.score && probe.score.score_bed > 0.3,
+			`the score's bed layer is playing (${probe.score && probe.score.score_bed})`
+		);
+		t.check(
+			!!probe.score && probe.score.score_room < 0.25 && probe.score.score_edge < 0.05,
+			`and the upper layers are held back while nothing is wrong `
+				+ `(room ${probe.score && probe.score.score_room}, edge ${probe.score && probe.score.score_edge})`
+		);
 		t.check(
 			probe.shell && probe.shell.store === 'ok',
 			`shell reports durable storage (${probe.shell && probe.shell.store})`

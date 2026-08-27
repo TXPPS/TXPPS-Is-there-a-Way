@@ -49,6 +49,20 @@ static func volume_db(bus: StringName) -> float:
 	return AudioServer.get_bus_volume_db(index) if index >= 0 else 0.0
 
 
+## The one reverb in the mix, on the SFX bus. Found by type rather than by
+## index, so re-ordering the effects in the bus layout cannot silently point
+## this at a filter.
+static func reverb() -> AudioEffectReverb:
+	var index := AudioServer.get_bus_index(SFX)
+	if index < 0:
+		return null
+	for slot in AudioServer.get_bus_effect_count(index):
+		var effect := AudioServer.get_bus_effect(index, slot) as AudioEffectReverb
+		if effect != null:
+			return effect
+	return null
+
+
 static func _apply(bus: StringName) -> void:
 	var index := AudioServer.get_bus_index(bus)
 	if index < 0:

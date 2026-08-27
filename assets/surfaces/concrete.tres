@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SurfaceType" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/surface_type.gd" id="1_surface"]
+
+[resource]
+script = ExtResource("1_surface")
+id = &"concrete"
+display_name = "Wet Concrete"
+gain = 1.0
+pitch = 1.0
+stride_drag = 0.0
+loudness = 0.55
+bus = &"SFX"
+sounds = &"step_concrete"
+variants = 3

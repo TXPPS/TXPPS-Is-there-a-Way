@@ -323,3 +323,50 @@ which is the only way art gets reviewed in a session with no eyes on it.
 
 The cost is a node in the shipped scene, which frees itself in one branch at
 startup when the URL flag is absent. Cost to reverse: nil.
+
+## D20 — The audio generators use no numpy
+
+**Decided:** pure Python, and `tools/audio/` takes no dependencies.
+**Alternatives:** numpy, which the work order named and which is the obvious
+tool for this.
+
+Measured first: seventeen sounds take **4.4 seconds** to generate in pure
+Python, because the expensive parts are one-pole filters and modal sums over a
+few hundred thousand samples, and Python does about seven million of those a
+second. numpy would make it a tenth of a second, which nobody would notice.
+
+Against that, the repository has zero third-party Python dependencies today, and
+that is load-bearing: it is what lets `build_web.sh` regenerate every committed
+asset and diff it against the tree, in CI, with nothing installed. Adding a
+dependency to save four seconds nobody waits for would trade that away.
+
+Cost to reverse: nil. `synth.py` is small and its functions are the obvious
+numpy one-liners.
+
+## D21 — One reverb, on SFX, and never on the score
+
+**Decided:** a single `AudioEffectReverb` on the SFX bus, driven by whichever
+`ReverbZone` the listener stands in. The Music bus has no effects.
+**Alternatives:** a reverb per space, crossfaded; a send from Music.
+
+A reverb per space is the textbook answer and costs a phone several reverbs
+running at once for a game with few enough rooms that one, retuned as you walk,
+is indistinguishable. The score staying dry is the more interesting half: it is
+written as four rooms the space can be *in*, so putting a room on top of it
+smears the one element in the mix that is meant to be placeless.
+
+Cost to reverse: low.
+
+## D22 — Footsteps are driven by distance, not by a timer
+
+**Decided:** a stride fires when a stride's worth of ground has gone under the
+player. **Alternatives:** a timer gated on "is moving", which is what most
+implementations do.
+
+A timer makes walking into a wall noisy and makes a slow, careful approach the
+same rate as a walk. Distance makes both correct without anything having to know
+what the player is trying to do — which matters because P6's hearing model will
+read the `stepped` signal, and the moment footsteps give the player away, "I was
+moving slowly" has to actually mean something.
+
+Cost to reverse: nil.

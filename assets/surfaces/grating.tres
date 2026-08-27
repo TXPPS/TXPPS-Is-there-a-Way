@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SurfaceType" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/surface_type.gd" id="1_surface"]
+
+; Grating rings higher than concrete and carries further, which is why the
+; player will learn to walk around it rather than across it once anything is
+; listening. See docs/STORY.md, "The rule".
+
+[resource]
+script = ExtResource("1_surface")
+id = &"grating"
+display_name = "Steel Grating"
+gain = 1.15
+pitch = 1.06
+stride_drag = 0.02
+loudness = 0.85
+bus = &"SFX"
+sounds = &"step_grating"
+variants = 3

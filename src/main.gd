@@ -16,6 +16,7 @@ extends Node3D
 @onready var _fear: FearState = $Fear
 @onready var _post: PostStack = $PostStack
 @onready var _shots: ShotList = $Shots
+@onready var _score: AudioDirector = $Score
 @onready var _world: WorldEnvironment = $WorldEnvironment
 @onready var _interactor: Interactor = $Player/Head/Camera/Interactor
 
@@ -36,6 +37,7 @@ func _ready() -> void:
 	_settings.changed.connect(_on_setting)
 	_settings.changed.connect(_post.on_setting)
 	_fear.changed.connect(_post.set_fear)
+	_fear.changed.connect(_score.set_fear)
 	_hud.action_pressed.connect(_on_action)
 	_hud.puzzle_pressed.connect(_on_puzzle_pressed)
 	_hud.puzzle_dragged.connect(_on_puzzle_dragged)

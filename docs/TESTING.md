@@ -36,6 +36,7 @@ tests/case_layout.gd   the reserved rect contract
 tests/case_settings.gd persistence, clamping, and change announcements
 tests/case_save.gd     round-trip, codes, migration, and failing to save
 tests/case_render.gd   post-stack wiring, reduce motion, and the fear number
+tests/case_audio.gd    buses, the score's layers, occlusion, reverb, footsteps
 ```
 
 Two things about the harness are worth knowing before adding a case.
@@ -47,6 +48,13 @@ sets `root.size` to iPhone 16 Pro Max landscape in CSS points **after** the
 first frame, because the window is still settling into its own size before one.
 The viewport then reads 1286×592, and the point-to-unit scale is a real 1.35.
 
+**Only the part of the log before the summary counts.** `build_web.sh` reads the
+suite's output down to the `headless: ...` line and no further. Below it is
+teardown, and teardown races the audio server: it holds a playback for a moment
+after a player stops, so freeing the tree by hand makes "resources still in use
+at exit" intermittent and *not* freeing it makes it certain. There is no third
+option from GDScript. It says nothing about the run.
+
 **Touches are pushed as local coordinates.** `root.push_input(event, true)`.
 Without the `true`, Godot converts the position from window space to viewport
 space and the touch lands at a fraction of where the test aimed it.
@@ -55,6 +63,17 @@ space and the touch lands at a fraction of where the test aimed it.
 ±9999 on purpose. Godot 4.6's web build computes that field against the wrong
 finger whenever more than one is down (see ARCHITECTURE.md, "Touch ownership");
 the assertion is that a lie in it changes nothing.
+
+### Two of these caught real bugs
+
+Worth saying, because a suite that has never failed is a suite nobody should
+trust. `case_audio`'s occlusion check found that the occluder only advanced its
+glide on the frames it re-cast the ray — it recomputed the target as "wherever
+we already are" in between — which made a door opening four times slower than
+the glide time said. `case_audio`'s score check found nothing wrong with the
+score and everything wrong with the test: the live fear state was overwriting
+the value the test set, every frame, which is correct behaviour and makes the
+mix untestable until the wire comes off for the duration.
 
 ### What each case is defending
 
@@ -71,6 +90,7 @@ the assertion is that a lie in it changes nothing.
 | interact | a target offered through a control; a drag turning the wrong wheel |
 | save | a slot that does not come back; a code that crashes on a bad paste; a browser that refuses storage taking the game down with it |
 | render | an accessibility setting that does not reach the shader; a fear number that leaves 0..1 and takes the grain with it |
+| audio | a volume slider moved while ducked staying ducked; a wall that is not heard as a wall; one stride making three footsteps |
 
 A case that leaves the world somewhere runs before one that assumes where it is.
 `case_interact.gd` puts the player where it needs them **and** calls

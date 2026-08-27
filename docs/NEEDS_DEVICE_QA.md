@@ -171,6 +171,34 @@ a software rasteriser's idea of the picture, at 956×440, on a monitor
 58. Move **Brightness**. It must change the image immediately and must not wash
     the blacks to grey at the top of its range.
 
+**Audio** — a headless runner has no ears and Chromium's is not a phone speaker
+59. Put the phone to your ear at low volume with the tap gate just taken. There
+    should be a **bed**: a very low drone, below what the speaker can really
+    reproduce, felt rather than heard. On headphones it should be obvious. If
+    there is silence, say so — the mixer may be running and producing nothing
+    audible, which the suite cannot tell apart.
+60. Walk toward the bulkhead lamp. The **ballast hum** should get louder and
+    brighter; walking away should make it quieter *and* duller, not just
+    quieter. That is distance filtering, and it is the cheapest cue in the game.
+61. Stand so the crate is between you and the lamp. **Nothing should change** —
+    the crate is too small to occlude. Then walk out of the room's line of sight
+    if you can. Occlusion is a ray four times a second; report any *stuttering*
+    as the filter opens and closes, which would mean the glide is too fast.
+62. **Footsteps.** Walk. One step per stride, not a machine-gun and not silence.
+    Walk into a wall: it must go quiet, because nothing is going under you.
+63. Move the **Effects** slider while the hum is audible. It must change
+    immediately. Then pause: the hum must **duck** and the menu stay clear.
+    Resume: it must come all the way back, not most of the way.
+64. Listen for the **room tone** — a broad low hiss with a 60 Hz component under
+    it. If it sounds like tape hiss rather than a room, say so.
+65. **The silent switch.** Check with it on and off, and tell me which one
+    silences the game. iOS treats Web Audio differently depending on how the
+    context was created and this is the single most likely audio bug on the
+    device.
+66. Anything that **clicks**, anywhere, especially at the moment a loop wraps
+    (every 16 seconds). Every tonal loop is periodic by construction and should
+    be seamless; a click means one is not.
+
 **Errors**
-59. If anything at all goes wrong, a toast should say what. If something goes
+67. If anything at all goes wrong, a toast should say what. If something goes
     wrong **silently**, that is itself the bug worth reporting.

@@ -115,6 +115,7 @@ func _sample() -> Dictionary:
 		"listener": get_viewport().is_audio_listener_3d(),
 		"shell": _env,
 		"hud": _hud.probe() if _hud != null else {},
+		"score": _score(),
 		"overlay": _own_rect(),
 	}
 
@@ -135,6 +136,7 @@ func _lines(s: Dictionary) -> PackedStringArray:
 		% [_env.get("store", "-"), _env.get("persist", "-"), _env.get("worker", "-")])
 	lines.append("hum %s   %s" % [s["audio_source"], _peak_text(s["audio_db"])])
 	lines.append("mixer gap %s ms   lat %s ms" % [s["audio_gap_ms"], s["audio_latency_ms"]])
+	lines.append("score %s" % _score_text(s))
 	lines.append("update %s   pwa %s" % [_env.get("update", "-"), _env.get("standalone", "-")])
 	return lines
 
@@ -159,11 +161,28 @@ func _sticks(s: Dictionary) -> String:
 	return "move %+.2f,%+.2f   look %+.2f,%+.2f" % [move[0], move[1], look[0], look[1]]
 
 
+## The score's four layer levels. Found by group rather than by reference: the
+## HUD wires this overlay and has no business knowing about the mix.
+func _score() -> Dictionary:
+	var director := get_tree().get_first_node_in_group(&"score") as AudioDirector
+	return director.probe() if director != null else {}
+
+
 ## Where the overlay itself is, so the browser suite can prove it does not sit
 ## on top of the build stamp the HTML shell draws in the same corner.
 func _own_rect() -> Array:
 	var r := get_global_rect()
 	return [roundi(r.position.x), roundi(r.position.y), roundi(r.size.x), roundi(r.size.y)]
+
+
+func _score_text(s: Dictionary) -> String:
+	var mix: Dictionary = s.get("score", {})
+	if mix.is_empty():
+		return "-"
+	return "bed %.2f room %.2f strain %.2f edge %.2f" % [
+		mix.get("score_bed", 0.0), mix.get("score_room", 0.0),
+		mix.get("score_strain", 0.0), mix.get("score_edge", 0.0),
+	]
 
 
 func _touch_ids() -> String:

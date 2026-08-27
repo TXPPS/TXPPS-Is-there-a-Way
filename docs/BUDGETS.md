@@ -75,3 +75,17 @@ committed, imported lossless with mipmaps and pinned against Godot's
 `detect_3d` auto-recompression) plus a 256×16 LUT strip. Six materials share
 them. That is the entire texture spend, and it is deliberate: the payload
 headroom belongs to geometry and audio, not to pictures of concrete.
+
+## Audio — measured on what ships, since P3
+
+The check counts the **imported samples** in `.godot/imported/*.sample`, which
+are byte for byte what the pack carries. It does not count the committed WAVs:
+those are five times larger, and refusing a legitimate addition on the strength
+of a number that never ships is a worse failure than not checking.
+
+At the end of P3: **1.09 MB shipped**, from 5.27 MB of committed WAV, against a
+12 MB budget. Seventeen sounds — four score layers, two ambiences, two
+machinery loops, three metal one-shots and six footsteps.
+
+The compression is Godot's QOA on import, roughly 5:1 on this material. The
+sources stay 16-bit 22050 Hz mono PCM so they remain diffable and regenerable.
