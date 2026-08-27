@@ -3,19 +3,32 @@
 Every push to `main` or a `claude/**` branch builds and smoke-tests. **Only the
 repository's default branch publishes.**
 
-Both deploy jobs are gated on
-`github.ref_name == github.event.repository.default_branch` rather than on a
-literal `"main"`. That is not pedantry: GitHub Pages publishes from the default
-branch and the `github-pages` environment *rejects* a deployment from anywhere
-else, so the literal would be wrong the moment the default is renamed — and this
-repository's default branch is not currently called `main`. The dynamic form
-follows the rename with no edit here, and a hosted site only ever has one live
-version, so a feature branch quietly overwriting it would be worse than no
-deploy at all.
+Both deploy jobs are gated on `needs.probe.outputs.is_default`, which the
+`probe` job computes by asking the GitHub API what the default branch is **now**
+and comparing it to `github.ref_name`.
 
-Verified rather than assumed: in run #3 the `deploy-pages` job **ran** on
-`claude/is-there-a-way-setup-kah9su` (it was that branch that was the default),
-which is only possible if the expression resolved and matched.
+The obvious expression — `github.ref_name == github.event.repository.default_branch`
+— was there first, and it is a trap. The payload half is a *snapshot* taken when
+the event was created, and it goes stale two ways, both of which happened here:
+
+- **a re-run replays the original event's payload**, so a job re-run hours later
+  is gated on what was true when the first attempt started;
+- **the push event a branch rename produces can still carry the branch's old
+  name** as `default_branch`.
+
+Run #13 was a genuine `push` (not a `workflow_dispatch`) with
+`head_branch: main`, re-run as attempt 2 after Pages was switched on. Its
+`github.ref_name` was `main` and its payload disagreed, so both deploy jobs
+skipped and the build went green with nothing published. An API call cannot be
+stale, so that is what the gate reads now.
+
+Every run prints a **Deploy gate** table into the `probe` job's summary: the
+event and attempt, `ref_name`, the live default branch, the payload's version of
+it, and the decision. A deploy that does not happen always says why.
+
+The gate is deliberately independent of event type, so a `workflow_dispatch` on
+the default branch publishes exactly like a push — which is the only way to
+trigger a deploy by hand from a phone without editing a file.
 
 ---
 
@@ -42,9 +55,10 @@ Free, because the repo is public. One manual switch, once:
 
 URL once enabled: `https://txpps.github.io/TXPPS-Is-there-a-Way/`
 
-Until it is switched on, `deploy-pages` prints these instructions into the run
-summary and does not fail the build. The job is `continue-on-error`, so a
-refused deployment never turns the build red.
+If it is not switched on, `deploy-pages` prints these instructions into the run
+summary and **fails**. It used to be `continue-on-error`, which meant a build
+could go green having published nothing — the exact failure this pipeline exists
+to prevent.
 
 Caveats versus Cloudflare:
 
@@ -187,6 +201,21 @@ than looping. Typing `?fresh=1` by hand is the third rung, for when the page
 never got far enough to run any of this.
 
 ---
+
+## The build is not green until the site answers
+
+A `verify` job runs after every deploy and asserts two things no other job can:
+
+1. **On the default branch, `deploy-pages` must have run and succeeded.** A
+   skipped deploy job is a failure, not a neutral outcome. This is what makes a
+   silently ungated deploy impossible to mistake for a green build.
+2. **The published URL must actually serve this build.** `tools/ci/verify_live.sh`
+   fetches the live document, checks it is our shell, reads `window.ITAW_BUILD`
+   out of it and requires the commit to match the one that just deployed — a
+   stale site fails — then pulls every file `index.html` names and checks each
+   for a 200, for a content type that is not a 404 page wearing a 200, and, for
+   the wasm, for `application/wasm` specifically. Without that type the engine
+   cannot stream-compile and buffers the whole 37 MB first.
 
 ## Deploying by hand
 

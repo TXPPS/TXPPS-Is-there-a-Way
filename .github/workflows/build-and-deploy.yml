@@ -26,14 +26,69 @@ env:
   CLOUDFLARE_PROJECT: "is-there-a-way"
 
 jobs:
-  # Secrets are not readable from a job-level `if:`, so surface their presence
-  # as an output instead.
+  # Everything the deploy jobs are allowed to know before they decide, resolved
+  # once and published as outputs. Secrets are not readable from a job-level
+  # `if:`, and neither -- reliably -- is the event payload; see below.
   probe:
     runs-on: ubuntu-latest
     outputs:
-      cloudflare: ${{ steps.check.outputs.cloudflare }}
+      cloudflare: ${{ steps.secrets.outputs.cloudflare }}
+      default_branch: ${{ steps.branch.outputs.default_branch }}
+      is_default: ${{ steps.branch.outputs.is_default }}
+      pages: ${{ steps.pages.outputs.enabled }}
     steps:
-      - id: check
+      # Ask GitHub what the default branch is *now*. The obvious expression --
+      # `github.event.repository.default_branch` -- reads a snapshot taken when
+      # the event was created, and that snapshot goes stale in two ways that
+      # both bit us: a re-run replays the original event's payload, and the push
+      # event a branch rename produces can still carry the name the branch had
+      # before the rename. Run #13 was a genuine `push` to `main` whose deploy
+      # jobs skipped for exactly that reason -- `github.ref_name` was `main` and
+      # the payload disagreed. An API call cannot be stale.
+      - id: branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          DEFAULT="$(curl -sS \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}" \
+            | python3 -c 'import sys,json; print(json.load(sys.stdin)["default_branch"])')"
+          IS_DEFAULT=false
+          [ "${{ github.ref_name }}" = "$DEFAULT" ] && IS_DEFAULT=true
+          echo "default_branch=$DEFAULT" >> "$GITHUB_OUTPUT"
+          echo "is_default=$IS_DEFAULT" >> "$GITHUB_OUTPUT"
+          # Printed every run, so a deploy that does not happen always says why.
+          {
+            echo "### Deploy gate"
+            echo
+            echo "| | |"
+            echo "|---|---|"
+            echo "| event | \`${{ github.event_name }}\` (attempt ${{ github.run_attempt }}) |"
+            echo "| ref_name | \`${{ github.ref_name }}\` |"
+            echo "| default branch, live from the API | \`$DEFAULT\` |"
+            echo "| default branch, from the event payload | \`${{ github.event.repository.default_branch }}\` |"
+            echo "| **publishes** | **$IS_DEFAULT** |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - id: pages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          CODE="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pages")"
+          if [ "$CODE" = "200" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "GitHub Pages is not switched on (API returned $CODE)."
+          fi
+
+      - id: secrets
         env:
           CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -98,8 +153,8 @@ jobs:
         run: node tools/web/smoke_web.js build build-smoke
 
       # Separate suite, separate failure mode: this one installs the service
-      # worker, lands a forged rebuild under the running client, poisons the
-      # cache, and proves ?fresh=1 gets back out. See docs/TESTING.md.
+      # worker, lands a forged rebuild under the running client, serves a stale
+      # document, and proves ?fresh=1 gets back out. See docs/TESTING.md.
       - name: Smoke test the update path
         run: node tools/web/smoke_pwa.js build
 
@@ -123,9 +178,9 @@ jobs:
   # Primary target. Runs only once the two repository secrets exist.
   deploy-cloudflare:
     needs: [probe, build]
-    # Only the default branch publishes. A hosted site has one live version;
-    # a feature branch that quietly overwrote it would be worse than no deploy.
-    if: needs.probe.outputs.cloudflare == 'true' && github.ref_name == github.event.repository.default_branch
+    # A hosted site has one live version; a feature branch that quietly
+    # overwrote it would be worse than no deploy.
+    if: needs.probe.outputs.cloudflare == 'true' && needs.probe.outputs.is_default == 'true'
     runs-on: ubuntu-latest
     environment:
       name: cloudflare-pages
@@ -164,64 +219,72 @@ jobs:
           echo "url=$URL" >> "$GITHUB_OUTPUT"
           echo "### Live on Cloudflare: $URL" >> "$GITHUB_STEP_SUMMARY"
 
-  # Fallback, and a permanently useful second URL. Free on a public repo, but
-  # it has to be switched on by hand once: GITHUB_TOKEN is not allowed to create
-  # a Pages site, whatever permissions the workflow asks for. So probe first and
-  # print instructions instead of failing red every push.
-  #
-  # `github.event.repository.default_branch` rather than a literal "main": this
-  # repository's default branch is not called main, and Pages follows whatever
-  # the default actually is. Renaming the default keeps working with no edit here.
+  # The live URL until Cloudflare credentials exist. No `continue-on-error`:
+  # a deploy that fails on the default branch is a red build, because the whole
+  # point of this pipeline is that a commit becomes a URL.
   deploy-pages:
-    needs: build
-    # GitHub Pages publishes from the default branch only: the `github-pages`
-    # environment refuses a deployment from anywhere else, and the job would
-    # fail rather than skip. Gate it here so the run stays honest.
-    if: github.ref_name == github.event.repository.default_branch
+    needs: [probe, build]
+    if: needs.probe.outputs.is_default == 'true'
     runs-on: ubuntu-latest
-    continue-on-error: true
+    outputs:
+      page_url: ${{ steps.deploy.outputs.page_url }}
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - name: Is GitHub Pages switched on?
-        id: state
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: GitHub Pages has to be switched on by hand, once
+        if: needs.probe.outputs.pages != 'true'
+        run: |
+          {
+            echo "## GitHub Pages is not switched on"
+            echo
+            echo "The build is green and the site is ready; it has nowhere to go."
+            echo "GITHUB_TOKEN cannot create a Pages site whatever permissions"
+            echo "this workflow requests, so this is the one manual step:"
+            echo
+            echo "1. Repo → **Settings** → **Pages**"
+            echo "2. *Build and deployment* → **Source** → **GitHub Actions**"
+            echo "3. Come back here and **Re-run all jobs**"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "error: GitHub Pages is not enabled for this repository." >&2
+          exit 1
+
+      - uses: actions/configure-pages@v5
+      - id: deploy
+        uses: actions/deploy-pages@v4
+      - run: |
+          echo "### Live on GitHub Pages" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ steps.deploy.outputs.page_url }}" >> "$GITHUB_STEP_SUMMARY"
+
+  # A deploy that silently did not happen used to look exactly like a green
+  # build. This is the job that makes that impossible.
+  verify:
+    needs: [probe, build, deploy-pages]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: On the default branch, the deploy must have run
         run: |
           set -euo pipefail
-          CODE="$(curl -sS -o /dev/null -w '%{http_code}' \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${{ github.repository }}/pages")"
-          if [ "$CODE" = "200" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-            {
-              echo "## GitHub Pages is not switched on yet"
-              echo
-              echo "The build is green and the site is ready; it just has nowhere to go."
-              echo "One-time switch, about four taps:"
-              echo
-              echo "1. Repo → **Settings** → **Pages**"
-              echo "2. Under *Build and deployment*, set **Source** to **GitHub Actions**"
-              echo "3. Come back here and **Re-run all jobs**"
-              echo
-              echo "The site will then be at https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
-              echo
-              echo "Cloudflare Pages is the primary target and needs no Pages switch — see \`docs/DEPLOY.md\`."
-            } >> "$GITHUB_STEP_SUMMARY"
+          echo "is_default=${{ needs.probe.outputs.is_default }}"
+          echo "deploy-pages=${{ needs.deploy-pages.result }}"
+          if [ "${{ needs.probe.outputs.is_default }}" != "true" ]; then
+            echo "Not the default branch (${{ github.ref_name }} != ${{ needs.probe.outputs.default_branch }}); nothing should publish."
+            exit 0
+          fi
+          if [ "${{ needs.build.result }}" != "success" ]; then
+            echo "Build did not succeed; the deploy was correctly not attempted." >&2
+            exit 1
+          fi
+          if [ "${{ needs.deploy-pages.result }}" != "success" ]; then
+            echo "error: on the default branch deploy-pages must run and succeed." >&2
+            echo "       It was '${{ needs.deploy-pages.result }}'. See the Deploy gate table" >&2
+            echo "       in the probe job's summary for what the gate actually saw." >&2
+            exit 1
           fi
 
-      - if: steps.state.outputs.enabled == 'true'
-        uses: actions/configure-pages@v5
-
-      - id: deploy
-        if: steps.state.outputs.enabled == 'true'
-        uses: actions/deploy-pages@v4
-
-      - if: steps.state.outputs.enabled == 'true'
-        run: |
-          echo "## Live on GitHub Pages" >> "$GITHUB_STEP_SUMMARY"
-          echo "${{ steps.deploy.outputs.page_url }}" >> "$GITHUB_STEP_SUMMARY"
+      - name: And the published site must answer
+        if: needs.probe.outputs.is_default == 'true' && needs.deploy-pages.result == 'success'
+        run: bash tools/ci/verify_live.sh "${{ needs.deploy-pages.outputs.page_url }}" "${{ github.sha }}"
