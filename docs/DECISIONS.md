@@ -205,3 +205,69 @@ exercised by the suite — and an unexercised one-shot that writes a flag is a
 feature that fails silently forever the first time it breaks. The advice names
 an iOS menu, so a UA check is not a heuristic here, it is the actual condition.
 Cost to reverse: one line.
+
+## D14 — The flashlight is not a light the entity can use
+
+**Decided:** the auditor's four-cell is navigation, not danger. The entity
+travels only between **fixtures** — the schedule luminaires and the plant
+lighting — never along the player's own beam. **Alternatives:** make the torch a
+liability, so carrying light is always a risk; make it a helmet lamp with no
+management at all.
+
+Making the torch a liability sounds like better horror and is worse design: the
+player would simply never turn it on, and a game whose optimal play is walking
+in the dark is a game nobody can see. It also collapses `P2.3` and `P3.3`, which
+are the spine of the puzzle set — "you must put out a lamp to make progress"
+means nothing if you carry one.
+
+The distinction is derivable rather than arbitrary, which is the point.
+Protocol 4.1: *the chamber shall be dark except for the schedule luminaire.* The
+observer's position is defined relative to a luminaire on a schedule. A hand
+torch is not one. Cost to reverse: moderate — it would change how every space is
+lit, so if it is going to change it should change before P5 dresses Act 1.
+
+**Also decided: no battery attrition.** A four-cell alkaline lamp in 1998 runs
+for hours; draining it would be invented scarcity, and the scarcity this game
+actually has is generated fixture light, which is finite for a reason the player
+can read off a nameplate. Cost to reverse: one number.
+
+## D15 — Fear is one number, assembled from three
+
+**Decided:** consumers (the score, the grain, the post stack) read a single
+`fear` float, 0..1. It is computed from three named contributions — **exposure**
+(how much of you is on a lamp line), **proximity** (how near the nearest seam
+has been, decaying), and **dark_time** (how long since you last stood in light)
+— which are separately tunable but are summed before anyone sees them.
+**Alternatives:** a three-component vector all the way to the consumers; a
+single opaque scalar with no internal structure.
+
+A vector at the interface is three times as many things to tune, and this
+session cannot evaluate *any* of it: swiftshader cannot tell me whether a grain
+response feels right and a headless runner has no ears. Tuning three curves
+blind is exactly the gold-plating rule 7 warns about. One number with named
+contributions gets the same expressiveness where it matters — in the
+computation — and can be split later without touching a consumer, because the
+consumers were never given more than a float to begin with.
+
+Cost to reverse: low. Splitting it is adding two more properties beside one that
+already exists.
+
+## D16 — The story is set in March 1998
+
+**Decided:** the present is 1998, not the present day. **Alternatives:** now;
+unspecified.
+
+Three problems solve themselves at once. A mobile phone in the protagonist's
+pocket ends the game in the first four minutes, and "no signal" is the tiredest
+line in the genre; in 1998 the radio is on the truck's tailgate charger because
+that is where a field engineer leaves it while doing the exterior survey. A
+programme that closed in 1977 is twenty-one years past, which is close enough
+that its technician is sixty and still fit to maintain a plant, and close enough
+that the hardware still runs. And the entire document set — reel-to-reel tape,
+chart recorders, selsyn repeaters, pencil logbooks — is period-correct rather
+than nostalgic set dressing.
+
+Cost to reverse: high, and rising. Every document, every piece of equipment and
+the whole plot-hole audit rest on it. This is the one decision in this run that
+would be genuinely expensive to undo, which is why it is written down with its
+reasons rather than assumed.

@@ -1,12 +1,15 @@
 # Story notes
 
-Working notes for the narrative. **This is not the bible** — the bible, the
-timeline, the document/tape inventory and the plot-hole audit are P4
-deliverables and will live in `STORY.md`. This file exists so that nothing
-agreed in conversation is lost between sessions.
+Working notes for the narrative. **The bible is `STORY.md`** and it is written:
+premise, cast, dated timeline, the programme's funding line and equipment
+schedule, every document with its author and its reason to exist, the plot-hole
+audit, and two endings. `PUZZLES.md` is derived from it.
 
-Status: **premise approved** (see `DECISIONS.md` D2). The three sharpenings
-below are approved as *P4 obligations*, not as changes to the premise.
+This file is kept as the record of how the premise was agreed and what the
+obligations on the bible were. **All three sharpenings below are discharged** —
+see the sections named for them in `STORY.md`.
+
+Status: **premise approved** (`DECISIONS.md` D2); **bible written** (P4 done).
 
 ---
 
@@ -98,11 +101,23 @@ the documents, and that sentence is also a line in a programme document.
 
 ---
 
-## Carried-over open questions
+## Carried-over open questions — both now closed
 
-These affect P1–P3 and are tracked in `PROGRESS.md`:
+- **Flashlight.** Held item, no battery attrition, and *not* a light the entity
+  can travel along. See `DECISIONS.md` D14 for why, and why the distinction is
+  derived from Protocol 4.1 rather than asserted.
+- **Fear state.** One float, assembled from three named contributions. See
+  `DECISIONS.md` D15.
 
-- Flashlight as a held item with battery pressure, or a helmet lamp always on?
-  Changes the interaction grammar and the lighting rig.
-- Fear state as a single scalar, or a small vector (dread / exposure /
-  proximity)? The adaptive score wants to know in P3.
+## What the bible settled that these notes could not
+
+- The programme is **OCD Task Order 4-A / DCPA Work Unit 1615-C**, it measured
+  how long a confined group holds a shared sense of time without exterior cues,
+  and its answer was a lamp on a schedule. Every puzzle device traces to its
+  equipment schedule (S2, discharged).
+- The entity's rule is **Protocol 4.2 — "the observer stands at the lamp"** — a
+  line in a document the player can find, which is the S3 test, discharged.
+- The antagonist is **Emil Ostrander**, the facilities technician who *was* the
+  observer at the lamp for thirteen years and is now running the only procedure
+  he has. His kindness is legible in six specific rooms before any tape says a
+  word (S1, discharged).

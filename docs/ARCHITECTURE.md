@@ -44,7 +44,8 @@ tools/
   gen/                   art/audio generators (committed source of all assets)
   ci/                    fetch, stamp, build, harden, budget scripts
   web/                   node tooling: headless smoke test, wrangler deploy
-docs/                    this file and its neighbours
+docs/                    this file and its neighbours; STORY.md and PUZZLES.md
+                         are the source the content is derived from
 ```
 
 `tools/.gdignore` matters: without it, Godot imports `tools/web/node_modules`

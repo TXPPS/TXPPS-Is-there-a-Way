@@ -13,8 +13,8 @@ next begins.
 
 | | |
 |---|---|
-| **Done** | A — save/load, persistence, save codes, Add-to-Home-Screen offer |
-| **Next** | B — the story bible, then puzzles derived from it |
+| **Done** | A — save/load, persistence, save codes, Add-to-Home-Screen offer. B — `STORY.md` and `PUZZLES.md`. |
+| **Next** | C — the P2 rendering stack, built from `ART_BIBLE.md` and dressed for Act 1 |
 | **Blocked on a human** | nothing; everything unverifiable is queued in `NEEDS_DEVICE_QA.md` |
 | **Frozen** | the input layer. No change to touch semantics, layout or the router without a failing test to justify it. It has never run on a real device. |
 
@@ -73,7 +73,7 @@ refuse.
 |---|---|---|
 | P0 | Repo, CI, deploy, PWA shell, gray-box room live on the phone | **live; awaiting device QA** |
 | P1 | Player controller, touch input, interaction system, settings, save/load | **done.** Controls, HUD, pause, settings, focused interaction, save/load. The interaction *grammar* — what there is to interact with — comes from P5. |
-| P4 | `STORY.md` bible + plot-hole audit + narrative/document systems | **in progress** (moved before P2: art and puzzles are both derived from it) |
+| P4 | `STORY.md` bible + plot-hole audit + narrative/document systems | **bible and puzzle set done** (moved before P2: art and puzzles are both derived from it). The narrative/document *systems* — how a page is read on a phone — belong to P5. |
 | P2 | Rendering stack: post-process, materials, lighting rig, test scene | not started |
 | P3 | Audio engine, generation pipeline, adaptive score prototype | not started |
 | P5 | Act 1 vertical slice, fully dressed and scored | not started |
@@ -172,6 +172,17 @@ refuse.
 - Storage persistence is requested at boot and reported on the debug overlay.
 - One-time **Add to Home Screen** offer, ninety seconds in, iOS only.
 
+**Written down, not yet built**
+- `docs/STORY.md` — the bible. Premise, the 1998 present, the four levels, the
+  programme's funding line and equipment schedule, Emil Ostrander, the cast, a
+  dated timeline, the rule the player must be able to learn, why every locked
+  door is locked, twenty-four documents with their authors and their reasons to
+  exist, the plot-hole audit, and two endings.
+- `docs/PUZZLES.md` — every puzzle in every act: mechanism, the in-world
+  information that solves it, its justification, and what it depends on. Four
+  verbs, taught in Act 1 and never added to. The dial demo currently in the
+  gray-box room is replaced by `P3.1`, the programme's own timeclock.
+
 **Still scaffolding, not wired to anything**
 `src/core/surface_type.gd` and `src/world/surface_tag.gd` — the footstep-audio
 hook P3 needs. Nothing else in `src/core/` is inert any more.
@@ -248,15 +259,17 @@ Report anything **not** on this list.
 
 ## Open design decisions
 
-See `DECISIONS.md` for ones already settled (orientation, premise, art
-direction). Still open:
+See `DECISIONS.md`. The three that were open here are now closed:
 
-- Whether the flashlight is a held item with battery pressure, or a helmet lamp
-  that is always on. Affects P1's interaction grammar and P2's lighting rig.
-- Whether the fear state is a single scalar or a small vector (dread, exposure,
-  proximity). P3's adaptive score wants to know.
-- How much of the score is generated at runtime with `AudioStreamGenerator`
-  versus rendered to `.wav` in CI. Decided in P3 against the 12 MB audio budget.
+- **Flashlight** — held item, no battery attrition, and not a light the entity
+  can travel along (D14).
+- **Fear state** — one float assembled from three named contributions (D15).
+- **Score generation** — still open, and correctly so: it is decided in D
+  against the measured size of what the generators actually produce.
+
+New since the bible: everything in `STORY.md` and `PUZZLES.md` is a decision,
+and the expensive one is **D16, the 1998 setting**. Every document, every piece
+of equipment and the whole plot-hole audit rest on it.
 
 ---
 
