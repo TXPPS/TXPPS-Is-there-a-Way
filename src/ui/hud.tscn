@@ -1,10 +1,29 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://src/ui/hud.gd" id="1_hud"]
 [ext_resource type="Script" path="res://src/ui/safe_area_margin.gd" id="2_safe"]
 [ext_resource type="Script" path="res://src/input/virtual_stick.gd" id="3_stick"]
 [ext_resource type="Script" path="res://src/input/look_pad.gd" id="4_look"]
 [ext_resource type="Resource" path="res://src/input/touch_tuning.tres" id="5_touch"]
+[ext_resource type="Script" path="res://src/input/touch_watch.gd" id="6_watch"]
+[ext_resource type="Script" path="res://src/ui/debug_overlay.gd" id="7_debug"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_debug"]
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
+bg_color = Color(0.027, 0.031, 0.039, 0.82)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.478, 0.51, 0.549, 0.35)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
 
 [node name="Hud" type="CanvasLayer"]
 script = ExtResource("1_hud")
@@ -43,14 +62,23 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("4_look")
 
-[node name="BuildStamp" type="Label" parent="SafeArea/Layout"]
+[node name="DebugOverlay" type="PanelContainer" parent="SafeArea/Layout" node_paths=PackedStringArray("watch")]
 layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_top = -20.0
-grow_vertical = 0
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+grow_horizontal = 0
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.6, 0.62, 0.66, 0.55)
-theme_override_font_sizes/font_size = 12
-text = "dev"
+theme_override_styles/panel = SubResource("StyleBoxFlat_debug")
+script = ExtResource("7_debug")
+watch = NodePath("../../../TouchWatch")
+
+[node name="Text" type="Label" parent="SafeArea/Layout/DebugOverlay"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.71, 0.757, 0.808, 1)
+theme_override_font_sizes/font_size = 13
+text = "..."
+
+[node name="TouchWatch" type="Node" parent="."]
+script = ExtResource("6_watch")

@@ -5,6 +5,7 @@
   "description": "CI tooling only (headless smoke test + Cloudflare deploy). Kept out of the Godot project tree so its node_modules is never scanned as game content -- see tools/.gdignore.",
   "scripts": {
     "smoke": "node smoke_web.js ../../build ../../build-smoke",
+    "smoke:pwa": "node smoke_pwa.js ../../build",
     "deploy": "wrangler pages deploy ../../build"
   },
   "devDependencies": {

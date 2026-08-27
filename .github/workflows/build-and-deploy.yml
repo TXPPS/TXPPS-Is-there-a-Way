@@ -97,6 +97,12 @@ jobs:
       - name: Smoke test the export in a headless browser
         run: node tools/web/smoke_web.js build build-smoke
 
+      # Separate suite, separate failure mode: this one installs the service
+      # worker, lands a forged rebuild under the running client, poisons the
+      # cache, and proves ?fresh=1 gets back out. See docs/TESTING.md.
+      - name: Smoke test the update path
+        run: node tools/web/smoke_pwa.js build
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -117,7 +123,9 @@ jobs:
   # Primary target. Runs only once the two repository secrets exist.
   deploy-cloudflare:
     needs: [probe, build]
-    if: needs.probe.outputs.cloudflare == 'true' && github.event_name != 'pull_request'
+    # Only the default branch publishes. A hosted site has one live version;
+    # a feature branch that quietly overwrote it would be worse than no deploy.
+    if: needs.probe.outputs.cloudflare == 'true' && github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
     environment:
       name: cloudflare-pages
@@ -141,11 +149,16 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
+          # The Cloudflare "branch" is deliberately the constant `production`,
+          # not the git branch name: this job only runs on the repository's
+          # default branch, so every deploy here IS production, and a git branch
+          # name containing a slash would otherwise land as a preview deploy at
+          # an unpredictable URL.
           npx wrangler pages project create "$CLOUDFLARE_PROJECT" \
-            --production-branch main 2>/dev/null || echo "project already exists"
+            --production-branch production 2>/dev/null || echo "project already exists"
           npx wrangler pages deploy ../../build \
             --project-name "$CLOUDFLARE_PROJECT" \
-            --branch main \
+            --branch production \
             --commit-dirty=true | tee deploy.log
           URL="$(grep -oE 'https://[a-z0-9.-]+\.pages\.dev' deploy.log | tail -1)"
           echo "url=$URL" >> "$GITHUB_OUTPUT"
@@ -155,9 +168,16 @@ jobs:
   # it has to be switched on by hand once: GITHUB_TOKEN is not allowed to create
   # a Pages site, whatever permissions the workflow asks for. So probe first and
   # print instructions instead of failing red every push.
+  #
+  # `github.event.repository.default_branch` rather than a literal "main": this
+  # repository's default branch is not called main, and Pages follows whatever
+  # the default actually is. Renaming the default keeps working with no edit here.
   deploy-pages:
     needs: build
-    if: github.event_name != 'pull_request'
+    # GitHub Pages publishes from the default branch only: the `github-pages`
+    # environment refuses a deployment from anywhere else, and the job would
+    # fail rather than skip. Gate it here so the run stays honest.
+    if: github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
     continue-on-error: true
     environment:

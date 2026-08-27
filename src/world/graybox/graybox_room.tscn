@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 ; Phase 0 gray-box. Grid unit is 0.5 m and every dimension here is a multiple
 ; of it, so the modular kit built in P2 drops straight into this footprint.
@@ -7,6 +7,7 @@
 [ext_resource type="Material" path="res://assets/materials/graybox_concrete.tres" id="1_concrete"]
 [ext_resource type="Material" path="res://assets/materials/graybox_steel.tres" id="2_steel"]
 [ext_resource type="Material" path="res://assets/materials/graybox_lamp_glass.tres" id="3_lamp"]
+[ext_resource type="Script" path="res://src/world/lamp_hum.gd" id="4_hum"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_unit"]
 size = Vector3(1, 1, 1)
@@ -109,6 +110,16 @@ surface_material_override/0 = ExtResource("2_steel")
 transform = Transform3D(0.1, 0, 0, 0, 0.3, 0, 0, 0, 0.44, 0.16, 0, 0)
 mesh = SubResource("BoxMesh_unit")
 surface_material_override/0 = ExtResource("3_lamp")
+
+; Audible only near the lamp: walking away from it is the check that 3D
+; attenuation is working as well as that the context unlocked.
+[node name="Hum" type="AudioStreamPlayer3D" parent="BulkheadLamp"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 0, 0)
+volume_db = -13.0
+unit_size = 3.4
+max_db = 0.0
+attenuation_filter_cutoff_hz = 20500.0
+script = ExtResource("4_hum")
 
 [node name="Light" type="OmniLight3D" parent="BulkheadLamp"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.42, 0, 0)

@@ -1,80 +1,169 @@
 # Deploy
 
-Every push to `main` or a `claude/**` branch builds, smoke-tests, and publishes.
-Two targets, both configured in `.github/workflows/build-and-deploy.yml`.
+Every push to `main` or a `claude/**` branch builds and smoke-tests. **Only the
+repository's default branch publishes.**
+
+Both deploy jobs are gated on
+`github.ref_name == github.event.repository.default_branch` rather than on a
+literal `"main"`. That is not pedantry: GitHub Pages publishes from the default
+branch and the `github-pages` environment *rejects* a deployment from anywhere
+else, so the literal would be wrong the moment the default is renamed — and this
+repository's default branch is not currently called `main`. The dynamic form
+follows the rename with no edit here, and a hosted site only ever has one live
+version, so a feature branch quietly overwriting it would be worse than no
+deploy at all.
+
+Verified rather than assumed: in run #3 the `deploy-pages` job **ran** on
+`claude/is-there-a-way-setup-kah9su` (it was that branch that was the default),
+which is only possible if the expression resolved and matched.
 
 ---
 
-## Target 1 — Cloudflare Pages (primary)
+## Current state
 
-Deploys automatically **once two repository secrets exist**. Until then the
-workflow says so in its log and skips the job. Nothing else needs changing.
+| | |
+|---|---|
+| GitHub Pages | **not switched on.** The build is green and the artifact is uploaded; the site has nowhere to go. One switch, below. |
+| Cloudflare Pages | **no credentials.** The `probe` job reports this and the deploy job skips. Two secrets, below. |
 
-### Setting it up from a phone (about three minutes)
-
-1. **Create the API token.**
-   Go to `dash.cloudflare.com` → profile menu → **API Tokens** → **Create Token**
-   → use the **"Edit Cloudflare Workers"** template, or create a custom token
-   with just:
-   - Permission: **Account · Cloudflare Pages · Edit**
-   - Account resources: **Include · your account**
-
-   Copy the token. Cloudflare shows it exactly once.
-
-2. **Find the account ID.** It is on the right-hand side of any domain's
-   overview page in the dashboard, and in the URL of the dashboard itself:
-   `dash.cloudflare.com/<account-id>/...`
-
-3. **Add both to GitHub.** Repo → **Settings** → **Secrets and variables** →
-   **Actions** → **New repository secret**, twice:
-
-   | Name | Value |
-   |---|---|
-   | `CLOUDFLARE_API_TOKEN` | the token from step 1 |
-   | `CLOUDFLARE_ACCOUNT_ID` | the ID from step 2 |
-
-4. Re-run the latest workflow (**Actions** → the run → **Re-run all jobs**), or
-   just push again.
-
-The workflow creates the Pages project on first run
-(`wrangler pages project create is-there-a-way`) and deploys to it thereafter.
-The live URL is printed in the job summary and appears as the deployment URL on
-the run page.
-
-### Why Cloudflare is the primary target
-
-`web/_headers` is a Cloudflare Pages feature, and it is where the caching
-contract lives: `application/wasm` for the engine, one-year `immutable` for the
-content-hashed payload, `no-cache` for `index.html` and the service worker.
-GitHub Pages ignores `_headers` and applies its own, weaker, caching.
+Until one of those is done there is no URL. Neither can be automated from here —
+`GITHUB_TOKEN` is not permitted to create a Pages site whatever permissions the
+workflow requests, and a Cloudflare token can only be minted by its owner.
 
 ---
 
-## Target 2 — GitHub Pages (fallback, always on)
+## Target 1 — GitHub Pages (fewest taps, no account needed)
 
-Free, because the repo is public. It needs **one manual switch, once**:
+Free, because the repo is public. One manual switch, once:
 
-1. Repo → **Settings** → **Pages**
+1. `github.com/TXPPS/TXPPS-Is-there-a-Way` → **Settings** → **Pages**
 2. Under *Build and deployment*, set **Source** to **GitHub Actions**
 3. **Actions** → the latest run → **Re-run all jobs**
 
-That is the whole setup — no secrets, no tokens. GitHub's workflow token is not
-permitted to create a Pages site no matter what permissions the workflow asks
-for, so this cannot be automated. Until it is switched on, the `deploy-pages`
-job prints these instructions in the run summary and does not fail the build.
-
 URL once enabled: `https://txpps.github.io/TXPPS-Is-there-a-Way/`
 
-The job is marked `continue-on-error`, so if an environment branch policy
-refuses a deployment from a non-default branch, the build still passes and
-Cloudflare (once configured) is unaffected. If that happens, either merge to
-`main` or add the branch under **Settings → Environments → github-pages →
-Deployment branches**.
+Until it is switched on, `deploy-pages` prints these instructions into the run
+summary and does not fail the build. The job is `continue-on-error`, so a
+refused deployment never turns the build red.
 
 Caveats versus Cloudflare:
-- `_headers` is ignored; caching is GitHub's default.
+
+- **`web/_headers` is ignored.** GitHub applies its own caching, which is
+  weaker than the contract in that file. In practice this costs repeat-load
+  time, not correctness: the service worker holds the payload, and the update
+  path does not depend on the headers (`index.html` is fetched
+  `cache: 'reload'` with a cache-busting query, and navigation through the
+  worker is network-first).
 - The site is served from a subpath. Everything in the export uses relative
-  paths, so this works — but keep it that way.
+  paths, so this works — keep it that way.
+
+## Target 2 — Cloudflare Pages (better caching, needs a token)
+
+**If the goal is a URL today, GitHub Pages is fewer taps.** Cloudflare is worth
+doing because it is the only target that honours `web/_headers`, which is where
+the caching contract lives: `application/wasm` for the engine, one-year
+`immutable` for the content-hashed payload, `no-cache` for `index.html`, the
+manifest and the service worker.
+
+### Minting the token
+
+`dash.cloudflare.com` → profile menu → **API Tokens** → **Create Token** →
+**Create Custom Token**:
+
+| Field | Value |
+|---|---|
+| Permissions | **Account** · **Cloudflare Pages** · **Edit** |
+| Account Resources | **Include** · your account |
+| TTL / IP filtering | leave empty |
+
+That single permission is the whole requirement — it covers both
+`wrangler pages project create` and `wrangler pages deploy`. The **Edit
+Cloudflare Workers** template also works but grants far more than this needs.
+Copy the token; Cloudflare shows it exactly once.
+
+The account ID is on the right-hand side of any domain's overview page, and in
+the dashboard URL itself: `dash.cloudflare.com/<account-id>/...`
+
+### Storing it
+
+Repo → **Settings** → **Secrets and variables** → **Actions** → **New
+repository secret**, twice:
+
+| Name | Value |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | the token |
+| `CLOUDFLARE_ACCOUNT_ID` | the account ID |
+
+Then **Actions** → the latest run → **Re-run all jobs**.
+
+The workflow creates the project on first run and deploys to it thereafter. The
+Cloudflare "branch" is pinned to the constant `production`, not the git branch
+name: this job only runs on the default branch so every deploy here *is*
+production, and a git branch name containing a slash would otherwise land as a
+preview deploy at an unpredictable URL. The live URL is printed in the job
+summary.
+
+---
+
+## The update path
+
+The service worker is generated by Godot and then reworked by
+`tools/ci/service_worker.py`, which asserts every edit it makes — if Godot's
+template changes shape, the build fails loudly instead of shipping an unpatched
+worker. Four changes, and every one of them is tested by
+`tools/web/smoke_pwa.js` (see `docs/TESTING.md`):
+
+1. **The cache is named after the build.** `CACHE_VERSION` is a hash of every
+   file the worker caches, so a rebuild is a different cache and the old one is
+   deleted on activation.
+2. **A new worker takes over immediately** — `skipWaiting()` plus
+   `clients.claim()` — instead of waiting for every tab to close. On an
+   installed iOS PWA, "every tab closed" can be never.
+3. **Navigation is network-first**, falling back to the cached document and then
+   to the offline page. `index.html` names the content-hashed payload, so
+   serving it from cache would pin you to whichever build you first loaded.
+   Engine assets stay cache-first, which is what makes the game work offline.
+4. **`?fresh=1` bypasses the worker entirely** — see below.
+
+### The "New version — tap to reload" banner
+
+The shell asks the server for `index.html` and compares it to what is running:
+the content-hashed payload name, and the commit in `window.ITAW_BUILD`. Two
+signals because they catch different things — the payload name misses a change
+that only touched the shell, and there is no payload rename for a shell-only
+fix. Checks run on becoming visible, on focus, on a service-worker
+`controllerchange`, and every five minutes, throttled to one check per twenty
+seconds.
+
+**Detection runs at any time; the banner does not appear at any time.** It waits
+for a moment the player is already out of the fiction:
+
+- the tap gate, before the game has started;
+- a menu, when the game calls `window.__itaw_setUpdateGate(true)`;
+- the first moment after coming back from the home screen.
+
+An update found mid-corridor is held until one of those happens.
+
+### `?fresh=1` — the escape hatch
+
+Append it to the URL: `https://…/index.html?fresh=1`
+
+It deletes every Cache Storage entry and unregisters every service worker for
+the origin, waits for both to finish, and only then reloads onto the clean URL.
+**Saves are not touched** — this clears the code, not the player. If the purge
+somehow hangs, it reloads anyway after six seconds.
+
+The bypass is what makes it work when everything else is broken. The worker
+refuses to answer any request whose URL *or whose referrer* carries `fresh=1`,
+returning without calling `respondWith()` so the browser fetches as though no
+worker existed. The referrer half is the half that matters: the document carries
+`fresh=1` but the scripts it then loads do not, and a poisoned engine payload
+would otherwise break the page before the escape hatch ever ran.
+
+Use it when the corner build stamp does not match the commit you expect, or when
+the game will not start at all. It is faster and far less destructive than
+Safari → Settings → Clear History and Website Data, which nukes every site you
+have ever visited.
 
 ---
 
@@ -87,13 +176,13 @@ GODOT=/path/to/godot bash tools/ci/build_web.sh
 # Smoke-test it in a headless browser
 npm --prefix tools/web ci
 node tools/web/smoke_web.js build build-smoke
+node tools/web/smoke_pwa.js build
 
 # Push it
 cd tools/web && npx wrangler pages deploy ../../build --project-name is-there-a-way
 ```
 
-`wrangler` will open a browser to authenticate if `CLOUDFLARE_API_TOKEN` is not
-set in the environment.
+`wrangler` opens a browser to authenticate if `CLOUDFLARE_API_TOKEN` is not set.
 
 ## Serving the build locally
 
@@ -102,16 +191,17 @@ python3 -m http.server 8000 --directory build
 ```
 
 Any static server works: the export needs no COOP/COEP headers, which is the
-entire point of the single-threaded variant. Note that a service worker will not
-install over plain `http://` except on `localhost`.
+entire point of the single-threaded variant. A service worker will not install
+over plain `http://` except on `localhost`.
 
-## If a build goes wrong on the phone
+## If a build looks wrong on the phone
 
-The corner stamp shows `v<version> <commit>`. If it does not match the commit you
-expect:
+The corner stamp shows `v<version> <commit>`. Tap it to copy the full report —
+branch, build time, payload hash, storage health, worker state, viewport, safe
+area and user agent — which is what to paste into a bug report.
 
-1. The service worker is serving a cached build. Force it: Safari → **Settings →
-   Safari → Clear History and Website Data**, or delete and re-add the home-screen
-   app. (`index.html` and the service worker are `no-cache`, so this should
-   resolve itself on a reload — but the PWA is aggressive by design.)
-2. The deploy job did not run. Check the workflow run's job list.
+1. Stamp does not match the commit you expect → reload. `index.html` and the
+   worker are `no-cache` and navigation is network-first, so one reload should
+   do it. If not, `?fresh=1`.
+2. Game will not start, or starts wrong → `?fresh=1`.
+3. Neither works → the deploy did not run. Check the workflow run's job list.

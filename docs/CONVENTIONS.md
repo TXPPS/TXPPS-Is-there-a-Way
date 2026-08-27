@@ -58,6 +58,31 @@ result differs, which keeps "regenerable" true rather than aspirational.
 
 No third-party asset packs, no royalty-free libraries, no AI-generated textures.
 
+## The web shell
+
+`web/shell.html` is markup and CSS; `web/boot.js` is behaviour. They are one
+file at runtime — `tools/ci/postprocess_web.py` inlines the second into the
+first — so the split is for reading.
+
+`boot.js` is the standing exception to the ~300-line rule, at roughly 730. It
+would split cleanly on paper (escape hatch, toasts, store, boot, update path)
+but not in practice: the pieces share `note()`, the `started` flag and the
+engine config, so splitting them means inventing a namespace object to pass
+between files that are concatenated back together anyway. If it grows another
+concern, that trade changes — say so here when it does.
+
+Anything the shell publishes for the game is named `window.__itaw_*`. Anything
+the game publishes for the shell or for a test is too. The prefix is the whole
+convention: it makes the bridge greppable from either side.
+
+## Testing
+
+Every claim a doc makes about behaviour under failure should have an assertion
+behind it. `docs/DEPLOY.md` says `?fresh=1` recovers a build the cache has
+broken; `tools/web/smoke_pwa.js` poisons a cache entry and proves it. If you
+find yourself writing "should" in a doc, that is the cue to write the test
+instead.
+
 ## Resources vs. project settings
 
 - `project.godot` holds engine and platform configuration: renderer, display,

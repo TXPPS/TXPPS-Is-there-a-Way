@@ -198,6 +198,110 @@ html, body {
 	margin-top: 26px;
 }
 
+/* --- alerts: update banner and error toasts, one column ----------------- */
+#alerts {
+	position: absolute;
+	top: calc(env(safe-area-inset-top, 0px) + 8px);
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 15;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	width: min(76vw, 620px);
+	/* The column spans the middle of the screen; only its children may take
+	   touches, or it would swallow half the look gestures. */
+	pointer-events: none;
+}
+#alerts > *, #toasts > * { pointer-events: auto; }
+#toasts {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 6px;
+	width: 100%;
+}
+
+#update {
+	appearance: none;
+	border: 1px solid rgba(255, 176, 84, 0.45);
+	border-radius: 3px;
+	background: rgba(7, 8, 10, 0.94);
+	color: var(--sodium);
+	font-family: var(--type);
+	font-size: 10px;
+	letter-spacing: 0.22em;
+	text-transform: uppercase;
+	padding: 13px 18px;
+	min-height: 44px;
+	cursor: pointer;
+	touch-action: manipulation;
+}
+#update[hidden] { display: none; }
+#update:active { color: #fff; }
+
+/* --- error toasts ------------------------------------------------------- */
+.toast {
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	border: 1px solid rgba(208, 90, 74, 0.5);
+	border-left-width: 3px;
+	border-radius: 3px;
+	background: rgba(11, 8, 8, 0.95);
+	color: #e3aca2;
+	font-size: 12px;
+	line-height: 1.5;
+	padding: 10px 12px;
+	min-height: 44px;
+	max-height: 7.5em;
+	overflow: hidden;
+	cursor: pointer;
+	text-align: left;
+	word-break: break-word;
+}
+.toast--note {
+	border-color: rgba(255, 176, 84, 0.4);
+	color: #d7b184;
+	background: rgba(9, 9, 10, 0.95);
+}
+/* Set when the clipboard refused us, so the text can be selected by hand. */
+.toast--select {
+	-webkit-user-select: text;
+	user-select: text;
+	white-space: pre-wrap;
+	max-height: 12em;
+	overflow: auto;
+}
+.toast__msg { flex: 1 1 auto; }
+.toast__count { flex: 0 0 auto; font-size: 10px; opacity: 0.65; }
+.toast__x { flex: 0 0 auto; font-size: 15px; opacity: 0.5; }
+
+/* --- build stamp -------------------------------------------------------- */
+/* pointer-events:none on purpose -- boot.js recognises the tap by geometry so
+   this never eats a stick drag that starts in the corner. */
+#stamp {
+	position: absolute;
+	top: calc(env(safe-area-inset-top, 0px) + 8px);
+	left: calc(env(safe-area-inset-left, 0px) + 10px);
+	z-index: 14;
+	pointer-events: none;
+	border: 1px solid rgba(122, 130, 140, 0.3);
+	border-radius: 3px;
+	background: rgba(7, 8, 10, 0.6);
+	color: #98a1ac;
+	font-family: var(--type);
+	font-size: 13px;
+	letter-spacing: 0.06em;
+	padding: 0 12px;
+	min-height: 44px;
+	display: inline-flex;
+	align-items: center;
+}
+#stamp[hidden] { display: none; }
+
 /* --- orientation ------------------------------------------------------- */
 #rotate {
 	position: absolute;
@@ -261,6 +365,15 @@ $GODOT_HEAD_INCLUDE
 	<pre id="fault"></pre>
 </div>
 
+<!-- Tap to copy the full build report. Three-finger tap opens the in-game
+     debug overlay; see src/ui/debug_overlay.gd. -->
+<div id="stamp" hidden></div>
+
+<div id="alerts">
+	<button id="update" type="button" hidden>New version &mdash; tap to reload</button>
+	<div id="toasts"></div>
+</div>
+
 <div id="rotate">
 	<div class="phone"></div>
 	<div class="rotate__text">Rotate to landscape</div>
@@ -270,143 +383,13 @@ $GODOT_HEAD_INCLUDE
 
 <script src="$GODOT_URL"></script>
 <script>
-(function () {
-	'use strict';
-
-	// ---- safe-area bridge --------------------------------------------------
-	// Godot cannot see env(safe-area-inset-*), so we publish it. Returns
-	// "top,right,bottom,left" in CSS pixels; see src/ui/safe_area_margin.gd.
-	var probe = document.getElementById('safe-probe');
-	window.__itaw_safeArea = function () {
-		try {
-			var s = getComputedStyle(probe);
-			return [s.paddingTop, s.paddingRight, s.paddingBottom, s.paddingLeft]
-				.map(function (v) { return parseFloat(v) || 0; })
-				.join(',');
-		} catch (e) {
-			return '0,0,0,0';
-		}
-	};
-
-	// ---- elements ----------------------------------------------------------
-	var canvasEl = document.getElementById('canvas');
-	var veil = document.getElementById('veil');
-	var loading = document.getElementById('loading');
-	var gauge = document.getElementById('gauge');
-	var gaugeFill = document.getElementById('gauge-fill');
-	var readoutLabel = document.getElementById('readout-label');
-	var readoutValue = document.getElementById('readout-value');
-	var beginBtn = document.getElementById('begin');
-	var hint = document.getElementById('hint');
-	var fault = document.getElementById('fault');
-
-	// ---- browser affordances we never want ---------------------------------
-	// Pinch/double-tap zoom. iOS ignores user-scalable=no in some contexts.
-	['gesturestart', 'gesturechange', 'gestureend'].forEach(function (type) {
-		document.addEventListener(type, function (e) { e.preventDefault(); }, { passive: false });
-	});
-	// Rubber-band scrolling anywhere that is not the canvas (the canvas has
-	// touch-action:none, so the browser never tries to scroll from it).
-	document.addEventListener('touchmove', function (e) {
-		if (e.target !== canvasEl) { e.preventDefault(); }
-	}, { passive: false });
-	document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-	// Belt-and-braces double-tap suppression for older WebKit.
-	var lastTouchEnd = 0;
-	document.addEventListener('touchend', function (e) {
-		var now = Date.now();
-		if (now - lastTouchEnd <= 300) { e.preventDefault(); }
-		lastTouchEnd = now;
-	}, { passive: false });
-
-	function showFault(err) {
-		console.error(err);
-		loading.style.display = 'none';
-		beginBtn.hidden = true;
-		hint.hidden = true;
-		fault.style.display = 'block';
-		fault.textContent = (err && err.message) ? err.message : String(err);
-	}
-
-	// ---- engine ------------------------------------------------------------
-	var GODOT_CONFIG = $GODOT_CONFIG;
-	var GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
-
-	var missing = Engine.getMissingFeatures({ threads: GODOT_THREADS_ENABLED });
-	if (missing.length !== 0) {
-		showFault(new Error('This browser is missing:\n' + missing.join('\n')));
-		return;
-	}
-
-	GODOT_CONFIG['onProgress'] = function (current, total) {
-		if (total > 0) {
-			gauge.classList.remove('unknown');
-			var pct = Math.max(0, Math.min(100, (current / total) * 100));
-			gaugeFill.style.width = pct.toFixed(1) + '%';
-			readoutValue.textContent = pct.toFixed(0) + '%';
-		} else {
-			gauge.classList.add('unknown');
-			readoutValue.textContent = '';
-		}
-	};
-
-	var engine = new Engine(GODOT_CONFIG);
-	var exe = GODOT_CONFIG['executable'];
-	var pack = GODOT_CONFIG['mainPack'] || (exe + '.pck');
-
-	// Load everything up front, but do NOT start. Godot builds its AudioContext
-	// during start(), and Safari only lets that context begin running if it is
-	// created inside a user gesture -- so start() has to happen under the tap.
-	// init() must come first: it is what installs the progress callback.
-	var loaded = engine.init(exe).then(function () {
-		return engine.preloadFile(pack, pack);
-	});
-
-	loaded.then(function () {
-		gauge.classList.remove('unknown');
-		gaugeFill.style.width = '100%';
-		readoutLabel.textContent = 'Ready';
-		readoutValue.textContent = '';
-		loading.style.display = 'none';
-		beginBtn.hidden = false;
-		hint.hidden = false;
-	}).catch(showFault);
-
-	var started = false;
-	function begin() {
-		if (started) { return; }
-		started = true;
-
-		// Nudge WebKit's audio unlock heuristics inside the gesture, then let
-		// Godot build its own context in the same turn.
-		try {
-			var AC = window.AudioContext || window.webkitAudioContext;
-			if (AC) {
-				var probeCtx = new AC();
-				var src = probeCtx.createBufferSource();
-				src.buffer = probeCtx.createBuffer(1, 1, 22050);
-				src.connect(probeCtx.destination);
-				src.start(0);
-				probeCtx.resume();
-			}
-		} catch (e) { /* not fatal: the game is playable muted */ }
-
-		veil.classList.add('dissolving');
-		engine.start({
-			'args': ['--main-pack', pack].concat(GODOT_CONFIG['args'] || [])
-		}).then(function () {
-			window.setTimeout(function () { veil.hidden = true; }, 460);
-			canvasEl.focus();
-		}).catch(function (err) {
-			veil.classList.remove('dissolving');
-			showFault(err);
-		});
-	}
-
-	beginBtn.addEventListener('click', begin);
-	// Touch first: on iOS, click lags a touch by enough to lose the gesture.
-	beginBtn.addEventListener('touchend', function (e) { e.preventDefault(); begin(); }, { passive: false });
-}());
+// The exporter substitutes these two tokens in this file only, so they are
+// captured here and read by boot.js below.
+window.GODOT_CONFIG = $GODOT_CONFIG;
+window.GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
+</script>
+<script>
+/* $ITAW_BOOT */
 </script>
 </body>
 </html>

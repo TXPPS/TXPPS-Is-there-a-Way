@@ -30,11 +30,12 @@ src/
   main.tscn / main.gd    composition root: wires HUD to Player
   core/                  cross-cutting helpers (build stamp)
   player/                CharacterBody3D + PlayerTuning resource
-  input/                 touch controls + TouchTuning resource
-  ui/                    HUD, safe-area handling
+  input/                 touch controls, TouchTuning resource, TouchWatch
+  ui/                    HUD, safe-area handling, debug overlay
   world/graybox/         the P0 room
 web/
-  shell.html             custom HTML shell (replaces Godot's default)
+  shell.html             custom HTML shell: markup, CSS, and the boot marker
+  boot.js                everything the shell does, inlined into index.html
   offline.html           PWA offline fallback
   _headers               Cloudflare Pages caching + MIME rules
 tools/
@@ -66,12 +67,24 @@ Main (Node3D)                        src/main.gd -- composition root
         └── Layout (Control)
             ├── VirtualStick (Control)   left half
             ├── LookPad (Control)        right half
-            └── BuildStamp (Label)
+            └── DebugOverlay (PanelContainer)  hidden until summoned
+    └── TouchWatch (Node)            observes every touch, consumes none
 ```
+
+The build stamp is **not** in this tree. It lives in the HTML shell, where it is
+still readable when the engine has failed to boot — which is exactly when you
+most want to know which build you are looking at.
 
 **No autoloads yet.** Adding one is a decision, not a convenience: it is global
 state. P1 will likely need exactly two — a settings store and a save/load
 service — and they go in `src/core/` with a note here.
+
+`src/core/` also holds P1 scaffolding that is written but **not yet wired into
+anything**: `game_state.gd` (the FREE/FOCUSED/MENU/CINEMATIC/DISABLED machine),
+`settings_row.gd` + `settings_spec.gd` + `assets/settings/settings_spec.tres`
+(the settings schema), `surface_type.gd` and `src/world/surface_tag.gd` (the
+footstep-audio hook P3 needs). They cost nothing at runtime and are listed here
+so nobody looks for the settings menu they imply.
 
 ## Data flow
 
@@ -112,11 +125,52 @@ Anything that affects feel lives in an editable `Resource`, never in code:
 Adding a feel constant means adding an `@export` to the matching `*_tuning.gd`
 with a comment saying what the number *means*, not what it is.
 
+## Instrumentation
+
+There is no console on a phone, no devtools, and no profiler. Three things stand
+in for all of that, and each is tested in CI (`docs/TESTING.md`):
+
+| | Where | What it answers |
+|---|---|---|
+| Build stamp | HTML shell, top-left | Which build is this? Tap it to copy the full report. |
+| Debug overlay | `src/ui/debug_overlay.gd`, top-right | Is it fast? Is audio running? Is storage durable? Did the touch land? |
+| Error toasts | `web/boot.js`, top-centre | What went wrong, instead of a silence. |
+
+The overlay is summoned by a three-finger tap, which `src/input/touch_watch.gd`
+recognises without consuming any touch — it observes through `_input()` and never
+marks an event handled, so the stick and the look pad behave as though it were
+not there. Three fingers because two happen constantly in normal play.
+
+Half the overlay's numbers come from Godot's `Performance` monitors and half
+from `window.__itaw_env()` in the shell, because DPR, safe-area insets, storage
+health and worker state are things only the page can see. While the overlay is
+open it publishes its sample to `window.__itaw_probe`, which is how the headless
+suite asserts the frame budget and proves audio is being mixed — neither is
+legible from a screenshot.
+
+Error surfacing sits in the shell rather than in the game on purpose: it is
+wired to `window.onerror`, `unhandledrejection`, **and** Godot's
+`onPrintError` (which carries GDScript runtime errors), so it still works when
+the engine is the thing that died. Repeats are folded into one toast with a
+count, because one bad line in `_process` fires sixty times a second.
+
+`src/world/lamp_hum.gd` synthesises a 120 Hz ballast hum at the bulkhead lamp.
+It exists only to make the audio unlock audible on the device and is deleted in
+P3, when real sound design replaces it.
+
 ## The web layer
 
 `web/shell.html` replaces Godot's default page entirely. Godot substitutes
 `$GODOT_PROJECT_NAME`, `$GODOT_URL`, `$GODOT_CONFIG`, `$GODOT_THREADS_ENABLED`
 and `$GODOT_HEAD_INCLUDE`, then appends its own icon and manifest links.
+
+The shell is markup, CSS, and a marker. Everything it *does* lives in
+`web/boot.js`, which `postprocess_web.py` folds into `index.html` at the
+`/* $ITAW_BOOT */` marker along with the contents of `build_stamp.json`. Two
+files to read, one file at runtime — and that matters, because half of boot.js's
+job is to be the recourse when the cache has gone wrong, which a separately
+cached file could not be. The substitution is asserted at both ends: exactly one
+marker must be present, and a sentinel from boot.js must be in the output.
 
 The load sequence is deliberately split, because iOS only lets an `AudioContext`
 start inside a user gesture:
@@ -135,10 +189,18 @@ page load ──→ engine.init(exe)          load the wasm
 ```
 
 Godot's own PWA generation produces the manifest and service worker (cache-first
-for engine assets, offline fallback page).
+for engine assets, offline fallback page), which `tools/ci/service_worker.py`
+then reworks into one that can be updated from a phone — see `docs/DEPLOY.md`
+for the four changes and why each exists.
 `progressive_web_app/ensure_cross_origin_isolation_headers` **must stay false**:
 that option exists to enable `SharedArrayBuffer`, which we do not use and must
 not require.
+
+Godot's shell registers the service worker itself; ours does not call
+`engine.installServiceWorker()` but registers directly, so it can choose the
+moment: after the payload has landed, never during it. The install handler
+re-fetches the shell files, and doing that while a 37 MB payload is still in
+flight costs first-load time on the connection that can least afford it.
 
 The shell also publishes `window.__itaw_safeArea()`, because `env(safe-area-inset-*)`
 is readable only from CSS. `src/ui/safe_area_margin.gd` reads it through
@@ -155,8 +217,12 @@ tools/ci/build_web.sh
  ├─ godot --import ×2     second pass resolves the class cache the first built
  ├─ godot --quit-after    boot the game headless; fail on any logged error
  ├─ godot --export-release
- ├─ postprocess_web.py    content-hash the payload, rewrite refs, assert the
- │                        export is single-threaded and non-isolated, copy _headers
+ ├─ postprocess_web.py    inline boot.js + the build stamp, content-hash the
+ │                        payload, rewrite refs, assert the export is
+ │                        single-threaded and non-isolated, copy _headers
+ │   └─ service_worker.py  key the cache to the build, take over immediately,
+ │                         network-first navigation, ?fresh=1 bypass -- every
+ │                         edit asserted against Godot's generated output
  └─ check_budgets.py      fail on a budget breach
 ```
 

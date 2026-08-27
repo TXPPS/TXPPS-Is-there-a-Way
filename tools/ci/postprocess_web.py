@@ -11,6 +11,13 @@ no-cache.
 It also asserts the export really is the single-threaded, non-isolated variant
 the iOS Safari target requires. A wrong export preset otherwise fails silently
 and only shows up as a blank screen on the phone.
+
+It folds web/boot.js and build_stamp.json into index.html, so the boot script --
+which is also the ?fresh=1 escape hatch -- cannot itself be a broken cache entry.
+
+Finally it hands the generated service worker to `service_worker.py`, which keys
+the cache to the build and makes a new version take over instead of waiting for
+every tab to close.
 """
 from __future__ import annotations
 
@@ -21,6 +28,8 @@ import pathlib
 import re
 import shutil
 import sys
+
+import service_worker
 
 # Suffixes Godot derives from the `executable` base name, plus the data pack.
 PAYLOAD_SUFFIXES = (
@@ -83,6 +92,38 @@ def rewrite(path: pathlib.Path, mapping: dict, base: str, digest: str) -> None:
     path.write_text(text)
 
 
+BOOT_MARKER = "/* $ITAW_BOOT */"
+# Proof the inline actually happened: a string that only exists in boot.js.
+BOOT_SENTINEL = "window.__itaw_checkForUpdate"
+
+
+def inline_boot(html: pathlib.Path, boot: pathlib.Path, stamp: pathlib.Path) -> int:
+    """Fold web/boot.js and the build stamp into index.html.
+
+    boot.js is the recourse when the cache has gone wrong, so it must not be a
+    second file the cache could get wrong. Keeping it out of shell.html during
+    development is only about reading it; at runtime it is one document.
+    """
+    text = html.read_text()
+    if text.count(BOOT_MARKER) != 1:
+        raise Failure(
+            f"expected exactly one {BOOT_MARKER} in {html}, found "
+            f"{text.count(BOOT_MARKER)} -- web/shell.html and this script disagree"
+        )
+    source = boot.read_text()
+    if "</script" in source:
+        raise Failure("boot.js contains </script, which would end the inline block early")
+
+    build = json.loads(stamp.read_text()) if stamp.exists() else {}
+    payload = "window.ITAW_BUILD = " + json.dumps(build, sort_keys=True) + ";\n" + source
+    text = text.replace(BOOT_MARKER, payload, 1)
+    html.write_text(text)
+
+    if BOOT_SENTINEL not in html.read_text():
+        raise Failure("boot.js was substituted but its contents are not in the output")
+    return len(payload)
+
+
 def extend_sw_cache(path: pathlib.Path, extra: list) -> None:
     """Add files the exporter leaves out, so an installed PWA is complete."""
     text = path.read_text()
@@ -102,6 +143,8 @@ def main() -> int:
     ap.add_argument("--build", default="build")
     ap.add_argument("--base", default="index")
     ap.add_argument("--headers", default="web/_headers")
+    ap.add_argument("--boot", default="web/boot.js")
+    ap.add_argument("--stamp", default="build_stamp.json")
     args = ap.parse_args()
 
     build = pathlib.Path(args.build)
@@ -111,6 +154,10 @@ def main() -> int:
         raise Failure(f"{html} not found -- did the export run?")
 
     assert_target_variant(html.read_text())
+
+    # Before anything hashes or caches index.html: it is not final until the
+    # boot script is in it.
+    boot_bytes = inline_boot(html, pathlib.Path(args.boot), pathlib.Path(args.stamp))
 
     for name in UNUSED:
         target = build / name
@@ -127,6 +174,7 @@ def main() -> int:
         if path.exists():
             rewrite(path, mapping, base, digest)
 
+    cache_version = "-"
     if worker.exists():
         candidates = [
             f"{base}.manifest.json",
@@ -135,20 +183,25 @@ def main() -> int:
             f"{base}.512x512.png",
         ]
         extend_sw_cache(worker, [n for n in candidates if (build / n).exists()])
+        # After the cache list is final, so the version covers everything in it.
+        cache_version = service_worker.harden(worker, build)
+        service_worker.assert_hardened(worker, cache_version)
 
     headers = pathlib.Path(args.headers)
     if headers.exists():
         shutil.copy2(headers, build / "_headers")
 
+    print(f"[web] inlined web/boot.js + build stamp into index.html ({boot_bytes} bytes)")
     print(f"[web] payload hash {digest}")
     for old, new in sorted(mapping.items()):
         print(f"      {old} -> {new}")
+    print(f"[web] service worker cache {cache_version} (updates take over immediately)")
     return 0
 
 
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
-    except Failure as err:
+    except (Failure, service_worker.Failure) as err:
         print(f"error: {err}", file=sys.stderr)
         raise SystemExit(1)

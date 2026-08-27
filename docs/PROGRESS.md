@@ -3,23 +3,44 @@
 > Read this file and `ARCHITECTURE.md` first. They are written assuming you
 > remember nothing about this project.
 
-**Current phase:** P0 built, green in CI, **waiting on one deploy switch**.
+**Current phase:** P0 built and hardened for device QA. **Waiting on one deploy
+switch and on QA on the phone.** P1 does not start until that QA has been run.
 **Engine:** Godot 4.6.3-stable, Compatibility (WebGL2), single-threaded web export.
 **Target:** iPhone 16 Pro Max, Safari, **landscape**.
 
-> ### The one thing blocking a live URL
-> CI builds, smoke-tests and packages the site on every push. It cannot publish
-> it yet, because both hosts need a credential this repo does not have:
->
-> - **GitHub Pages** — GitHub's workflow token is not permitted to create a
->   Pages site. Switch it on once: repo → **Settings** → **Pages** → *Source* →
->   **GitHub Actions**, then re-run the latest workflow. Four taps, no secrets.
-> - **Cloudflare Pages** (primary) — needs `CLOUDFLARE_API_TOKEN` and
->   `CLOUDFLARE_ACCOUNT_ID` as repository secrets. See `DEPLOY.md`.
->
-> Until then the `deploy-pages` job prints the instructions in the run summary
-> and does not fail the build. The finished site is downloadable from any run as
-> the `web-build` artifact.
+---
+
+## Deploy state — exact
+
+| | Status |
+|---|---|
+| Build | **green.** `build` job passes: export, budgets, 23-check gameplay smoke, 24-check update-path smoke. |
+| Artifact | **published to every run.** `web-build` on the run page; `smoke-screenshots` too. |
+| **GitHub Pages** | **NOT switched on.** `deploy-pages` runs, asks the Pages API, gets a non-200, prints the setup into the run summary and skips the deploy. |
+| **Cloudflare Pages** | **no credentials.** `probe` reports no `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID`; `deploy-cloudflare` skips. |
+| **Live URL** | **none yet.** Both hosts need one manual step that no token in this session can perform. |
+
+**The gate is verified, not assumed.** Both deploy jobs test
+`github.ref_name == github.event.repository.default_branch`. In run #3 the
+`deploy-pages` job **ran** (conclusion `success`, its steps skipped only because
+Pages is off) on `claude/is-there-a-way-setup-kah9su`, which was the default
+branch at the time. A job whose `if:` were false would show as `skipped`, the
+way `deploy-cloudflare` does. So the expression resolves and matches, and
+renaming the default branch to `main` changes nothing about it.
+
+### What unblocks a URL — GitHub Pages, three taps
+
+1. `github.com/TXPPS/TXPPS-Is-there-a-Way` → **Settings** → **Pages**
+2. *Build and deployment* → **Source** → **GitHub Actions**
+3. **Actions** → latest run → **Re-run all jobs**
+
+Then: `https://txpps.github.io/TXPPS-Is-there-a-Way/`
+
+### Or Cloudflare Pages — better caching, one token
+
+Only Cloudflare honours `web/_headers`. Mint a custom token with exactly
+**Account · Cloudflare Pages · Edit** scoped to your account, and add it plus the
+account ID as repository secrets. Full walkthrough in `DEPLOY.md`.
 
 ---
 
@@ -27,8 +48,8 @@
 
 | Phase | Scope | State |
 |---|---|---|
-| P0 | Repo, CI, deploy, PWA shell, gray-box room live on the phone | **done** |
-| P1 | Player controller, touch input, interaction system, settings, save/load | next |
+| P0 | Repo, CI, deploy, PWA shell, gray-box room live on the phone | **built; awaiting device QA** |
+| P1 | Player controller, touch input, interaction system, settings, save/load | blocked on device QA |
 | P2 | Rendering stack: post-process, materials, lighting rig, test scene | not started |
 | P3 | Audio engine, generation pipeline, adaptive score prototype | not started |
 | P4 | `STORY.md` bible + plot-hole audit + narrative/document systems | not started |
@@ -38,7 +59,7 @@
 
 ---
 
-## P0 — what exists
+## What exists
 
 **Pipeline**
 - `tools/ci/fetch_godot.py` pulls the pinned engine and, by reading the export
@@ -47,14 +68,17 @@
 - `tools/ci/build_web.sh` is the single build entry point, identical locally and
   in CI: stamp → verify generated art → import → run headless → export → harden
   → budget check.
-- `tools/ci/postprocess_web.py` content-hashes the engine payload, rewrites every
-  reference, and **fails the build if the export is threaded or asks for
-  cross-origin isolation**.
-- `tools/web/smoke_web.js` loads the real export in headless Chromium at iPhone
-  landscape metrics, walks the tap gate, and drives real touch events. 13 checks.
-- `.github/workflows/build-and-deploy.yml` builds, smoke-tests, then deploys to
-  Cloudflare Pages (when its secrets exist) and GitHub Pages (once it is
-  switched on). Verified green on `claude/is-there-a-way-setup-kah9su`.
+- `tools/ci/postprocess_web.py` inlines `web/boot.js` and the build stamp into
+  `index.html`, content-hashes the engine payload, rewrites every reference, and
+  **fails the build if the export is threaded or asks for cross-origin
+  isolation**.
+- `tools/ci/service_worker.py` reworks Godot's generated worker so a new build
+  can reach a phone: cache named after the build, immediate takeover,
+  network-first navigation, and a `?fresh=1` bypass. Every edit is asserted
+  against Godot's output, so a template change fails the build rather than
+  shipping an unpatched worker.
+- Two headless suites, both in CI (`docs/TESTING.md`): `smoke_web.js` (does the
+  game run) and `smoke_pwa.js` (can I get out of a bad build).
 
 **Game**
 - One gray-box room, 14 × 3.4 × 9 m on a 0.5 m grid, one sodium bulkhead lamp
@@ -65,35 +89,62 @@
   with primitives, tuned by `src/input/touch_tuning.tres`.
 - Safe-area insets bridged from CSS to the HUD so nothing sits under the
   Dynamic Island or the home indicator.
-- Build stamp in the corner, so the phone can tell you which commit it is running.
+
+**Instrumentation** — new this pass, because a phone has no console
+- **Build stamp**, top-left, 13 px: `v0.1.0 abc1234`. Tap it to copy a full
+  report (branch, build time, payload hash, storage health, worker state,
+  viewport, safe area, user agent) to the clipboard.
+- **Debug overlay**, top-right, summoned by a **three-finger tap**: pack and
+  shell build, fps, CPU frame time, draw calls, primitives, viewport / window /
+  CSS size, DPR, safe-area insets, live touch IDs, storage health, worker state,
+  hum playback position, mixer latency, update state, PWA install state.
+- **Error toasts**, top-centre: any GDScript error, engine error, or unhandled
+  JavaScript exception becomes a dismissible on-screen message instead of a
+  silence. Repeats fold into one toast with a count.
+- **A 120 Hz ballast hum** at the lamp, synthesised in `src/world/lamp_hum.gd`,
+  so the audio unlock can be confirmed by ear. Deleted in P3.
+
+**P1 scaffolding, written but not wired to anything**
+`src/core/game_state.gd`, `settings_row.gd`, `settings_spec.gd`,
+`assets/settings/settings_spec.tres`, `src/core/surface_type.gd`,
+`src/world/surface_tag.gd`. There is no settings menu yet; that spec is a
+schema waiting for one.
 
 ---
 
-## Outstanding work
+## Known broken, or deliberately deferred
 
-### Before P1 can be called done
-- Interaction system (raycast + context prompt + tap-and-hold).
-- Focused-interaction mode (camera locks, puzzle takes gestures).
-- Settings menu: sensitivity, invert-Y, stick size/opacity, brightness, audio
-  mix, reduce-motion, subtitle size, colourblind-safe cues.
-- Save/load.
-- Haptics via `Input.vibrate_handheld()` where iOS allows it.
+Report anything **not** on this list.
 
-### Known gaps and bugs
+- **No live URL.** See the deploy table above. This is the top item.
+- **No settings menu**, despite `settings_spec.tres` describing fourteen
+  settings. P1.
+- **No save/load, no interaction system, no focused-interaction mode, no
+  haptics.** All P1.
+- **The build stamp's tap target is in the top-left corner.** It does not eat
+  touches — the element ignores pointer events and the tap is recognised by
+  geometry — but a *tap* there is also delivered to the virtual stick. A tap
+  with no travel is zero deflection, so this should be invisible. If the player
+  drifts while tapping the stamp, that is the cause.
+- **The overlay's `peak` reads `n/a` on the phone.** Godot's web build never
+  populates the audio bus peak monitor. `hum on 12.34s` next to it is the real
+  signal: if that number is advancing, the mixer is running.
 - **Desktop mouse does not drive the touch HUD.** `emulate_touch_from_mouse` is
   on, but Chromium's mobile emulation swallows synthetic mouse drags. Real touch
-  works everywhere. Keyboard (WASD) works. Revisit in P1 if desktop parity
-  matters for authoring.
-- **No orientation lock is actually possible on iOS Safari.** The manifest asks
-  for landscape and the shell shows a rotate-your-device overlay in portrait,
-  but the OS rotate lock is the only real enforcement. The shell says so.
-- **The lamp's emissive panel clips to white.** Correct-ish for a practical, but
-  it wants the P2 filmic grade and bloom before it reads as film rather than
-  as a blown texel.
-- **Visible colour banding in the light falloff.** Expected in 8-bit with no
-  dither; the P2 ordered-dither pass is aimed exactly at this.
-- Positional shadows are enabled and appear to work under Compatibility, but
-  have not been measured on the actual device. Verify in P2 and budget them.
+  works everywhere. Keyboard (WASD) works.
+- **No orientation lock is possible on iOS Safari.** The manifest asks for
+  landscape and the shell shows a rotate overlay in portrait, but the OS rotate
+  lock is the only real enforcement.
+- **The lamp's emissive panel clips to white**, and there is **visible colour
+  banding in the light falloff**. Both are waiting on P2's filmic grade, bloom
+  and ordered dither.
+- **Positional shadows are on and unmeasured** on the real device. P2 budgets
+  them.
+- **Frame rate is not asserted at 60 fps in CI.** Under swiftshader the runner
+  gets 7–9 fps and the CPU frame-time monitor is contaminated by waits on the
+  software rasteriser. CI asserts draw calls and primitives (which are
+  renderer-independent) and a 250 ms tripwire for a runaway loop. 60 fps is a
+  device measurement — item 10 on the checklist below.
 
 ---
 
@@ -111,17 +162,59 @@ direction). Still open:
 
 ---
 
-## Test checklist for the phone (P0)
+## Device QA checklist
 
-1. Page loads black, title fades up, hairline progress rule fills.
-2. "TAP TO BEGIN" appears; tapping it starts the game (this is also what
-   unlocks Web Audio for every later phase).
-3. Left thumb anywhere on the left half raises a ring and knob where the thumb
+Run in order. The build stamp must match the commit that was deployed —
+check that first, because everything else is meaningless if it does not.
+
+**Load and shell**
+1. Page loads black; title fades up; the hairline rule fills.
+2. "TAP TO BEGIN" appears. Tap it — the game starts. (This tap is also what
+   unlocks Web Audio for every later phase.)
+3. The **top-left stamp** reads `v0.1.0 <sha>` and matches the deployed commit.
+4. **Tap the stamp.** A "Build details copied." toast appears; paste it
+   somewhere and confirm it names the branch, payload hash and user agent.
+
+**Controls**
+5. Left thumb anywhere on the left half raises a ring and knob where the thumb
    landed; dragging walks. Right thumb drags to look.
-4. Walking into the crate stops you; you cannot leave the room.
-5. Nothing sits under the Dynamic Island or the home indicator.
-6. No rubber-band scroll, no double-tap zoom, no text selection, no page chrome.
-7. Rotating to portrait shows the rotate overlay.
-8. Add to Home Screen → launches full-screen with a black background and the
-   seam icon; after one online run, it opens with the network off.
-9. The corner stamp matches the commit that was deployed.
+6. **Lift the left thumb while the right one is still dragging.** Looking must
+   not stutter, jump, or stop. (This is the P1 input-hardening target; if it is
+   already wrong here, say so.)
+7. Walking into the crate stops you; you cannot leave the room.
+8. Nothing sits under the Dynamic Island or the home indicator.
+9. No rubber-band scroll, no double-tap zoom, no text selection, no page chrome.
+
+**Instrumentation**
+10. **Three-finger tap.** The overlay appears top-right. Read out `fps`, `cpu`,
+    `draw`, `tris` — this is the only 60 fps measurement that means anything.
+11. In the overlay: `safe` must be non-zero (the notch and home indicator),
+    `dpr` should read 3, `store` should read `ok`, `sw` should read `active`
+    after a reload.
+12. Touch the screen with one finger, then two. The `touch` line must list the
+    live touch IDs and clear when you lift.
+13. **Audio.** Stand next to the lamp: a quiet mains hum. Walk away: it fades.
+    In the overlay, `hum on N.NNs` must be **counting up**. Check with the
+    silent switch both on and off, and note which one silences it.
+14. Three-finger tap again — the overlay closes.
+
+**The update path** (the part that decides whether I can ship you fixes)
+15. Load the site, then leave the tab open.
+16. Tell me, and I will push a rebuild. Wait for CI to go green.
+17. Send the phone to the home screen and come back. A **"New version — tap to
+    reload"** banner should appear at the top.
+18. It must **not** appear while you are walking around with the tab in the
+    foreground. If it does, that is a bug.
+19. Tap it. The game reloads and the stamp shows the new commit.
+20. **Break it deliberately:** append `?fresh=1` to the URL. The page purges and
+    reloads onto the clean URL, and the game still loads.
+
+**Installed PWA**
+21. Add to Home Screen. It launches full-screen, black, with the seam icon.
+22. After one online run, put the phone in airplane mode and launch it again —
+    it should still reach the tap gate.
+23. In the overlay, `pwa` should read `true` when launched from the home screen.
+
+**Errors**
+24. If anything at all goes wrong, a toast should say what. If something goes
+    wrong **silently**, that is itself the bug worth reporting.
