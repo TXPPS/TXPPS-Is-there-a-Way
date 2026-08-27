@@ -1,0 +1,14 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+; The visible bulb of the sodium bulkhead lamp. Emissive so the light in the
+; room always has a source you can look at -- a light with no fixture is the
+; fastest way to make a scene read as an engine demo.
+
+[resource]
+resource_name = "Graybox Lamp Glass"
+albedo_color = Color(0.09, 0.06, 0.03, 1)
+metallic = 0.0
+roughness = 0.4
+emission_enabled = true
+emission = Color(1, 0.706, 0.42, 1)
+emission_energy_multiplier = 2.6

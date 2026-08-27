@@ -1,0 +1,14 @@
+{
+  "name": "is-there-a-way",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CI tooling only (headless smoke test + Cloudflare deploy). Kept out of the Godot project tree so its node_modules is never scanned as game content -- see tools/.gdignore.",
+  "scripts": {
+    "smoke": "node smoke_web.js ../../build ../../build-smoke",
+    "deploy": "wrangler pages deploy ../../build"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1",
+    "wrangler": "4.127.0"
+  }
+}

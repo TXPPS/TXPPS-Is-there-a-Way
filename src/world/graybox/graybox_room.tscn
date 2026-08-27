@@ -1,0 +1,121 @@
+[gd_scene load_steps=13 format=3]
+
+; Phase 0 gray-box. Grid unit is 0.5 m and every dimension here is a multiple
+; of it, so the modular kit built in P2 drops straight into this footprint.
+; Interior volume: 14.0 x 3.4 x 9.0 m. Wall thickness 0.4 m.
+
+[ext_resource type="Material" path="res://assets/materials/graybox_concrete.tres" id="1_concrete"]
+[ext_resource type="Material" path="res://assets/materials/graybox_steel.tres" id="2_steel"]
+[ext_resource type="Material" path="res://assets/materials/graybox_lamp_glass.tres" id="3_lamp"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_unit"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_slab"]
+size = Vector3(14.8, 0.4, 9.8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_side"]
+size = Vector3(0.4, 3.4, 9.8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_end"]
+size = Vector3(14, 3.4, 0.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_crate"]
+size = Vector3(1, 1, 1)
+
+[node name="GrayboxRoom" type="Node3D"]
+
+[node name="Shell" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="FloorShape" type="CollisionShape3D" parent="Shell"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
+shape = SubResource("BoxShape3D_slab")
+
+[node name="CeilingShape" type="CollisionShape3D" parent="Shell"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.6, 0)
+shape = SubResource("BoxShape3D_slab")
+
+[node name="WallWestShape" type="CollisionShape3D" parent="Shell"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.2, 1.7, 0)
+shape = SubResource("BoxShape3D_side")
+
+[node name="WallEastShape" type="CollisionShape3D" parent="Shell"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.2, 1.7, 0)
+shape = SubResource("BoxShape3D_side")
+
+[node name="WallNorthShape" type="CollisionShape3D" parent="Shell"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, -4.7)
+shape = SubResource("BoxShape3D_end")
+
+[node name="WallSouthShape" type="CollisionShape3D" parent="Shell"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 4.7)
+shape = SubResource("BoxShape3D_end")
+
+[node name="Surfaces" type="Node3D" parent="."]
+
+[node name="Floor" type="MeshInstance3D" parent="Surfaces"]
+transform = Transform3D(14.8, 0, 0, 0, 0.4, 0, 0, 0, 9.8, 0, -0.2, 0)
+mesh = SubResource("BoxMesh_unit")
+surface_material_override/0 = ExtResource("1_concrete")
+
+[node name="Ceiling" type="MeshInstance3D" parent="Surfaces"]
+transform = Transform3D(14.8, 0, 0, 0, 0.4, 0, 0, 0, 9.8, 0, 3.6, 0)
+mesh = SubResource("BoxMesh_unit")
+surface_material_override/0 = ExtResource("1_concrete")
+
+[node name="WallWest" type="MeshInstance3D" parent="Surfaces"]
+transform = Transform3D(0.4, 0, 0, 0, 3.4, 0, 0, 0, 9.8, -7.2, 1.7, 0)
+mesh = SubResource("BoxMesh_unit")
+surface_material_override/0 = ExtResource("1_concrete")
+
+[node name="WallEast" type="MeshInstance3D" parent="Surfaces"]
+transform = Transform3D(0.4, 0, 0, 0, 3.4, 0, 0, 0, 9.8, 7.2, 1.7, 0)
+mesh = SubResource("BoxMesh_unit")
+surface_material_override/0 = ExtResource("1_concrete")
+
+[node name="WallNorth" type="MeshInstance3D" parent="Surfaces"]
+transform = Transform3D(14, 0, 0, 0, 3.4, 0, 0, 0, 0.4, 0, 1.7, -4.7)
+mesh = SubResource("BoxMesh_unit")
+surface_material_override/0 = ExtResource("1_concrete")
+
+[node name="WallSouth" type="MeshInstance3D" parent="Surfaces"]
+transform = Transform3D(14, 0, 0, 0, 3.4, 0, 0, 0, 0.4, 0, 1.7, 4.7)
+mesh = SubResource("BoxMesh_unit")
+surface_material_override/0 = ExtResource("1_concrete")
+
+[node name="Crate" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 0.5, -1.2)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Mesh" type="MeshInstance3D" parent="Crate"]
+mesh = SubResource("BoxMesh_unit")
+surface_material_override/0 = ExtResource("2_steel")
+
+[node name="Shape" type="CollisionShape3D" parent="Crate"]
+shape = SubResource("BoxShape3D_crate")
+
+[node name="BulkheadLamp" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.75, 2.35, -0.8)
+
+[node name="Housing" type="MeshInstance3D" parent="BulkheadLamp"]
+transform = Transform3D(0.24, 0, 0, 0, 0.44, 0, 0, 0, 0.62, 0, 0, 0)
+mesh = SubResource("BoxMesh_unit")
+surface_material_override/0 = ExtResource("2_steel")
+
+[node name="Glass" type="MeshInstance3D" parent="BulkheadLamp"]
+transform = Transform3D(0.1, 0, 0, 0, 0.3, 0, 0, 0, 0.44, 0.16, 0, 0)
+mesh = SubResource("BoxMesh_unit")
+surface_material_override/0 = ExtResource("3_lamp")
+
+[node name="Light" type="OmniLight3D" parent="BulkheadLamp"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.42, 0, 0)
+light_color = Color(1, 0.706, 0.42, 1)
+light_energy = 4.2
+light_specular = 0.3
+shadow_enabled = true
+shadow_bias = 0.04
+omni_range = 14.0
+omni_attenuation = 1.6

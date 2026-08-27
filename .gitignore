@@ -1,0 +1,28 @@
+# ---- Godot ----
+# Import cache & editor state. Everything here is regenerable from source.
+.godot/
+# Exported builds.
+/build/
+/build-smoke/
+/dist/
+
+# ---- Toolchain fetched by tools/ci/fetch_godot.py ----
+/.godot-sdk/
+
+# ---- Per-build generated stamp (written by tools/ci/stamp_build.py) ----
+/build_stamp.json
+
+# ---- Node / wrangler (deploy only) ----
+node_modules/
+.wrangler/
+npm-debug.log*
+
+# ---- Python ----
+__pycache__/
+*.pyc
+
+# ---- OS / editor noise ----
+.DS_Store
+Thumbs.db
+*~
+*.swp

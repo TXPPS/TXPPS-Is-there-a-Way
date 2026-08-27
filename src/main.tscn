@@ -1,0 +1,37 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://src/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://src/world/graybox/graybox_room.tscn" id="2_room"]
+[ext_resource type="PackedScene" path="res://src/player/player.tscn" id="3_player"]
+[ext_resource type="PackedScene" path="res://src/ui/hud.tscn" id="4_hud"]
+
+[sub_resource type="Environment" id="Environment_main"]
+background_mode = 1
+background_color = Color(0, 0, 0, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.106, 0.129, 0.157, 1)
+ambient_light_energy = 0.45
+tonemap_mode = 2
+tonemap_exposure = 1.0
+tonemap_white = 4.0
+fog_enabled = true
+fog_mode = 1
+fog_light_color = Color(0.043, 0.047, 0.055, 1)
+fog_light_energy = 1.0
+fog_density = 0.85
+fog_depth_begin = 3.0
+fog_depth_end = 30.0
+fog_depth_curve = 1.6
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_main")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_main")
+
+[node name="GrayboxRoom" parent="." instance=ExtResource("2_room")]
+
+[node name="Player" parent="." instance=ExtResource("3_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.05, 3.2)
+
+[node name="Hud" parent="." instance=ExtResource("4_hud")]

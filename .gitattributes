@@ -1,0 +1,27 @@
+# The whole project is meant to be human-readable and hand-editable months from
+# now. Normalise line endings and mark every project format as text so diffs,
+# merges and code review actually work. No Git LFS anywhere.
+* text=auto eol=lf
+
+*.gd        text diff=python
+*.tscn      text
+*.tres      text
+*.godot     text
+*.cfg       text
+*.import    text
+*.json      text
+*.html      text
+*.js        text
+*.css       text
+*.svg       text
+*.md        text
+*.yml       text
+
+# Binary Godot formats are forbidden by project policy; declaring them binary
+# means an accidental commit shows up as an unmergeable blob in review.
+*.scn       binary
+*.res       binary
+
+# Generated-but-committed art/audio outputs (regenerable via tools/gen/*).
+*.png       binary
+*.wav       binary

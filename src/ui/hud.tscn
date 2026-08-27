@@ -1,0 +1,56 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://src/ui/hud.gd" id="1_hud"]
+[ext_resource type="Script" path="res://src/ui/safe_area_margin.gd" id="2_safe"]
+[ext_resource type="Script" path="res://src/input/virtual_stick.gd" id="3_stick"]
+[ext_resource type="Script" path="res://src/input/look_pad.gd" id="4_look"]
+[ext_resource type="Resource" path="res://src/input/touch_tuning.tres" id="5_touch"]
+
+[node name="Hud" type="CanvasLayer"]
+script = ExtResource("1_hud")
+
+[node name="SafeArea" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_safe")
+
+[node name="Layout" type="Control" parent="SafeArea"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="VirtualStick" type="Control" parent="SafeArea/Layout"]
+layout_mode = 1
+anchors_preset = 9
+anchor_right = 0.5
+anchor_bottom = 1.0
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_stick")
+tuning = ExtResource("5_touch")
+
+[node name="LookPad" type="Control" parent="SafeArea/Layout"]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 0.5
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("4_look")
+
+[node name="BuildStamp" type="Label" parent="SafeArea/Layout"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -20.0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.6, 0.62, 0.66, 0.55)
+theme_override_font_sizes/font_size = 12
+text = "dev"

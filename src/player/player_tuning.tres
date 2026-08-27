@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="PlayerTuning" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/player/player_tuning.gd" id="1_tuning"]
+
+[resource]
+script = ExtResource("1_tuning")
+walk_speed = 1.95
+acceleration_time = 0.16
+braking_time = 0.1
+gravity = 14.0
+look_sensitivity = 0.18
+look_smoothing = 0.35
+invert_y = false
+pitch_limit_degrees = 85.0
+eye_height = 1.62
+field_of_view = 72.0
+bob_amplitude = 0.021
+bob_frequency = 1.85

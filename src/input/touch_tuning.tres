@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="TouchTuning" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/input/touch_tuning.gd" id="1_touch"]
+
+[resource]
+script = ExtResource("1_touch")
+stick_radius = 92.0
+knob_radius = 32.0
+stick_deadzone = 0.09
+opacity = 0.3
+tint = Color(0.86, 0.88, 0.92, 1)
+fade_out_time = 0.18
