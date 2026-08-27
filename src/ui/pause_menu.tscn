@@ -16,11 +16,13 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
+; The right margin clears the scrollbar. Without it every row's value readout is
+; drawn under it, which is exactly the half of the row you are trying to read.
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_scroll"]
 bg_color = Color(0, 0, 0, 0.22)
-content_margin_left = 12.0
+content_margin_left = 14.0
 content_margin_top = 10.0
-content_margin_right = 12.0
+content_margin_right = 34.0
 content_margin_bottom = 10.0
 
 ; The panel fills the safe area rather than being centred at its natural size.
