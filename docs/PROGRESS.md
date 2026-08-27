@@ -15,20 +15,36 @@ switch and on QA on the phone.** P1 does not start until that QA has been run.
 | | Status |
 |---|---|
 | Build | **green.** `build` job passes: export, budgets, 23-check gameplay smoke, 28-check update-path smoke. |
+| Default branch | still `claude/is-there-a-way-setup-kah9su`. The rename to `main` is **blocked**, not by the token but by the API proxy this session runs behind: every write path returns *"Write access to this GitHub API path is not permitted through this proxy."* Taps below. |
 | Artifact | **published to every run.** `web-build` on the run page; `smoke-screenshots` too. |
 | **GitHub Pages** | **NOT switched on.** `deploy-pages` runs, asks the Pages API, gets a non-200, prints the setup into the run summary and skips the deploy. |
 | **Cloudflare Pages** | **no credentials.** `probe` reports no `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID`; `deploy-cloudflare` skips. |
 | **Live URL** | **none yet.** Both hosts need one manual step that no token in this session can perform. |
 
 **The gate is verified, not assumed.** Both deploy jobs test
-`github.ref_name == github.event.repository.default_branch`. In run #3 the
-`deploy-pages` job **ran** (conclusion `success`, its steps skipped only because
-Pages is off) on `claude/is-there-a-way-setup-kah9su`, which was the default
-branch at the time. A job whose `if:` were false would show as `skipped`, the
-way `deploy-cloudflare` does. So the expression resolves and matches, and
-renaming the default branch to `main` changes nothing about it.
+`github.ref_name == github.event.repository.default_branch`. On the latest green
+run the `deploy-pages` job **ran** — conclusion `success`, with only its inner
+steps skipped, and those skipped because Pages is off, not because of the gate.
+A job whose `if:` were false shows as `skipped` outright, the way
+`deploy-cloudflare` does. So the expression resolves and it matches on whatever
+the default branch is called. Rename the default to `main` and pushes to `main`
+give `ref_name == 'main' == default_branch`: the same expression, the same
+answer, no edit here. The workflow's `on: push` already lists `main`.
+
+### Renaming the default branch — five taps
+
+1. `github.com/TXPPS/TXPPS-Is-there-a-Way` → **Settings** → **General**
+2. Under *Default branch*, tap the **pencil / switch** icon next to
+   `claude/is-there-a-way-setup-kah9su`
+3. Type `main` (do **not** create a branch called `main` first — the rename
+   refuses if the name is taken)
+4. **Rename branch**, then confirm
+5. Nothing else. GitHub retargets open PRs and redirects old links; the deploy
+   gate follows automatically.
 
 ### What unblocks a URL — GitHub Pages, three taps
+
+This is the shortest path to something openable on the phone.
 
 1. `github.com/TXPPS/TXPPS-Is-there-a-Way` → **Settings** → **Pages**
 2. *Build and deployment* → **Source** → **GitHub Actions**
@@ -119,7 +135,10 @@ schema waiting for one.
 
 Report anything **not** on this list.
 
-- **No live URL.** See the deploy table above. This is the top item.
+- **No live URL.** See the deploy table above. This is the top item, and it is
+  three taps.
+- **The default branch is not `main` yet**, and I could not rename it: the API
+  proxy blocks writes. Five taps, above.
 - **No settings menu**, despite `settings_spec.tres` describing fourteen
   settings. P1.
 - **No save/load, no interaction system, no focused-interaction mode, no
