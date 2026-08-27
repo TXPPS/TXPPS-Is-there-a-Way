@@ -222,15 +222,22 @@ jobs:
   # The live URL until Cloudflare credentials exist. No `continue-on-error`:
   # a deploy that fails on the default branch is a red build, because the whole
   # point of this pipeline is that a commit becomes a URL.
+  #
+  # No `environment:` block, deliberately. Declaring one makes Actions evaluate
+  # the github-pages environment's deployment-branch policy before the job even
+  # starts, and that policy was written when Pages was switched on -- naming the
+  # branch that was default at the time. Renaming the branch does not update it,
+  # so the job was rejected outright with "Branch \"main\" is not allowed to
+  # deploy to github-pages due to environment protection rules", before a single
+  # step ran. The deployment still lands in that environment; we just stop
+  # asking Actions to pre-approve it. The cost is the environment URL on the run
+  # page, which the verify job prints anyway.
   deploy-pages:
     needs: [probe, build]
     if: needs.probe.outputs.is_default == 'true'
     runs-on: ubuntu-latest
     outputs:
       page_url: ${{ steps.deploy.outputs.page_url }}
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - name: GitHub Pages has to be switched on by hand, once
         if: needs.probe.outputs.pages != 'true'
@@ -264,6 +271,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # A deploy can be refused by things no step of ours can see. Say what,
+      # with status codes, rather than leaving a bare "failure".
+      - name: Why the deploy did not happen
+        if: needs.probe.outputs.is_default == 'true' && needs.deploy-pages.result != 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          api() {
+            curl -sS -o /tmp/body.json -w '%{http_code}' \
+              -X "$1" -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" "$2" ${3:+-d "$3"}
+          }
+          ENV_URL="https://api.github.com/repos/${{ github.repository }}/environments/github-pages"
+          CODE="$(api GET "$ENV_URL")"
+          echo "GET  environments/github-pages -> $CODE"
+          head -c 800 /tmp/body.json; echo
+          CODE="$(api GET "$ENV_URL/deployment-branch-policies")"
+          echo "GET  deployment-branch-policies -> $CODE"
+          head -c 800 /tmp/body.json; echo
+          # GITHUB_TOKEN cannot hold `administration: write` -- it is not a
+          # requestable workflow permission -- so this is expected to be
+          # refused. Recorded so the refusal is quoted rather than described.
+          CODE="$(api POST "$ENV_URL/deployment-branch-policies" '{"name":"main","type":"branch"}')"
+          echo "POST deployment-branch-policies {main} -> $CODE"
+          head -c 800 /tmp/body.json; echo
 
       - name: On the default branch, the deploy must have run
         run: |
