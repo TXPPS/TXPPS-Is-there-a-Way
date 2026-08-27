@@ -118,7 +118,7 @@ from a phone. Four phases, each building on the last:
 | **A install** | The worker registers, claims the open page, names its cache after the build hash, caches the payload once requests have been through it, and serves the game with the network switched off. Also: the build stamp reads version + short SHA, tapping it copies a full report, engine errors and unhandled JS exceptions become on-screen toasts, a repeating error is one toast with a count rather than a storm, and toasts dismiss. |
 | **B update** | With the game *running*, the document root is swapped to a forged rebuild. The new build is detected; the banner is **withheld** because the player is mid-scene; returning from the home screen releases it; taking it swaps the live build and the old cache is gone. |
 | **C gate** | The same withheld banner is also released by opening a menu (`window.__itaw_setUpdateGate(true)`). Rolling the deploy back restores the previous build and deletes the forged cache in turn. |
-| **D recovery** | A poisoned entry is written straight into the worker's cache in place of the engine payload, and the whole recovery ladder is climbed: the page heals itself once (purge, clean reload, gate), records that it had to, and reports a completed purge rather than one that hit its deadline. Poisoned a second time in the same tab it does **not** purge again — it says so and offers "Reload cleanly", which then works. |
+| **D recovery** | A poisoned entry is written straight into the worker's cache in place of the engine payload, and the whole recovery ladder is climbed: the page heals itself once (purge, clean reload, gate), records that it had to, and reports a completed purge rather than one that hit its deadline. Then a second failure in the same tab — this one served broken rather than cached broken — must **not** purge again: it says so and offers "Reload cleanly", which works. |
 
 ### The forged rebuild
 
@@ -136,6 +136,16 @@ on a deploy that is simply broken. So the automatic purge fires once per tab
 (`sessionStorage`, which resets with the tab) and after that the fault is shown
 with a button. Phase D asserts both halves, because the second half is the one
 that stops a bad build becoming an infinite one.
+
+### Why the second failure is not a second poisoning
+
+Whether a poisoned cache entry actually reaches the page turned out to depend on
+the browser and on what its HTTP cache was holding — the same injection stranded
+the build on one Chromium and was quietly bypassed on another. So the first
+failure is poisoned (that is the scenario worth reproducing exactly) and the
+second is simply *served* broken, from a copy of the build whose engine script
+is a `throw`. Same code path — `Engine` is not defined — and no dependency on
+cache behaviour at all.
 
 ### Why phase D clears the HTTP cache
 

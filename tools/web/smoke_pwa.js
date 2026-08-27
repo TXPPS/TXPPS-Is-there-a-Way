@@ -24,6 +24,7 @@ const { serve, openBrowser, tally } = require('./harness');
 
 const BUILD = path.resolve(process.argv[2] || 'build');
 const FORGED = `${BUILD}-forged`;
+const BROKEN = `${BUILD}-broken`;
 const PORT = 8098;
 const ORIGIN = `http://127.0.0.1:${PORT}`;
 const GATE = '#begin:not([hidden])';
@@ -140,6 +141,15 @@ function waitForCaches(page, predicateSource, timeout) {
 	);
 }
 
+/** A deploy whose engine script is rubbish. Same failure, no cache involved. */
+function breakBuild(from, to) {
+	const hash = payloadHash(from);
+	fs.rmSync(to, { recursive: true, force: true });
+	fs.cpSync(from, to, { recursive: true });
+	fs.writeFileSync(path.join(to, `index.${hash}.js`), 'throw new Error("broken deploy");\n');
+	return `index.${hash}.js`;
+}
+
 const recoveredFlag = (page) => page.evaluate(() => sessionStorage.getItem('itaw.recovered'));
 
 /**
@@ -219,6 +229,7 @@ async function cycleBackground(page) {
 
 (async () => {
 	const originalHash = forgeRebuild(BUILD, FORGED);
+	breakBuild(BUILD, BROKEN);
 	const root = { dir: BUILD };
 	const server = await serve(root, PORT);
 	const { browser, context } = await openBrowser();
@@ -365,12 +376,25 @@ async function cycleBackground(page) {
 
 	// Second time in the same tab: no automatic purge, because a loop of
 	// purge-and-fail would be worse than a message.
-	await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: SETTLE_MS });
-	await poisonEnginePayload(page, cdp);
+	//
+	// Broken at the server this time rather than in the cache. It is the same
+	// code path -- the engine script does not define Engine -- but it does not
+	// depend on which Chromium is running or on what its HTTP cache happens to
+	// be holding, both of which decided the outcome when this was a second
+	// poisoning.
+	await page.evaluate(async () => {
+		const regs = await navigator.serviceWorker.getRegistrations();
+		await Promise.all(regs.map((r) => r.unregister()));
+		const keys = await caches.keys();
+		await Promise.all(keys.map((k) => caches.delete(k)));
+	});
+	root.dir = BROKEN;
+	await page.reload({ waitUntil: 'load' }).catch(() => {});
 	const landed = await gateOrRecover(page, SETTLE_MS);
 	t.check(landed === 'recover', `D5 a second failure in the same tab is not purged automatically (${landed})`);
 	t.check(await page.isVisible('#recover'), 'D6 and offers "Reload cleanly" instead');
 
+	root.dir = BUILD;
 	await page.tap('#recover');
 	await page.waitForURL((u) => !u.href.includes('fresh=1'), { timeout: SETTLE_MS });
 	await page.waitForSelector(GATE, { timeout: BOOT_MS });
@@ -380,6 +404,7 @@ async function cycleBackground(page) {
 	await browser.close();
 	server.close();
 	fs.rmSync(FORGED, { recursive: true, force: true });
+	fs.rmSync(BROKEN, { recursive: true, force: true });
 	process.exit(t.report());
 })().catch(async (err) => {
 	console.error('smoke:pwa crashed', err);
