@@ -35,8 +35,8 @@ than anything else that could be built on top of this.**
 | | |
 |---|---|
 | **Live** | <https://txpps.github.io/TXPPS-Is-there-a-Way/> |
-| **Stamp to expect** | `v0.1.0 aa21101` (or later — every push deploys) |
-| **First thing to do** | `docs/NEEDS_DEVICE_QA.md`, all 120 items, in order. Section "Controls" first: if that fails, stop, because everything else stands on it. |
+| **Stamp to expect** | `v0.1.0 0d29263` (or later — every push deploys) |
+| **First thing to do** | `docs/NEEDS_DEVICE_QA.md`, all 121 items, in order. Section "Controls" first: if that fails, stop, because everything else stands on it. |
 | **Blocked on a human** | Everything unverifiable. Nothing is blocked on a decision. |
 | **If you only do one thing** | Play it, once, on the phone, to an ending. Every number in this file is a number I checked; not one of them is an opinion about whether it is any good. |
 | **Frozen** | The input layer. No change to touch semantics, layout or the router without a failing test to justify it. |
@@ -132,21 +132,35 @@ never connected — signals nobody listens to, classes nobody instantiates,
 settings nothing reads. It found three real defects in an hour, all of which
 had been green in CI the whole time:
 
-1. **The autosave was never read.** Versioned, migrated, persistence-checked,
+1. **Ending A could not be reached.** It had a card, a test and a name, and
+   nothing in the game ever called it — the test got there through a private
+   method, which is exactly the shape of a thing that looks finished and is not.
+2. **Ending B could be reached immediately**, on arrival, skipping both of Act
+   4's other gates and offering a refusal before there was anything to refuse.
+3. **P3.3 was optional.** The tank room's flood is not solid (you have to wade
+   to the drain valve), so the player could wade straight through to the tape
+   library and never meet the puzzle the act is built around.
+4. **The draw-call budget was blown thirty-four times over** in three acts, and
+   reported green on every build, because it was asserted in one room.
+5. **The autosave was never read.** Versioned, migrated, persistence-checked,
    tested, and written at every checkpoint — and nothing ever loaded it. Close
    the tab in Act 3, reopen the URL, start at the panel in the dark. Every hour
    spent on save schema was buying a file nobody opened.
-2. **A puzzle with no answer.** Act 1 still carried the throwaway dial lock: a
+6. **A puzzle with no answer.** Act 1 still carried the throwaway dial lock: a
    combination lock with no combination anywhere in the fiction, whose `solved`
    signal went nowhere. A player would have worked at it and got silence.
-3. **Three acts with no reverb.** Act 1 got two zones when the system was
+7. **Three acts with no reverb.** Act 1 got two zones when the system was
    written; nothing built afterwards got any, so twelve rooms were played dry in
    a game whose sound design is about knowing where you are without looking.
+8. **Three doors half underground.** A `DeviceDoor`'s leaf is centred on its own
+   node; all three in the shelter sat at floor level, shut enough to stop a body
+   and not a ray, and visibly sunk into the concrete.
 
 None of them could fail a test, because in each case the thing that was missing
-was the *connection*, and a test written from the same understanding that built
-it would have made the same assumption. What found them was asking a different
-question: not "does this work" but "does anything use this".
+was the *connection* — and a test written from the same understanding that built
+it makes the same assumption. What found them was asking different questions:
+not "does this work" but "does anything use this", "where else is this true",
+and "what could a player do that nobody meant them to".
 
 Worth repeating on anything built over a long stretch, and worth doing before
 adding more.
@@ -177,8 +191,8 @@ bench unit first, then the piers.
 
 | | Status |
 |---|---|
-| Build | **green.** Export, budgets (download, texture size, shipped audio), the import-settings check, a **586-check headless suite**, 55-check gameplay smoke, 28-check update-path smoke. |
-| Last verified | `v0.1.0 aa21101`, serving from GitHub Pages with every payload file answering 200 and the wasm as `application/wasm`. |
+| Build | **green.** Export, budgets (download, texture size, shipped audio), the import-settings check, a **595-check headless suite**, 55-check gameplay smoke, 28-check update-path smoke. |
+| Last verified | `v0.1.0 0d29263`, serving from GitHub Pages with every payload file answering 200 and the wasm as `application/wasm`. |
 | Publish | **automatic.** Every push to `main` deploys, and so does a manual **Run workflow** on `main` — both proven, runs #15 and #16. |
 | Verified | the `verify` job fetches the live URL after every deploy and fails the build unless it serves *this* commit with every payload file answering 200 and the wasm as `application/wasm`. |
 | Cloudflare Pages | still no credentials; that job skips. Optional — it buys `web/_headers` and nothing else. See `DEPLOY.md`. |

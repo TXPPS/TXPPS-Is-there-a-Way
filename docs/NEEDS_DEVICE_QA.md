@@ -5,7 +5,7 @@
 > feels right, sounds right, or looks right, and neither is an iPhone.
 >
 > Numbered so it can be run in one sitting. Report anything that fails by its
-> number. A hundred and twenty items; the Act 4 section (107 onward) is the newest and the
+> number. A hundred and twenty-one items; the Act 4 section (107 onward) is the newest and the
 > least examined.
 
 ---
@@ -352,9 +352,15 @@ gallery. `tests/case_act4.gd` walks it both ways.
     give it up, because Protocol 4.4 says a run is not concluded until the
     observer leaves the lamp — and he has not. **You read that in Act 3 and did
     not know it was about you.**
-113. **The two endings.** Both are things you do with equipment. Conclude the
-    run — stand at the lamp and let the seam close over you. Or refuse: walk out
-    to the pier and take the gate off its permissive by hand.
+113. **The two endings.** Both are things you do with equipment, and both need
+    P4.2 done first.
+    - **Conclude the run:** go back down to the annex, put a chamber luminaire
+      on the schedule, stand where it can see you, **and do not move.** It will
+      come. Letting it reach you is the final observation, and the cabinet in
+      the control house reads it two acts later. **Does standing still feel
+      like a decision or like a bug?** That is the one I most want an answer to.
+    - **Refuse:** the pier's local permissive is held while the panel is still
+      being told there is a flood. Pull the lead first and it becomes available.
 114. Whichever you took: **was it a choice, or did you find one and stop
     looking?** The game must not appear to prefer either, and I cannot tell from
     here whether it does.
@@ -371,17 +377,22 @@ gallery. `tests/case_act4.gd` walks it both ways.
     so the reload gives you a new game. A save you made yourself, from the Saves
     panel, must survive it.
 
+118. Try taking the gate off its permissive **before** pulling the lead. It
+    should be held, and say so. Try walking through the flooded tank room to
+    the tape library **before** draining it — there is a watertight door and it
+    should be shut.
+
 **Frame rate**
-118. **Walk the annex observation corridor and watch for stutter.** It is the
+119. **Walk the annex observation corridor and watch for stutter.** It is the
     three most expensive frames in the game — 137 draw calls against a target
     of 120 — and that target was chosen for a phone without a phone in the
     room. Three-finger tap for the overlay; it reads fps and draw calls. If it
     holds 60, the target was conservative and I will raise it. If it does not,
     the corridor needs shortening or the chamber luminaire needs to stop
     casting, and I would rather know which.
-119. For contrast, the generator hall in Act 1 is 33 draw calls. If *that*
+120. For contrast, the generator hall in Act 1 is 33 draw calls. If *that*
     stutters, something is wrong that has nothing to do with the budget.
 
 **Errors**
-120. If anything at all goes wrong, a toast should say what. If something goes
+121. If anything at all goes wrong, a toast should say what. If something goes
     wrong **silently**, that is itself the bug worth reporting.
