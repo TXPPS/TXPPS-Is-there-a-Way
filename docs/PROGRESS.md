@@ -80,16 +80,19 @@ things that do not exist yet:
 Everything else Act 3 needs is content: the annex spaces, the chambers, the
 tank room, the recorder bay, and D-13 through D-19.
 
-**Build the three systems; hold the content.** Two acts exist and neither has
-been played by a person, so pouring a third act's rooms on top only grows the
-pile of unverified work. The three things above are different: each is a system
-with its own tests, each is needed by every remaining act, and none of them
-depends on a decision the QA round might overturn. The entity in particular is
-the largest missing piece in the whole game and the one most worth having proven
-before an act is designed around it.
+**All three are built and tested.** `Observer` is the entity's rule as
+behaviour, asserted row by row against the bible's own table; `annex.png` and
+`fluorescent.tscn` are the palette shift, measured rather than eyeballed; and
+`Hands` plus `Photometer` are a tool that travels and the number that makes the
+seam evidence rather than a feeling.
 
-So: the fluorescent palette, the entity's rule, and a carried tool get built and
-tested. Act 3's rooms wait for a human to have played Act 2.
+None of them is placed in a level. They were built first deliberately: each is
+needed by every act that remains, and an act designed around an unproven system
+is an act that gets rebuilt.
+
+**Act 3's rooms are next**, and they go *inside* `shelter.tscn` rather than into
+an act of their own — P3.3 sends the player back to Act 2's panel, and that only
+means anything if it is the same panel and a real walk. See `DECISIONS.md` D28.
 
 **Engine:** Godot 4.6.3-stable, Compatibility (WebGL2), single-threaded web export.
 **Target:** iPhone 16 Pro Max, Safari, **landscape**.

@@ -490,3 +490,47 @@ their delivery: `DeviceIntercom.lines` is an exported array, and playing audio
 alongside it is an added `AudioStreamPlayer` and a signal.
 
 Cost to reverse: low.
+
+---
+
+## D28 — The annex is rooms in Act 2's scene, not an act of its own
+
+**Decided:** Act 3 is a story label, not a mounted scene. The annex is built
+behind the shelter's annex door, in `shelter.tscn`, and the palette shifts at
+the threshold rather than at a load.
+
+`PUZZLES.md` P3.3 sends the player **back to Act 2's distribution panel** to
+take a load off, and `STORY.md` calls Act 3 "three gates, one tool, **one loop
+back into Act 2**". That is not an incidental convenience: the whole thesis of
+P3.3 is that progress costs light and the light it costs is light the player
+chose to keep an act earlier. It only lands if the panel is the same panel and
+the walk back is a real walk.
+
+`ActRunner` mounts exactly one act, for good reasons (D-nothing: see
+`ARCHITECTURE.md`, "One act at a time"), so two mounted acts is not on the
+table. The alternatives were to duplicate the shelter's corridor and panel
+inside an annex scene, or to give the annex a remote panel that mirrors the
+real one.
+
+Both are worse than they look. A duplicated panel is two panels that can
+disagree, and the bug it produces — you shed a load and the *other* panel still
+says 38.4 kW — is exactly the kind that survives a test suite written from the
+same numbers. A remote annunciator would be defensible hardware and would still
+throw away the walk, which is the part that costs the player something.
+
+So the annex is rooms. What that changes:
+
+- **The palette shift moves from the act to the threshold.** `GradeZone` sets
+  the post stack's grade when the player crosses it, and the act's own metadata
+  is the default. This is better than what it replaces: a grade that changes as
+  you walk through a door is a stronger statement than one that changes behind
+  a fade, and `ART_BIBLE.md` asks for exactly that moment.
+- **`shelter.tscn` gets large.** It is generated, so large is a number in a
+  Python file rather than a day of clicking.
+- **Act 4 will need this decision made again**, and the answer will probably be
+  different: the gate piers are up inside the dam with no loop back, so they can
+  be their own act.
+
+Cost to reverse: moderate. Splitting them later means moving the annex rooms
+into their own scene and deciding what to do about the loop, which is the same
+problem this decision is answering.
