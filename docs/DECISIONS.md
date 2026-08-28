@@ -370,3 +370,51 @@ read the `stepped` signal, and the moment footsteps give the player away, "I was
 moving slowly" has to actually mean something.
 
 Cost to reverse: nil.
+
+## D23 — Rooms are built from their dimensions, not placed by hand
+
+**Decided:** `src/world/kit/room_box.gd` builds a room's shell at load from six
+numbers and a list of openings. **Alternatives:** hand-authored `.tscn`
+geometry; a mesh baked in a modelling tool.
+
+There is no desktop editor session in this run and there will not be one, so
+"hand-placed" means "written as a few hundred lines of `.tscn` by a script that
+could just as well run at load". Building at load keeps a level's scene file
+short enough that a room can be changed by editing one number, which is the
+difference between a level that gets tuned and one that does not.
+
+The cost is draw calls: a room with two doorways is about a dozen meshes. Act 1
+runs at 58 visible against a budget of 120, and the browser suite asserts it. If
+a later act gets close the answer is merging each room's static geometry, not
+fewer rooms. Cost to reverse: low — the kit's output is ordinary nodes.
+
+## D24 — Some things are used, others are engaged with
+
+**Decided:** `Interactable.instant` splits them. A breaker fires its signal and
+the player never leaves FREE; a document locks the HUD and hands it the
+gestures. **Alternatives:** everything focuses.
+
+Everything focusing means a breaker takes two taps, and takes both sticks off
+the screen between them, for an action that in the world is one motion of one
+hand. The distinction is also the honest one: some objects you operate from
+where you are standing and some you pick up.
+
+Cost to reverse: nil, one boolean.
+
+## D25 — Act 1 starts in the dark
+
+**Decided:** every lamp in the building is off at the start; the auditor's
+four-cell is the only light until the first puzzle is solved.
+**Alternatives:** start with emergency lighting already on and make the first
+puzzle something else.
+
+It is what the fiction says happens — the sequence drops the bus — and it makes
+the first puzzle the one that gives the player the building back, which is the
+right first puzzle. It also means the opening is very dark, and how dark is too
+dark is exactly the judgement this session cannot make: `docs/shots/` is a
+software rasteriser at 956x440 on a monitor, and the real viewing condition is a
+phone in daylight. Queued rather than tuned further.
+
+If it turns out to be unplayable, the fix is level design and not lighting: put
+the panel within the torch's reach of where the player is standing when the
+sequence fires, rather than making the torch brighter. Cost to reverse: low.

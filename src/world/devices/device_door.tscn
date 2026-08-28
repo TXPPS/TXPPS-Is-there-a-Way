@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/world/devices/device_door.gd" id="1_door"]
+[ext_resource type="Material" path="res://assets/materials/graybox_steel.tres" id="2_steel"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_leaf"]
+size = Vector3(1.5, 2.25, 0.14)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_leaf"]
+size = Vector3(1.5, 2.25, 0.14)
+
+; Slides up into the head, like every bulkhead in this building. Centred on the
+; leaf, so the node goes at the middle of the opening.
+[node name="DeviceDoor" type="Node3D" groups=["saveable"]]
+script = ExtResource("1_door")
+
+[node name="Leaf" type="Node3D" parent="."]
+
+[node name="Mesh" type="MeshInstance3D" parent="Leaf"]
+mesh = SubResource("BoxMesh_leaf")
+surface_material_override/0 = ExtResource("2_steel")
+
+[node name="Body" type="StaticBody3D" parent="Leaf"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="Leaf/Body"]
+shape = SubResource("BoxShape3D_leaf")

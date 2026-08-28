@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=3]
+[gd_scene load_steps=34 format=3]
 
 ; Act 1 -- the powerhouse.
 ;
@@ -34,6 +34,11 @@
 [ext_resource type="Resource" path="res://assets/documents/d01_site_book.tres" id="19_book"]
 [ext_resource type="Resource" path="res://assets/documents/d02_pfeiffer_log.tres" id="20_pfeiffer"]
 [ext_resource type="PackedScene" path="res://src/world/puzzles/dial_lock.tscn" id="21_dial"]
+[ext_resource type="Script" path="res://src/world/act1/powerhouse_logic.gd" id="22_logic"]
+[ext_resource type="PackedScene" path="res://src/world/devices/device_toggle.tscn" id="23_toggle"]
+[ext_resource type="PackedScene" path="res://src/world/devices/device_push.tscn" id="24_push"]
+[ext_resource type="PackedScene" path="res://src/world/devices/device_door.tscn" id="25_door"]
+[ext_resource type="Resource" path="res://assets/documents/d07_panel_schedule.tres" id="26_sched"]
 
 [sub_resource type="Resource" id="Opening_1"]
 script = ExtResource("2_open")
@@ -60,6 +65,14 @@ height = 2.2
 sill = 0.0
 
 [sub_resource type="Resource" id="Opening_4"]
+script = ExtResource("2_open")
+wall = 1
+offset = 0.0
+width = 1.4
+height = 2.2
+sill = 0.0
+
+[sub_resource type="Resource" id="Opening_gallery_s"]
 script = ExtResource("2_open")
 wall = 1
 offset = 0.0
@@ -117,12 +130,22 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.9, -3.9, 18.4)
 script = ExtResource("1_room")
 interior = Vector3(3.0, 2.6, 20.0)
 thickness = 0.4
+openings = Array[ExtResource("2_open")]([SubResource("Opening_gallery_s")])
 wall_material = ExtResource("5_concrete")
 floor_material = ExtResource("5_concrete")
 omit_walls = Array[int]([0])
 
 ; The landing at hall level, over the open shaft. Its top face is y = 0, which
 ; is the hall's floor, so stepping through the doorway is stepping onto it.
+[node name="Vestibule" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.9, -3.9, 30.3)
+script = ExtResource("1_room")
+interior = Vector3(3, 2.6, 3)
+thickness = 0.4
+wall_material = ExtResource("5_concrete")
+floor_material = ExtResource("5_concrete")
+omit_walls = Array[int]([0])
+
 [node name="ShaftLanding" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.9, -0.2, -0.15)
 script = ExtResource("3_slab")
@@ -304,4 +327,109 @@ prompt_override = "Read the log"
 ; exercised while Act 1's own puzzles are built.
 [node name="DialLock" parent="." instance=ExtResource("21_dial")]
 transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -14.37, 1.55, -3.2)
+
+[node name="Panel" type="Node3D" parent="."]
+transform = Transform3D(1.0, 0.0, -0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -6.0, 0.0, -4.96)
+
+[node name="Backplate" type="Node3D" parent="Panel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, -0.05)
+script = ExtResource("3_slab")
+size = Vector3(1.5, 1.3, 0.1)
+material = ExtResource("7_paint")
+
+[node name="Schedule" parent="Panel" instance=ExtResource("14_page")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.48, 1.62, 0.02)
+document = ExtResource("26_sched")
+prompt_override = "Read the panel schedule"
+
+[node name="Fuses" type="Node3D" parent="Panel"]
+
+[node name="LT-1" parent="Panel/Fuses" instance=ExtResource("23_toggle")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.45, 1.32, 0.02)
+save_key = &"LT-1"
+label = "LT-1"
+on = true
+prompt_when_on = "Pull the fuse"
+prompt_when_off = "Put the fuse back"
+travel = Vector3(0, 0, 0.05)
+
+[node name="LT-2" parent="Panel/Fuses" instance=ExtResource("23_toggle")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15, 1.32, 0.02)
+save_key = &"LT-2"
+label = "LT-2"
+on = true
+prompt_when_on = "Pull the fuse"
+prompt_when_off = "Put the fuse back"
+travel = Vector3(0, 0, 0.05)
+
+[node name="LT-4" parent="Panel/Fuses" instance=ExtResource("23_toggle")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, 1.32, 0.02)
+save_key = &"LT-4"
+label = "LT-4"
+on = true
+prompt_when_on = "Pull the fuse"
+prompt_when_off = "Put the fuse back"
+travel = Vector3(0, 0, 0.05)
+
+[node name="LT-6" parent="Panel/Fuses" instance=ExtResource("23_toggle")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, 1.32, 0.02)
+save_key = &"LT-6"
+label = "LT-6"
+on = true
+prompt_when_on = "Pull the fuse"
+prompt_when_off = "Put the fuse back"
+travel = Vector3(0, 0, 0.05)
+
+[node name="Main" parent="Panel" instance=ExtResource("23_toggle")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 0.95, 0.02)
+save_key = &"MAIN"
+label = "MAIN 60 A"
+on = false
+prompt_when_on = "Open the main"
+prompt_when_off = "Close the main"
+travel = Vector3(0, -0.09, 0)
+
+[node name="BusMain" parent="Panel" instance=ExtResource("23_toggle")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, 0.95, 0.02)
+save_key = &"BUS"
+label = "4160 V BUS — KEY RELEASED WITH BREAKER OPEN"
+on = true
+prompt_when_on = "Open the bus main"
+prompt_when_off = "Close the bus main"
+travel = Vector3(0, -0.09, 0)
+
+[node name="SwitchgearDoor" parent="." instance=ExtResource("25_door")]
+transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -8.2, 1.12, -2.0)
+save_key = &"door_switchgear"
+travel = Vector3(0, 2.3, 0)
+
+[node name="GalleryDoor" parent="." instance=ExtResource("25_door")]
+transform = Transform3D(1.0, 0.0, -0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 9.9, -2.78, 8.2)
+save_key = &"door_gallery"
+travel = Vector3(0, 2.3, 0)
+
+[node name="ShelterDoor" parent="." instance=ExtResource("25_door")]
+transform = Transform3D(1.0, 0.0, -0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 9.9, -2.78, 28.6)
+save_key = &"door_shelter"
+travel = Vector3(0, 2.3, 0)
+seconds = 5.5
+
+[node name="Wrench" parent="." instance=ExtResource("24_push")]
+transform = Transform3D(0.0, 0.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 11.34, -2.5, 7.6)
+label = "on its hook"
+prompt = "Take the dog wrench"
+
+[node name="SeizedDog" parent="." instance=ExtResource("24_push")]
+transform = Transform3D(-1.0, 0.0, -0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0, 10.55, -2.9, 8.05)
+label = "eighth dog"
+prompt = "Work the last dog"
+
+[node name="AdmitBell" parent="." instance=ExtResource("24_push")]
+transform = Transform3D(-1.0, 0.0, -0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0, 10.7, -2.6, 28.35)
+label = "SHELTER — RING FOR ADMITTANCE"
+prompt = "Ring for admittance"
+
+[node name="Logic" type="Node" parent="." groups=["saveable"]]
+script = ExtResource("22_logic")
+admit_delay = 11.0
 

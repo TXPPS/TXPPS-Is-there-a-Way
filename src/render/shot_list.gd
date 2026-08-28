@@ -24,6 +24,11 @@ const ADVANCE_HOOK := "__itaw_shotNext"
 ## post stack are stable within a couple; this is generous on purpose.
 const SETTLE_FRAMES := 8
 
+## Shots from this index on are taken with every lamp in the building lit.
+## Act 1 starts dark and its first puzzle is the lighting, so both states are
+## worth photographing and neither is "the game".
+@export_range(0, 40, 1) var lit_from: int = 99
+
 ## name, position, yaw degrees, pitch degrees.
 ## name, position (y is floor level; the eye is 1.62 above it), yaw and pitch in
 ## degrees, and optionally a Document to hold up. Computed from the room's own
@@ -45,6 +50,9 @@ const SHOTS: Array = [
 		"res://assets/documents/d04_sequence_card.tres"],
 	["10-page-pencil", Vector3(-6.60, 0.00, -4.00), 90.0, 0.0,
 		"res://assets/documents/d03_emil_log.tres"],
+	["11-lit-hall", Vector3(6.00, 0.00, 0.00), 80.7, 2.4],
+	["12-lit-panel", Vector3(-6.00, 0.00, -3.00), 0.0, -12.0],
+	["13-lit-switchgear", Vector3(-9.60, 0.00, -2.00), 90.0, -4.0],
 ]
 
 var _player: Player
@@ -104,6 +112,8 @@ func _next() -> void:
 	_player.global_position = shot[1]
 	_player.velocity = Vector3.ZERO
 	_player.face(deg_to_rad(shot[2]), deg_to_rad(shot[3]))
+	for node in get_tree().get_nodes_in_group(&"bulkhead_lamp"):
+		(node as BulkheadLamp).lit = _index >= lit_from
 	if shot.size() > 4 and _reader != null:
 		_reader.show_document(load(String(shot[4])) as Document)
 	elif _reader != null:

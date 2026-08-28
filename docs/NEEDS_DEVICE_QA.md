@@ -199,6 +199,35 @@ a software rasteriser's idea of the picture, at 956×440, on a monitor
     (every 16 seconds). Every tonal loop is periodic by construction and should
     be seamless; a click means one is not.
 
+**Act 1** — the whole point. It is finishable: `tests/case_act1.gd` walks it end
+to end every build. What no test can tell me is whether it is *playable*
+67. You start in the generator hall in the dark with a flashlight. **Can you
+    see enough to move?** This is the single most likely thing to be wrong, and
+    it cannot be judged on a monitor. Try it once indoors and once in daylight.
+68. Find the **panel** on the north wall. Read the schedule card on it. Close
+    the **MAIN**: it must trip, audibly, and come back open by itself. Nothing
+    should be lost by trying it.
+69. Pull the **LT-6** fuse and close the main again. Lights, everywhere except
+    the stair tower — because that is the circuit you pulled.
+70. Open the **bus main**. The switchgear door opens, and the lighting stays on:
+    they are different systems and the panel says so.
+71. Go through the east doorway onto the landing and **walk down the stair**.
+    The third step is missing; the card taped to the rail says so. You should be
+    able to walk over the gap. If you fall, or if you cannot walk down at all,
+    that is the ramp under the nosings and it is a real bug.
+72. At the bottom: the **watertight door**. Work the last dog — it refuses.
+    Find the **wrench on its hook** beside it, take it, work the dog again.
+73. Walk the **gallery**. It is twenty metres and mostly dark; note whether that
+    reads as tension or as tedium.
+74. At the far end, the sign says **RING FOR ADMITTANCE**. Ring it. Eleven
+    seconds. Tell me what those eleven seconds felt like — that is the act's
+    last beat and the thing I most need a human on.
+75. Read all seven documents. Any that are hard to read on the device, or whose
+    line breaks are wrong, say which.
+76. **Pause mid-act and reload the page.** The autosave fires on checkpoints and
+    on the tab going away; the breakers, the doors and the wrench must all come
+    back as you left them.
+
 **Errors**
-67. If anything at all goes wrong, a toast should say what. If something goes
+77. If anything at all goes wrong, a toast should say what. If something goes
     wrong **silently**, that is itself the bug worth reporting.

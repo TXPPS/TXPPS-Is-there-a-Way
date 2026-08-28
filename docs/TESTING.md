@@ -38,6 +38,7 @@ tests/case_save.gd     round-trip, codes, migration, and failing to save
 tests/case_render.gd   post-stack wiring, reduce motion, and the fear number
 tests/case_audio.gd    buses, the score's layers, occlusion, reverb, footsteps
 tests/case_reading.gd  picking a page up, scrolling it, and remembering it
+tests/case_act1.gd     the whole act, from the first breaker to the door
 ```
 
 Two things about the harness are worth knowing before adding a case.
@@ -93,6 +94,7 @@ mix untestable until the wire comes off for the duration.
 | render | an accessibility setting that does not reach the shader; a fear number that leaves 0..1 and takes the grain with it |
 | audio | a volume slider moved while ducked staying ducked; a wall that is not heard as a wall; one stride making three footsteps |
 | reading | a page that scrolls the wrong way; a document read in Act 1 that a reload forgets |
+| act1 | **is it finishable.** Every other case asserts a mechanism; this one walks the act. It also walks the stair rather than teleporting past it, because the only way to know a ramp under the nosings is right is to put a player on it and see where they end up. |
 
 A case that leaves the world somewhere runs before one that assumes where it is.
 `case_interact.gd` puts the player where it needs them **and** calls

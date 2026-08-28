@@ -308,6 +308,51 @@ the hook `src/core/surface_type.gd` has carried since P1. It emits `stepped`
 with the surface's `loudness` — nothing listens yet; that signal is what P6's
 hearing model is for.
 
+## Levels
+
+A room is six numbers and a list of holes, not forty hand-placed nodes.
+`src/world/kit/room_box.gd` builds floor, ceiling and four walls from its
+interior dimensions, cutting each wall around its `Opening`s. Everything lands
+on the 0.5 m grid, so the hand-authored kit that replaces this in P7 drops into
+the same footprints.
+
+Three things about it are load-bearing:
+
+- **Openings carry a sill.** A doorway from a hall into a stair shaft is a hole
+  partway up the shaft's wall. Without a sill there is no way to say that, and
+  therefore no way to have two floors.
+- **Where two rooms share a wall, only one builds it.** Coplanar surfaces fight,
+  and cost twice the geometry for the privilege. `omit_walls` says which room
+  gives it up; the one whose doorway it is keeps it.
+- **A stair is a ramp with steps drawn on it.** Godot's `CharacterBody3D` does
+  not step up geometry, so a stair built as boxes is a wall with a nice pattern.
+  `StairRun` puts one collider through the nosings — the line the eye already
+  reads — and the steps are visual. It can also leave one out, which is a hazard
+  rather than a wall because the ramp still carries you over it.
+
+Built at load rather than baked into the scene file, which keeps a level's
+`.tscn` short enough to edit by changing a number.
+
+## Devices and act logic
+
+Three device types cover Act 1, and each knows only what it is:
+
+| Device | What it is |
+|---|---|
+| `DeviceToggle` | A two-state control whose handle moves, so its state is legible across a room. A breaker, a disconnect, a fuse. |
+| `DevicePush` | A momentary push with no state to read. A bell, a reset. |
+| `DeviceDoor` | A leaf that carries its own collider, so a shut door is a wall and an open one is a hole — no separate "can the player pass" flag to fall out of step. |
+
+The **rules** live in one place next to each other, `PowerhouseLogic`, where
+they read as a sequence. A breaker does not know that closing it with a faulted
+circuit in should trip it; the act does.
+
+`Interactable.instant` distinguishes things you *use* from things you *engage
+with*. A switch is flipped and you are still standing there with both sticks; a
+document is picked up and held, and the HUD locks to it. Without that
+distinction every breaker in the building would take two taps and take the
+sticks away in between.
+
 ## Documents
 
 A `Document` (`src/core/document.gd`) is a resource with an id, a title, a

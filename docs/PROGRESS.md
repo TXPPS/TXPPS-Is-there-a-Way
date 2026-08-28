@@ -13,8 +13,8 @@ next begins.
 
 | | |
 |---|---|
-| **Done** | A — save/load and persistence. B — `STORY.md` and `PUZZLES.md`. C — the rendering stack, both P0 render defects, and a committed shot gallery. D — the audio system: generators, the fear-driven score, occlusion, reverb zones, footsteps. |
-| **Next** | E — Act 1 as a vertical slice, built from `STORY.md` and `PUZZLES.md`. This is the milestone that matters: the first point where this is a game rather than a framework. |
+| **Done** | A save/load · B `STORY.md` + `PUZZLES.md` · C rendering · D audio · **E Act 1, playable start to finish**. |
+| **Next** | Act 1 polish against device QA, then F — Acts 2–4 — only if the QA in `NEEDS_DEVICE_QA.md` comes back clean. A polished Act 1 plus a clear plan beats four half-dressed acts. |
 | **Blocked on a human** | nothing; everything unverifiable is queued in `NEEDS_DEVICE_QA.md` |
 | **Frozen** | the input layer. No change to touch semantics, layout or the router without a failing test to justify it. It has never run on a real device. |
 
@@ -32,7 +32,7 @@ built and green and that no human has ever seen run.
 
 | | Status |
 |---|---|
-| Build | **green.** Export, budgets (download, texture size, shipped audio), **174-check headless suite**, 54-check gameplay smoke, 28-check update-path smoke. |
+| Build | **green.** Export, budgets (download, texture size, shipped audio), **232-check headless suite**, 55-check gameplay smoke, 28-check update-path smoke. |
 | Publish | **automatic.** Every push to `main` deploys, and so does a manual **Run workflow** on `main` — both proven, runs #15 and #16. |
 | Verified | the `verify` job fetches the live URL after every deploy and fails the build unless it serves *this* commit with every payload file answering 200 and the wasm as `application/wasm`. |
 | Cloudflare Pages | still no credentials; that job skips. Optional — it buys `web/_headers` and nothing else. See `DEPLOY.md`. |
@@ -76,7 +76,7 @@ refuse.
 | P4 | `STORY.md` bible + plot-hole audit + narrative/document systems | **bible and puzzle set done** (moved before P2: art and puzzles are both derived from it). The narrative/document *systems* — how a page is read on a phone — belong to P5. |
 | P2 | Rendering stack: post-process, materials, lighting rig, test scene | **done for Act 1's vocabulary.** Post stack, LUT grade, one triplanar material shader covering six surfaces, both P0 defects fixed. Later acts need a second LUT and a fluorescent practical. |
 | P3 | Audio engine, generation pipeline, adaptive score prototype | **done.** Seventeen generated sounds, a four-layer score on the fear number, occlusion, reverb zones and footsteps. The mix has never been heard on a phone. |
-| P5 | Act 1 vertical slice, fully dressed and scored | not started |
+| P5 | Act 1 vertical slice, fully dressed and scored | **playable end to end.** Five spaces, five puzzles, seven documents, scored, and walked by the suite every build. Dressing is graybox-plus: the kit is real, the props are boxes. |
 | P6 | Acts 2–4 content, entity AI, endings | not started |
 | P7 | Performance, load time, accessibility, polish, final mix | not started |
 
@@ -201,6 +201,18 @@ refuse.
   the surface from `SurfaceTag`, which is the P1 scaffolding finally wired.
 - **1.09 MB shipped** against a 12 MB budget.
 - `src/world/lamp_hum.gd` is gone, as its own comment said it would be in P3.
+
+**Act 1**
+- Five spaces on the 0.5 m grid — generator hall, switchgear room, lockmaster's
+  office, stair shaft, gallery — built by `src/world/kit/` from their dimensions.
+- All five puzzles from `PUZZLES.md`: emergency lighting (read the schedule,
+  pull the faulted circuit's fuse, close the main), the switchgear interlock,
+  the stair with its missing third step, the watertight door and its wrench, and
+  the admit bell.
+- Seven documents, each where the person who wrote it left it.
+- Starts in the dark. The flashlight is the only light until the first puzzle.
+- `tests/case_act1.gd` plays the whole act every build, and walks the stair
+  rather than teleporting past it.
 
 **Written down, not yet built**
 - `docs/STORY.md` — the bible. Premise, the 1998 present, the four levels, the

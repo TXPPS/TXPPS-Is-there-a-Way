@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"d07_panel_schedule"
+title = "Panel schedule, DP-1"
+byline = "Printed card behind the panel door. 1954, and corrected twice in pencil."
+hand = 3
+body = "PANEL DP-1 — 125 VDC EMERGENCY LIGHTING\n\nMAIN            60 A     BUS\nLT-1   20 A     GENERATOR HALL\nLT-2   20 A     SWITCHGEAR RM / OFFICE\nLT-3   20 A     SPARE\nLT-4   20 A     GALLERY\nLT-5   20 A     SPARE\nLT-6   20 A     STAIR TWR\n\nCLOSE MAIN LAST.\nIF MAIN WILL NOT HOLD, CLEAR THE FAULTED\nCIRCUIT AND RE-CLOSE."

@@ -68,6 +68,7 @@ script = ExtResource("11_fear")
 
 [node name="Shots" type="Node" parent="."]
 script = ExtResource("12_shots")
+lit_from = 10
 
 [node name="Journal" type="Node" parent="." groups=["saveable"]]
 script = ExtResource("16_journal")

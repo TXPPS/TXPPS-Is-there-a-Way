@@ -50,6 +50,7 @@ func _ready() -> void:
 	if is_instance_valid(_shots):
 		_shots.bind(_player, _hud, _reader)
 	_wire_readables()
+	_wire_act()
 	_settings.apply_all()
 	_state.enter(GameState.State.FREE)
 	print("Is There a Way? — build %s" % BuildInfo.describe())
@@ -84,6 +85,17 @@ func _on_paused() -> void:
 func _on_resumed() -> void:
 	_hud.set_input_enabled(true)
 	_state.close_menu()
+
+
+## The act's own progression. Checkpoints are the only thing that writes an
+## autosave during play (the other writer is the tab going away), and they are
+## silent: a toast saying "checkpoint" would be the game addressing the player,
+## which nothing in it does.
+func _wire_act() -> void:
+	var logic := get_node_or_null("Powerhouse/Logic") as PowerhouseLogic
+	if logic == null:
+		return
+	logic.checkpoint_reached.connect(_saves.checkpoint)
 
 
 ## Every page in the level, wired here rather than each one finding the reader
@@ -129,7 +141,14 @@ func _on_action() -> void:
 		_release()
 		return
 	var target := _interactor.target()
-	if target == null or not _state.enter(GameState.State.FOCUSED):
+	if target == null:
+		return
+	# A switch is used, not engaged with: it acts and the player is still
+	# standing there with both sticks, which is what flipping a switch is like.
+	if target.instant:
+		target.engage()
+		return
+	if not _state.enter(GameState.State.FOCUSED):
 		return
 	_engaged = target
 	_interactor.set_scanning(false)

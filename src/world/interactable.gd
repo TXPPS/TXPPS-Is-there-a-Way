@@ -28,6 +28,12 @@ signal lifted
 ## A solved puzzle stays solved and stops offering itself.
 @export var available: bool = true
 
+## True for things you *use* rather than things you engage *with*. A breaker is
+## flipped and you step back in the same motion; a document is picked up and
+## held. Instant things fire `engaged` and never enter FOCUSED, so the sticks
+## never leave the screen for the sake of a switch.
+@export var instant: bool = false
+
 
 func engage() -> void:
 	engaged.emit()

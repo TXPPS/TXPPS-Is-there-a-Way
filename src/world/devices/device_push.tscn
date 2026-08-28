@@ -1,0 +1,33 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://src/world/devices/device_push.gd" id="1_push"]
+[ext_resource type="Script" path="res://src/world/interactable.gd" id="2_zone"]
+[ext_resource type="Material" path="res://assets/materials/graybox_steel.tres" id="3_steel"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_cap"]
+size = Vector3(0.07, 0.07, 0.03)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_reach"]
+size = Vector3(0.22, 0.22, 0.18)
+
+[node name="DevicePush" type="Node3D"]
+script = ExtResource("1_push")
+
+[node name="Cap" type="Node3D" parent="."]
+
+[node name="Mesh" type="MeshInstance3D" parent="Cap"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.02)
+mesh = SubResource("BoxMesh_cap")
+surface_material_override/0 = ExtResource("3_steel")
+
+[node name="Zone" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.06)
+collision_layer = 4
+collision_mask = 0
+monitoring = false
+script = ExtResource("2_zone")
+prompt = "Press it"
+instant = true
+
+[node name="Shape" type="CollisionShape3D" parent="Zone"]
+shape = SubResource("BoxShape3D_reach")
