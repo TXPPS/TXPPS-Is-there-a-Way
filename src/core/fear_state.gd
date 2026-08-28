@@ -16,6 +16,12 @@ extends Node
 ## Nothing drives exposure or proximity before Act 3, because nothing is
 ## following you before Act 3. `dark_time` runs from Act 1, which is what makes
 ## the response observable -- and testable -- long before there is an entity.
+##
+## That sentence was true for so long that it stopped being noticed: exposure is
+## the *largest* of the three and was fed by nothing at all, through Act 3 being
+## built and the entity being written and shipped. 45% of the number was
+## permanently zero. `main.gd` feeds it from whether anything is standing on a
+## line to the player, which is what the word was always supposed to mean.
 
 signal changed(value: float)
 

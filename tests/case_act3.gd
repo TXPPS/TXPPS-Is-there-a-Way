@@ -313,6 +313,12 @@ func _the_observer_is_here(
 		(fear.parts()["proximity"] as float) > before,
 		"and the fear number is hearing about it"
 	)
+	# Exposure is the largest of the three contributions and was fed by nothing
+	# at all until this: 45% of the number was permanently zero.
+	expect.near(
+		fear.parts()["exposure"] as float, 1.0, 0.01,
+		"standing on a line is what exposure means, and it says so"
+	)
 
 	# Protocol 4.4, and Ending A. Letting it arrive *is* the final observation:
 	# it does not attack, it reaches you, and reaching you is the whole event.

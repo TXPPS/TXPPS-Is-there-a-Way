@@ -69,6 +69,7 @@ func _physics_process(_delta: float) -> void:
 	_player.set_move_intent(_hud.get_move_intent())
 	_player.set_look_intent(_hud.get_look_intent())
 	_fear.set_in_light(_standing_in_light())
+	_fear.set_exposure(_on_a_line())
 
 
 func _on_setting(key: StringName, value: float) -> void:
@@ -196,6 +197,23 @@ func _wire_readables() -> void:
 func _link(from: Signal, to: Callable) -> void:
 	if not from.is_connected(to):
 		from.connect(to)
+
+
+## Whether anything is standing on the line between the player and a lamp.
+##
+## `FearState`'s largest contribution is exposure -- "how much of you is
+## standing on a lamp's line" -- and it was never fed by anything, so 45% of the
+## number was permanently zero from P1 until Act 3 existed and then past it. The
+## entity being *present* is exactly that condition: it can only be there if
+## there is a line, and the player is on the far end of it.
+##
+## Zero when nothing is there, which is most of the game.
+func _on_a_line() -> float:
+	for node in get_tree().get_nodes_in_group(&"observer"):
+		var entity := node as Observer
+		if entity != null and entity.present():
+			return 1.0
+	return 0.0
 
 
 ## Whether the player is inside the useful reach of any lit practical. The
