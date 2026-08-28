@@ -17,6 +17,12 @@ extends Node
 
 signal act_changed(root: Node)
 
+## Everything the mounted act's saveable nodes read, keyed by `save_key`.
+## `SaveService` provides it, because it already knows how to collect and apply
+## exactly that -- this class knows *when*, not *how*.
+var collect_act: Callable = func() -> Dictionary: return {}
+var apply_act: Callable = func(_states: Dictionary) -> void: pass
+
 @export var acts: Array[PackedScene] = []
 
 ## Where the act is added. Its own parent by default, so the act sits beside the
@@ -26,6 +32,15 @@ signal act_changed(root: Node)
 
 var _index := 0
 var _root: Node
+
+## What each act was like when the player walked out of it. An act you leave and
+## come back to should be as you left it: the breakers you threw are still
+## thrown, the doors you opened are still open, the wrench is still gone.
+##
+## Without this, travel is one-way in practice -- Act 4's first two puzzles are
+## in Act 1's gallery, and arriving to find every breaker back where it started
+## would be the building undoing an hour of the player's work.
+var _stashes: Dictionary[int, Dictionary] = {}
 
 
 func _ready() -> void:
@@ -65,6 +80,9 @@ func load_act(index: int) -> Node:
 		return _root
 
 	if _root != null:
+		# Take a copy of the act before it goes. This is the only moment it can
+		# be done: after `free()` there is nothing left to ask.
+		_stashes[_index] = collect_act.call() as Dictionary
 		# Freed rather than queued: the next act is added in this same call, and
 		# two acts in the tree at once is the thing this class exists to stop.
 		host.remove_child(_root)
@@ -73,8 +91,27 @@ func load_act(index: int) -> Node:
 	_index = index
 	_root = acts[index].instantiate()
 	host.add_child(_root)
+	# `add_child` has run the act's `_ready`, so its nodes are in the tree and
+	# can be told what they were doing when the player last saw them.
+	if _stashes.has(index):
+		apply_act.call(_stashes[index])
 	act_changed.emit(_root)
 	return _root
+
+
+## Every act's remembered state, for the save. The mounted one is asked fresh:
+## its stash is however it was when the player *left* it, which was some time
+## ago and is not what they are looking at.
+func stashes() -> Dictionary:
+	var out := _stashes.duplicate(true)
+	out[_index] = collect_act.call()
+	return out
+
+
+func restore_stashes(saved: Dictionary) -> void:
+	_stashes.clear()
+	for key in saved:
+		_stashes[int(key)] = saved[key] as Dictionary
 
 
 ## Whatever act is already mounted, adopted at startup.

@@ -19,6 +19,12 @@ signal pressed(screen: Vector2)
 signal dragged(screen: Vector2, delta: Vector2)
 signal lifted
 
+## **Its +Z is the side the player approaches from.** Every prop in the game
+## faces its room, so this is what tells a level generator which way to hang it
+## and what lets `tests/case_reach.gd` work out where somebody would have to
+## stand to use it. Rotate the collision *shape* if a collider needs laying on
+## its side; never rotate this.
+
 ## What the prompt says when this is the target. Written as an instruction.
 @export var prompt: String = "Examine"
 

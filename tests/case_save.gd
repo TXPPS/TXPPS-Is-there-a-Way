@@ -21,6 +21,7 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	await _round_trip(tree, saves, player, lock, expect)
 	await _codes(tree, saves, player, expect)
 	await _migration(tree, saves, player, expect)
+	await _an_act_you_leave(tree, main, saves, expect)
 	await _degrades(tree, saves, expect)
 	await _slots(tree, saves, expect)
 
@@ -75,6 +76,58 @@ func _codes(
 	)
 
 
+## An act you walk out of is as you left it when you come back.
+##
+## Act 4's first two puzzles are in Act 1's gallery, so travel is two-way, and
+## arriving to find every breaker back where it started would be the building
+## undoing an hour of the player's work. It is also a latent bug that was there
+## before anything needed it: leaving Act 1 for Act 2 used to throw Act 1 away.
+func _an_act_you_leave(
+	tree: SceneTree, main: Node, saves: SaveService, expect: RefCounted
+) -> void:
+	var runner: ActRunner = main.get_node("Acts")
+	runner.load_act(0)
+	await tree.physics_frame
+
+	var main_breaker: DeviceToggle = main.get_node("Powerhouse/Panel/Main")
+	var was := main_breaker.on
+	main_breaker.on = not was
+	await tree.physics_frame
+
+	runner.load_act(1)
+	await tree.physics_frame
+	expect.ok(main.get_node_or_null("Powerhouse") == null, "leave the act entirely")
+
+	runner.load_act(0)
+	await tree.physics_frame
+	var again: DeviceToggle = main.get_node("Powerhouse/Panel/Main")
+	expect.ok(again != main_breaker, "come back to a freshly built one")
+	expect.eq(again.on, not was, "with the breaker still where you left it")
+
+	# And the stash travels in the save, so it survives a reload too.
+	expect.ok(saves.save_to(SaveService.MANUAL), "the whole building saves")
+	var stored: Dictionary = JSON.parse_string(Storage.read("save." + SaveService.MANUAL))
+	expect.ok(
+		(stored.get("acts", {}) as Dictionary).has("0"),
+		"and the save carries a stash per act (%s)" % [(stored.get("acts", {}) as Dictionary).keys()]
+	)
+
+	again.on = was
+	runner.load_act(1)
+	await tree.physics_frame
+	expect.ok(saves.load_from(SaveService.MANUAL), "load it back from another act")
+	await tree.physics_frame
+	expect.eq(
+		(main.get_node("Powerhouse/Panel/Main") as DeviceToggle).on, not was,
+		"and the act it names comes back as it was, not as it starts"
+	)
+	saves.erase(SaveService.MANUAL)
+
+	main_breaker = main.get_node("Powerhouse/Panel/Main")
+	main_breaker.on = was
+	await tree.physics_frame
+
+
 ## The migration path, through the door it is actually reachable by: an import
 ## of something with no version field.
 func _migration(
@@ -106,6 +159,25 @@ func _migration(
 	expect.ok(saves.apply(v1), "and it applies")
 	await tree.physics_frame
 	expect.near(player.global_position.z, 22.0, 0.01, "putting the player back where they were")
+
+	# A v2 save, which is the shape the build that is live right now writes: it
+	# knows which act it is in and nothing about the acts it is not in.
+	var v2 := {
+		"version": 2,
+		"saved_at": "2026-08-28T04:00:00",
+		"build": "v0.1.0 14c1ff4",
+		"play_seconds": 1180.0,
+		"checkpoint": "sump",
+		"act": 1,
+		"nodes": {"player": {"at": [0.0, 0.1, 6.0], "aim": [0.0, 0.0]}},
+	}
+	var from_v2 := SaveGame.migrate(v2)
+	expect.eq(from_v2.get("version"), SaveGame.VERSION, "a v2 save migrates forward")
+	expect.eq(from_v2.get("act"), 1, "keeping the act it was in")
+	expect.ok(
+		(from_v2.get("acts") as Dictionary).is_empty(),
+		"and starting with no stashes, because it had never left an act"
+	)
 
 	var future := {"version": SaveGame.VERSION + 99, "nodes": {"player": {"at": [0.0, 0.0, 0.0]}}}
 	expect.ok(SaveGame.migrate(future).is_empty(), "a save from a newer build is refused")

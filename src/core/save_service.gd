@@ -44,6 +44,11 @@ var _suspend_callback: JavaScriptObject
 
 func _ready() -> void:
 	_install_suspend_hook()
+	if _runner != null:
+		# The runner decides *when* an act's state is taken and put back; this
+		# already knows *how*, so it lends it those two.
+		_runner.collect_act = collect_act
+		_runner.apply_act = apply_act
 
 
 func _process(delta: float) -> void:
@@ -84,6 +89,7 @@ func collect() -> Dictionary:
 	data["checkpoint"] = _checkpoint
 	if _runner != null:
 		data["act"] = _runner.current()
+		data["acts"] = _runner.stashes()
 	var nodes: Dictionary = data["nodes"]
 	for node in get_tree().get_nodes_in_group(GROUP):
 		var key := _key_of(node)
@@ -94,6 +100,34 @@ func collect() -> Dictionary:
 			continue
 		nodes[String(key)] = node.call("save_state")
 	return data
+
+
+## Just the mounted act's nodes, and nothing else in the tree.
+##
+## The player, the journal and the settings are not part of any act and must not
+## end up in an act's stash -- putting a player position back because they
+## walked through a door would teleport them to wherever they last stood in that
+## building.
+func collect_act() -> Dictionary:
+	var out: Dictionary = {}
+	var root := _runner.root() if _runner != null else null
+	if root == null:
+		return out
+	for node in get_tree().get_nodes_in_group(GROUP):
+		var key := _key_of(node)
+		if key != &"" and root.is_ancestor_of(node):
+			out[String(key)] = node.call("save_state")
+	return out
+
+
+func apply_act(states: Dictionary) -> void:
+	var root := _runner.root() if _runner != null else null
+	if root == null:
+		return
+	for node in get_tree().get_nodes_in_group(GROUP):
+		var key := _key_of(node)
+		if key != &"" and states.has(String(key)) and root.is_ancestor_of(node):
+			node.call("load_state", states[String(key)])
 
 
 ## Puts a save back. Unknown keys are ignored rather than refused: a save from a
@@ -107,6 +141,9 @@ func apply(data: Dictionary) -> bool:
 	# not have. Switching first means the loop below is looking at the world the
 	# save was written in.
 	if _runner != null:
+		# The stashes go in before the switch, so mounting the act named by the
+		# save finds its own remembered state waiting for it.
+		_runner.restore_stashes(migrated.get("acts", {}))
 		_runner.load_act(int(migrated.get("act", 0)))
 
 	var nodes: Dictionary = migrated.get("nodes", {})

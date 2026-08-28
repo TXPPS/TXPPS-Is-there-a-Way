@@ -15,7 +15,7 @@ extends RefCounted
 ## is the only real answer to that.
 
 ## Bump this and add a step to MIGRATIONS in the same commit. Never one alone.
-const VERSION := 2
+const VERSION := 3
 
 const CODE_PREFIX := "ITAW"
 const CODE_PARTS := 4
@@ -25,7 +25,7 @@ const CHECKSUM_LENGTH := 8
 ## field at all", which is what a hand-written or hand-edited code looks like
 ## and is reachable through import. Add the new number here and its arm to
 ## `_step()` in the same commit that bumps VERSION.
-const MIGRATABLE_FROM: Array[int] = [0, 1]
+const MIGRATABLE_FROM: Array[int] = [0, 1, 2]
 
 
 static func fresh() -> Dictionary:
@@ -36,6 +36,7 @@ static func fresh() -> Dictionary:
 		"play_seconds": 0.0,
 		"checkpoint": "start",
 		"act": 0,
+		"acts": {},
 		"nodes": {},
 	}
 
@@ -74,6 +75,8 @@ static func _step(version: int, data: Dictionary) -> Dictionary:
 			return _from_0(data)
 		1:
 			return _from_1(data)
+		2:
+			return _from_2(data)
 	return data
 
 
@@ -98,6 +101,18 @@ static func _from_1(data: Dictionary) -> Dictionary:
 	var out := data.duplicate(true)
 	out["version"] = 2
 	out["act"] = 0
+	return out
+
+
+## v2 -> v3. Acts became somewhere you can go *back* to, so a save carries what
+## every act was like when the player last left it, not only the one they are
+## standing in. A v2 save has been in exactly one act and its `nodes` already
+## describe it, so there is nothing to move -- only somewhere to put it next
+## time.
+static func _from_2(data: Dictionary) -> Dictionary:
+	var out := data.duplicate(true)
+	out["version"] = 3
+	out["acts"] = {}
 	return out
 
 

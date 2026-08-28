@@ -59,27 +59,39 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 
 ## Act 3 stands on Act 2: no power, no interlock, no sump, no light. Getting
 ## there is Act 2's business and `case_act2` walks it, so this only sets it up.
+##
+## Set rather than pressed, and deliberately. An act you left is now as you left
+## it (`ActRunner` stashes it), so this case can arrive to a shelter that
+## `case_act2` already solved or to one nobody has touched, depending on what
+## ran before it. A setup that pressed buttons would toggle a solved act back
+## into an unsolved one -- which is exactly what it did the first time this ran.
 func _the_power_first(
 	tree: SceneTree, power: ShelterLogic, shelter: Node3D, breakers: Node3D,
 	expect: RefCounted
 ) -> void:
 	var plant: Node3D = shelter.get_node("Plant")
-	var valve: DeviceValve = plant.get_node("DayTankValve")
-	for turn in valve.turns_to_open:
-		valve.get_node("Zone").engage()
-	plant.get_node("Starter/Zone").engage()
-	for frame in 240:
-		await tree.physics_frame
-		if power.running():
-			break
-	(breakers.get_node("Heater") as DeviceToggle).get_node("Zone").engage()
-	(breakers.get_node("Mess") as DeviceToggle).get_node("Zone").engage()
-	plant.get_node("TransferSwitch/Zone").engage()
-	if not plant.get_node("SetMain").on:
-		plant.get_node("SetMain/Zone").engage()
+	(plant.get_node("DayTankValve") as DeviceValve).open = true
+	(plant.get_node("TransferSwitch") as DeviceSelector).select(&"EMERGENCY")
+	for name in ["Heater", "Mess"]:
+		(breakers.get_node(name) as DeviceToggle).on = false
+	for name in ["Sump", "AnnexLighting", "ShelterLighting", "Chambers", "Vent",
+			"Recorders", "Well"]:
+		(breakers.get_node(name) as DeviceToggle).on = true
+	(plant.get_node("SetMain") as DeviceToggle).on = true
+
+	if not power.running():
+		plant.get_node("Starter/Zone").engage()
+		for frame in 240:
+			await tree.physics_frame
+			if power.running():
+				break
+	# Nudge the act into reassessing now that everything is where it should be.
+	(plant.get_node("SetMain") as DeviceToggle).on = false
+	await tree.physics_frame
+	(plant.get_node("SetMain") as DeviceToggle).on = true
 	for frame in PATIENCE:
 		await tree.physics_frame
-		if power.probe()["sump"]:
+		if power.probe()["sump"] and power.live():
 			break
 	expect.ok(power.live(), "the bus is up before Act 3 starts")
 	expect.ok(power.probe()["stair"], "and the stair to the annex has drained")

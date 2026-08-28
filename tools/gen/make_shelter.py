@@ -541,7 +541,10 @@ def _plant():
     out += box("Pad", (3.0, 0.15, 1.8), (-6.2, 0.07, -5.9), ext_id("concrete"), "Plant")
     out += box("Set", (2.6, 1.4, 1.4), (-6.2, 0.85, -5.9), ext_id("paint"), "Plant")
     out += box("Exhaust", (0.24, 1.9, 0.24), (-7.3, 1.9, -6.5), ext_id("steel"), "Plant")
-    out += box("DayTank", (0.9, 0.9, 0.7), (-8.1, 1.85, -2.6), ext_id("steel"), "Plant")
+    # High enough that it is not in front of its own isolating valve. A day
+    # tank sits above the engine and the valve sits under the tank, which is
+    # both correct and the only arrangement you can actually reach.
+    out += box("DayTank", (0.8, 0.7, 0.6), (-8.1, 2.05, -2.6), ext_id("steel"), "Plant")
     out += box("Cabinet", (1.1, 0.9, 0.16), (-4.4, 1.5, -7.42), ext_id("paint"), "Plant")
     # On the west wall rather than behind the set: the machine was standing in
     # front of its own controls, which case_reach found by trying to stand there.

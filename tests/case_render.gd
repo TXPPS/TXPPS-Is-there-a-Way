@@ -198,6 +198,15 @@ func _fear_drives_grain(tree: SceneTree, post: PostStack, expect: RefCounted) ->
 
 
 func _fear_state(tree: SceneTree, fear: FearState, expect: RefCounted) -> void:
+	# `main.gd` recomputes "am I standing in light" from the lit practicals on
+	# every physics frame, so setting it here and hoping is not a test -- it is
+	# a race the game wins. Put the building's lights out and mean it.
+	var were: Dictionary = {}
+	for node in tree.get_nodes_in_group(&"bulkhead_lamp"):
+		var lamp := node as BulkheadLamp
+		were[lamp] = lamp.lit
+		lamp.lit = false
+
 	fear.set_exposure(0.0)
 	fear.set_in_light(true)
 	for frame in 40:
@@ -209,6 +218,9 @@ func _fear_state(tree: SceneTree, fear: FearState, expect: RefCounted) -> void:
 		await tree.process_frame
 	var dark_part := float(fear.parts()["dark"])
 	expect.ok(dark_part > 0.0, "the dark accrues (%.3f)" % dark_part)
+
+	for lamp in were:
+		(lamp as BulkheadLamp).lit = were[lamp]
 
 	fear.report_seam(1.0)
 	var spiked := fear.value()

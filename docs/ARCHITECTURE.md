@@ -345,6 +345,19 @@ an identical copy, so opening the project in the editor still shows a level.
 before it returns — which means a save can be applied over the new act in the
 same frame, and that is the whole reason it has to be.
 
+**An act you leave is as you left it.** On unmount the runner takes a copy of
+everything saveable inside the act; on mount it hands that copy back. Without it
+travel is one-way in practice — Act 4's first two puzzles are in Act 1's
+gallery, and arriving to find every breaker back where it started would be the
+building undoing an hour of the player's work. It was a latent bug long before
+anything needed it: leaving Act 1 for Act 2 used to throw Act 1 away.
+
+The runner knows *when*; `SaveService` knows *how*, and lends it two callables.
+The stash is scoped to descendants of the act root, deliberately — the player,
+the journal and the settings belong to nobody's act, and putting a player
+position in an act's stash would teleport them to wherever they last stood in
+that building every time they walked through a door.
+
 Two rules around it, both learned the hard way:
 
 - **Never swap an act from inside that act.** `ActEnd` lives in the act it ends,

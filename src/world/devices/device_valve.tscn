@@ -50,8 +50,12 @@ transform = Transform3D(-0.5, 0.866025, 0, -0.866025, -0.5, 0, 0, 0, 1, 0, 0, 0.
 mesh = SubResource("BoxMesh_spoke")
 surface_material_override/0 = ExtResource("3_steel")
 
+; Upright, like every other zone. The cylinder needs laying on its side and the
+; rotation belongs on the shape, not here: an Interactable's +Z is the side the
+; player approaches from, and rotating the zone to suit its collider quietly
+; broke that -- for this one prop, in a way only case_reach could see.
 [node name="Zone" type="Area3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0.05)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.05)
 collision_layer = 4
 collision_mask = 0
 monitoring = false
@@ -60,6 +64,7 @@ prompt = "Turn the wheel"
 instant = true
 
 [node name="Shape" type="CollisionShape3D" parent="Zone"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0)
 shape = SubResource("CylinderShape3D_reach")
 
 [node name="Sound" type="AudioStreamPlayer3D" parent="."]
