@@ -5,7 +5,7 @@
 > feels right, sounds right, or looks right, and neither is an iPhone.
 >
 > Numbered so it can be run in one sitting. Report anything that fails by its
-> number. A hundred and seven items; the Act 3 section (95 onward) is the newest and the
+> number. A hundred and sixteen items; the Act 4 section (107 onward) is the newest and the
 > least examined.
 
 ---
@@ -329,6 +329,39 @@ sends you back to Act 2's panel. `tests/case_act3.gd` walks all of it.
 106. **Reload in the annex.** The clock's wheels, the key, the drain, the tank,
     and whether the reel is gone must all come back.
 
+**Act 4 — the gate.** Back in Act 1's building, up the pier stair from the
+gallery. `tests/case_act4.gd` walks it both ways.
+
+107. Taking the reel puts you back in the **gallery**, facing a doorway that has
+    been in that wall the whole time. Did you notice it in Act 1? A "no" is the
+    right answer and I want to know if it is also a *fair* one.
+108. On the gallery's east wall: the **1954 relay panel**, a stage gauge reading
+    **30.5 ft**, and a lamp that says SEQ HELD. The sequence card you could read
+    in minute four says it holds above 30.0. **Does the penny drop?**
+109. Beside it, on a shelf, a **homemade box**. Read its label. It is in the
+    same handwriting as WATCH THE THIRD STEP, four hours earlier, which you
+    read as somebody's kindness. **This is the moment the game turns, and it is
+    nine words on masking tape.** Tell me whether it landed or went past you.
+110. Pull the lead. The gauge falls to **21.4 ft** — which is what the pool has
+    read every year since 1994. Nothing opens. **Is it clear why not?** A latch
+    that has stopped being fed a reason to hold is still latched.
+111. Climb the **pier stair** out of the gallery. It is 4.5 m of grating in one
+    flight. Is the climb tedious, or does the height register?
+112. In the **control house**: the desk, the interlock cabinet, and a reset
+    button that will not do anything. The cabinet holds the key and will not
+    give it up, because Protocol 4.4 says a run is not concluded until the
+    observer leaves the lamp — and he has not. **You read that in Act 3 and did
+    not know it was about you.**
+113. **The two endings.** Both are things you do with equipment. Conclude the
+    run — stand at the lamp and let the seam close over you. Or refuse: walk out
+    to the pier and take the gate off its permissive by hand.
+114. Whichever you took: **was it a choice, or did you find one and stop
+    looking?** The game must not appear to prefer either, and I cannot tell from
+    here whether it does.
+115. Read **Reel 9-C** in the control house. It is the title, and the only
+    document in the game quoted in full. The silence in the middle of it is a
+    man keeping a rule, not the tape failing. **Does that read?**
+
 **Errors**
-107. If anything at all goes wrong, a toast should say what. If something goes
+116. If anything at all goes wrong, a toast should say what. If something goes
     wrong **silently**, that is itself the bug worth reporting.

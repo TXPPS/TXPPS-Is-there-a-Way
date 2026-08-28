@@ -10,6 +10,12 @@
 
 ---
 
+> **Status: all twelve are built and walked by the suite.** `case_act1` through
+> `case_act4` play every one of them, including the wrong answers that are meant
+> to be interesting — the allocation that boots and then dies when the sump
+> starts, and the chamber lamps shed alone. None of it has been played by a
+> person; see `NEEDS_DEVICE_QA.md`.
+
 ## The grammar
 
 Four verbs, learned in Act 1 and never added to. A game that teaches a new verb

@@ -5,23 +5,26 @@
 
 ## Resume here
 
-**Unattended run.** The work order was A finish P1, B write the story bible,
-C P2 rendering, D P3 audio, E Act 1 as a vertical slice, F later acts only if
-credits remained. **A through E are done and live, and F has reached Act 3:
-three acts are built, playable end to end, and walked by the suite.**
+**Unattended run, and the game is finished.** The work order was A finish P1,
+B write the story bible, C P2 rendering, D P3 audio, E Act 1 as a vertical
+slice, F later acts only if credits remained. **All of it is done and live.
+Four acts, twelve puzzles, twenty-nine documents and two endings, playable from
+the tap gate to either card, and walked end to end by the suite every build.**
 
-**Act 4 is not started.** The gate piers and the control house are the last act
-and the two endings are in it, and the rule that says wait is the work order's
-own: do not start an act you cannot finish to the same standard.
+**What that sentence does not mean.** Not one minute of it has been played by a
+person. Everything here is green in CI and unverified by a human, and the parts
+I am least able to judge are the parts that decide whether it works at all:
 
-The real reason to stop here is different and worth stating plainly. **None of
-the three acts has been played by a person.** Everything below is green in CI
-and unverified by a human, and the further this goes the more of it is stacked
-on judgements a test cannot make — whether the cam relationship is findable,
-whether the load budget reads as your own miscalculation or as unfairness,
-whether the palette shift lands. `NEEDS_DEVICE_QA.md` is a hundred and seven
-numbered items for exactly that reason, and it is the next thing that should
-happen.
+- whether the cam relationship in P3.1 is findable or merely fair-on-paper;
+- whether P2.3's load budget reads as your own miscalculation or as the game
+  being unfair;
+- whether the handwriting on the box in Act 4 lands as the recognition the
+  whole story is built toward, or goes past;
+- whether either ending feels like a choice.
+
+`NEEDS_DEVICE_QA.md` is a hundred and sixteen numbered items for exactly that
+reason, and running it is the next thing that should happen. **It is worth more
+than anything else that could be built on top of this.**
 
 | | |
 |---|---|
@@ -33,14 +36,20 @@ happen.
 
 ### What is true now that was not
 
-- **Three acts are playable start to finish** — the powerhouse, the shelter and
-  the annex — and `case_act1`, `case_act2` and `case_act3` walk all of them every
-  build — including down the stair, which is the only way to know a ramp under
-  the nosings is right.
+- **Four acts are playable start to finish** — the powerhouse, the shelter, the
+  annex and the gate — and `case_act1` through `case_act4` walk all of them every
+  build, including up and down both stairs, which is the only way to know a ramp
+  under the nosings is right.
+- **The game ends**, two ways, and both endings are things the player does with
+  equipment rather than options on a menu.
+- **The entity exists and runs.** Protocol 4.2 — *the observer stands at the
+  lamp* — is a line in a document the player can find, and it is the whole of
+  `Observer`'s behaviour; `case_observer` asserts the bible's rule table row by
+  row.
 - **Every interactable is provably reachable.** `tests/case_reach.gd` works out
-  where a player would have to stand for each one and asks the interactor what
-  it can see from there. Written last, it found the three worst bugs in the act
-  (below), none of which any screenshot or existing test could show.
+  where a player would have to stand for each of the sixty-six of them and asks
+  the interactor what it can see from there. It has found more real bugs than
+  every other case put together, and none of them was visible in a screenshot.
 - The **story bible** exists (`STORY.md`), the puzzle set is derived from it
   (`PUZZLES.md`), and every puzzle device in the game traces to a line in the
   programme's equipment schedule.
@@ -86,22 +95,25 @@ promises falls out of that one placement.
 
 Act 3 ends with the reel in hand, and that is the edge of what is built.
 
-### What Act 4 needs, when it starts
+### Act 4, as built
 
-`PUZZLES.md` has the design (P4.1–P4.3) and `STORY.md` has both endings as
-mechanisms. What is missing:
+Rooms added to Act 1's scene rather than an act of their own, because two of its
+three gates are in Act 1's gallery and belong there (D29). Getting here means
+walking back down through the shelter and out the way you came in.
 
-1. **A held permissive and a selsyn bench unit** — two more devices, both in the
-   grammar that already exists.
-2. **Somewhere to put them.** The gate piers and the control house are up inside
-   the dam with no loop back to the shelter, so unlike the annex they can and
-   should be their own mounted act. D28's own last line says so.
-3. **Two endings**, which is the first thing in this project that branches. Both
-   are reached from the control house and both are earned by what the player
-   understood, not by a dialogue choice.
+| | |
+|---|---|
+| **P4.1** | The 1954 relay panel in the gallery. The stage repeater reads 30.5 ft; the sequence card you could read in minute four says the sequence holds above 30.0. Nothing to do but understand it. |
+| **P4.2** | The box on the shelf beside it, feeding the repeater. The gauge is not broken and is not lying — it repeats, faithfully, a number somebody is fabricating. The label is in the same hand as `WATCH THE THIRD STEP`, four hours and one whole act earlier. |
+| **P4.3** | Pulling the lead does not open anything: a latch that has stopped being fed a reason to hold is still latched. Latches reset at a desk, with a key that is captive until Protocol 4.4 is satisfied — and Protocol 4.4 says a run is not concluded until the observer leaves the lamp. |
 
-**Do not start it until the device QA has come back.** Three acts are built and
-none has been played by a person.
+**Both endings are things the player does with equipment.** Conclude the run:
+stand at the lamp, let the seam close, and the cabinet reads the channel as
+concluded. Or refuse, walk out to the pier, and take the tainter gate off its
+permissive by hand — which any engineer can do, because a 1954 dam had to be
+operable with the control house dead.
+
+Neither card says which was right. Both itemise what it cost.
 
 ### Systems before rooms, which is worth doing again
 
