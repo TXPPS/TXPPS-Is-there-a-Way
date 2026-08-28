@@ -1,0 +1,55 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://src/world/devices/device_selector.gd" id="1_selector"]
+[ext_resource type="Script" path="res://src/world/interactable.gd" id="2_zone"]
+[ext_resource type="Material" path="res://assets/materials/graybox_steel.tres" id="3_steel"]
+[ext_resource type="Material" path="res://assets/materials/graybox_paint.tres" id="4_paint"]
+[ext_resource type="AudioStream" path="res://assets/audio/click_breaker.wav" id="9_sound"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_boss"]
+top_radius = 0.055
+bottom_radius = 0.055
+height = 0.03
+radial_segments = 12
+rings = 1
+
+[sub_resource type="BoxMesh" id="BoxMesh_lever"]
+size = Vector3(0.11, 0.022, 0.018)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_reach"]
+size = Vector3(0.26, 0.26, 0.18)
+
+; Faces +Z. Handle swings about Z; the boss it swings on does not.
+[node name="DeviceSelector" type="Node3D" groups=["saveable"]]
+script = ExtResource("1_selector")
+
+[node name="Boss" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0.015)
+mesh = SubResource("CylinderMesh_boss")
+surface_material_override/0 = ExtResource("4_paint")
+
+[node name="Handle" type="Node3D" parent="."]
+
+[node name="Lever" type="MeshInstance3D" parent="Handle"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.05, 0, 0.04)
+mesh = SubResource("BoxMesh_lever")
+surface_material_override/0 = ExtResource("3_steel")
+
+[node name="Zone" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.05)
+collision_layer = 4
+collision_mask = 0
+monitoring = false
+script = ExtResource("2_zone")
+prompt = "Turn the switch"
+instant = true
+
+[node name="Shape" type="CollisionShape3D" parent="Zone"]
+shape = SubResource("BoxShape3D_reach")
+
+[node name="Sound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("9_sound")
+volume_db = -9.0
+bus = &"SFX"
+unit_size = 2.6
+max_db = 0.0

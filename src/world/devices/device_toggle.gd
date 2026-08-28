@@ -21,6 +21,18 @@ signal toggled(on: bool)
 ## what a panel schedule says, and what it means is the player's problem.
 @export var label: String = ""
 
+## Running load in kilowatts, off the nameplate of whatever this breaker feeds.
+## Zero for a breaker that is not part of an arithmetic -- most of Act 1's are.
+## It lives here rather than in a subclass because a breaker with a rating is
+## still just a breaker, and Act 2's panel is the only thing that adds them up.
+@export var load_kw: float = 0.0
+
+## What the same load draws in the moment it starts. A motor pulls several times
+## its running current until it is up to speed, which is why an allocation that
+## boots can still fail: `surge_kw` is what the sump asks for, once, and the set
+## either rides it or drops the bus. Zero means it starts as gently as it runs.
+@export var surge_kw: float = 0.0
+
 @export var on: bool = true:
 	set(value):
 		on = value

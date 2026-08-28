@@ -29,6 +29,13 @@ func same(actual: Vector2, expected: Vector2, message: String) -> void:
 	ok(actual == expected, "%s (%s vs %s)" % [message, actual, expected])
 
 
+## Exact equality, printing both sides. Worth having over `ok(a == b, ...)`
+## because a failure that says which value it got is the difference between
+## knowing what is wrong and running the suite again with a print in it.
+func eq(actual: Variant, expected: Variant, message: String) -> void:
+	ok(actual == expected, "%s (%s vs %s)" % [message, actual, expected])
+
+
 func report(label: String) -> int:
 	if failures.is_empty():
 		print("\n%s: %d checks passed" % [label, passes])
