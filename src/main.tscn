@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://src/world/act1/powerhouse.tscn" id="2_room"]
@@ -16,6 +16,7 @@
 [ext_resource type="Resource" path="res://src/audio/score_tuning.tres" id="14_scoretune"]
 [ext_resource type="PackedScene" path="res://src/ui/reader.tscn" id="15_reader"]
 [ext_resource type="Script" path="res://src/core/journal.gd" id="16_journal"]
+[ext_resource type="Resource" path="res://assets/documents/index.tres" id="19_docs"]
 [ext_resource type="Script" path="res://src/world/act_runner.gd" id="17_runner"]
 [ext_resource type="PackedScene" path="res://src/world/act2/shelter.tscn" id="18_shelter"]
 
@@ -76,6 +77,7 @@ act1_again_from = 29
 
 [node name="Journal" type="Node" parent="." groups=["saveable"]]
 script = ExtResource("16_journal")
+index = ExtResource("19_docs")
 
 [node name="Score" type="Node" parent="." groups=["score"]]
 script = ExtResource("13_score")

@@ -14,6 +14,10 @@ signal read_first_time(document: Document)
 
 var _read: Dictionary[StringName, bool] = {}
 
+## Every document there is, so that what was read can be read again. Ids alone
+## survive a reload; the text does not, and this is where it comes back from.
+@export var index: DocumentIndex
+
 
 func mark_read(document: Document) -> void:
 	if document == null or document.id == &"":
@@ -30,6 +34,24 @@ func has_read(id: StringName) -> bool:
 
 func count() -> int:
 	return _read.size()
+
+
+## Everything read so far, in the order the index lists them -- which is story
+## order, because somebody looking for what they read an hour ago is looking for
+## it where they read it.
+func read_documents() -> Array[Document]:
+	var found: Array[Document] = []
+	if index == null:
+		return found
+	for document in index.documents:
+		if document != null and _read.has(document.id):
+			found.append(document)
+	return found
+
+
+## How many there are to find, for a menu that can say "9 of 22".
+func total() -> int:
+	return 0 if index == null else index.count()
 
 
 func save_state() -> Dictionary:

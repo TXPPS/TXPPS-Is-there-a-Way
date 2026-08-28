@@ -32,7 +32,7 @@ var _engaged: Interactable
 func _ready() -> void:
 	_hud.look_requested.connect(_player.add_look)
 	_hud.pause_requested.connect(_menu.open)
-	_menu.bind(_settings, _hud.tuning, _saves)
+	_menu.bind(_settings, _hud.tuning, _saves, _journal, _reader)
 	_saves.failed.connect(Notify.problem)
 	_menu.opened.connect(_on_paused)
 	_menu.closed.connect(_on_resumed)

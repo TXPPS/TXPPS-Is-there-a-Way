@@ -42,6 +42,9 @@ const COLUMN := "Safe/Panel/Pad/Body/Scroll/Column"
 @onready var _confirm: HBoxContainer = get_node(COLUMN + "/Confirm")
 @onready var _stamp: Button = get_node(COLUMN + "/Stamp")
 
+var _journal: Journal
+var _reader: Reader
+
 var _settings: GameSettings
 var _tuning: TouchTuning
 var _saves: SaveService
@@ -53,10 +56,15 @@ var _is_open := false
 ## Wired by Main rather than exported: the settings service is a node in the
 ## composition root, and a NodePath into it from here would be one more thing
 ## that silently breaks when the scene is rearranged.
-func bind(settings: GameSettings, tuning: TouchTuning, saves: SaveService) -> void:
+func bind(
+	settings: GameSettings, tuning: TouchTuning, saves: SaveService,
+	journal: Journal = null, reader: Reader = null
+) -> void:
 	_settings = settings
 	_tuning = tuning
 	_saves = saves
+	_journal = journal
+	_reader = reader
 	_settings.changed.connect(_on_setting)
 	_build()
 	_refresh()
@@ -88,6 +96,9 @@ func is_open() -> bool:
 
 
 func open() -> void:
+	# Rebuilt on the way in: the list is different every time it is opened, which
+	# is the only interesting thing about it.
+	_build()
 	if _is_open:
 		return
 	_is_open = true
@@ -126,6 +137,7 @@ func _build() -> void:
 	_groups.add_child(_heading("Saves"))
 	_saves_panel = SavesPanel.create(_saves)
 	_groups.add_child(_saves_panel)
+	_build_documents()
 	for group in _settings.spec.groups():
 		_groups.add_child(_heading(group))
 		for row in _settings.spec.rows_in(group):
@@ -133,6 +145,40 @@ func _build() -> void:
 		if group == "Accessibility":
 			_sample = _subtitle_sample()
 			_groups.add_child(_sample)
+
+
+## Everything the player has read, to read again.
+##
+## Twenty-two documents are findable and the game is *about* reading them, so
+## having to walk back to the annex to check what Protocol 4.2 said is a design
+## error rather than an inconvenience. What is not listed is what has not been
+## found: the menu never shows a title the player has not seen, because the list
+## of what exists is itself information.
+func _build_documents() -> void:
+	if _journal == null or _reader == null:
+		return
+	var read := _journal.read_documents()
+	_groups.add_child(_heading("Documents  (%d of %d)" % [read.size(), _journal.total()]))
+	if read.is_empty():
+		var none := Label.new()
+		none.text = "Nothing read yet."
+		none.modulate = Color(1.0, 1.0, 1.0, GROUP_ALPHA)
+		_groups.add_child(none)
+		return
+	for document in read:
+		var button := Button.new()
+		button.text = document.title
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.pressed.connect(_reopen.bind(document))
+		_groups.add_child(button)
+
+
+## Putting the menu away and holding the page up. The reader is the same one the
+## world uses, so putting the page down does what putting a page down always
+## does and there is no second way out of anything.
+func _reopen(document: Document) -> void:
+	close()
+	_reader.show_document(document)
 
 
 func _heading(text: String) -> Label:

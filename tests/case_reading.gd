@@ -24,6 +24,8 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	var interactor: Interactor = player.get_node("Head/Camera/Interactor")
 	var touch: RefCounted = TOUCH.new(tree.root)
 	var button: Control = hud.get_node("Controls/ActionButton")
+	await _the_index_is_complete(tree, main, expect)
+	await _the_menu_lists_what_was_read(tree, main, expect)
 
 	player.global_position = STAND_AT
 	player.face(deg_to_rad(FACING), 0.0)
@@ -111,3 +113,80 @@ func _journal(
 		"bringing the record back with it -- a page read in Act 1 is still read in Act 3"
 	)
 	saves.erase(SaveService.MANUAL)
+
+
+## Every document on disk is in the index, and the index is what the journal
+## reads back from. A document that exists and is not listed is one the player
+## can find once and then lose, and nothing else would notice.
+func _the_index_is_complete(tree: SceneTree, main: Node, expect: RefCounted) -> void:
+	var journal: Journal = main.get_node("Journal")
+	expect.ok(journal.index != null, "the journal has an index")
+
+	var on_disk := PackedStringArray()
+	var dir := DirAccess.open("res://assets/documents")
+	for name in dir.get_files():
+		var file := name.trim_suffix(".remap")
+		if not file.ends_with(".tres") or file == "index.tres" or file.ends_with("_card.tres"):
+			continue
+		on_disk.append(file)
+	on_disk.sort()
+
+	expect.eq(
+		journal.total(), on_disk.size(),
+		"and it lists every document on disk (%d of %d)" % [journal.total(), on_disk.size()]
+	)
+
+	var missing := PackedStringArray()
+	for file in on_disk:
+		var document := load("res://assets/documents/%s" % file) as Document
+		if document != null and journal.index.find(document.id) == null:
+			missing.append(file)
+	expect.ok(missing.is_empty(), "with none missing (%s)" % " ".join(missing))
+
+	var blank := PackedStringArray()
+	for document in journal.index.documents:
+		if document == null or document.id == &"" or document.title.is_empty() \
+				or document.body.strip_edges().is_empty():
+			blank.append("" if document == null else String(document.id))
+	expect.ok(blank.is_empty(), "and none of them empty (%s)" % " ".join(blank))
+	await tree.process_frame
+
+
+## What was read can be read again, from the menu, without walking back for it.
+func _the_menu_lists_what_was_read(
+	tree: SceneTree, main: Node, expect: RefCounted
+) -> void:
+	var journal: Journal = main.get_node("Journal")
+	var menu: PauseMenu = main.get_node("PauseMenu")
+	var reader: Reader = main.get_node("Reader")
+
+	var kept := journal.save_state()
+	journal.load_state({"read": []})
+	expect.ok(journal.read_documents().is_empty(), "nothing read is nothing listed")
+
+	var first: Document = journal.index.documents[0]
+	journal.mark_read(first)
+	var listed := journal.read_documents()
+	expect.eq(listed.size(), 1, "read one and one is listed")
+	expect.ok(listed[0] == first, "and it is the one that was read")
+
+	menu.open()
+	await tree.process_frame
+	var titles := PackedStringArray()
+	for node in menu.get_node("Safe/Panel/Pad/Body/Scroll/Column/Groups").get_children():
+		if node is Button:
+			titles.append((node as Button).text)
+	expect.ok(
+		titles.has(first.title),
+		"the menu offers it by name (%s)" % " | ".join(titles)
+	)
+
+	menu.close()
+	await tree.process_frame
+	reader.show_document(first)
+	await tree.process_frame
+	expect.ok(reader.is_open(), "and it opens in the same reader the world uses")
+	reader.close()
+	await tree.process_frame
+
+	journal.load_state(kept)
