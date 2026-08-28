@@ -1,7 +1,7 @@
 [gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
-[ext_resource type="PackedScene" path="res://src/world/graybox/graybox_room.tscn" id="2_room"]
+[ext_resource type="PackedScene" path="res://src/world/act1/powerhouse.tscn" id="2_room"]
 [ext_resource type="PackedScene" path="res://src/player/player.tscn" id="3_player"]
 [ext_resource type="PackedScene" path="res://src/ui/hud.tscn" id="4_hud"]
 [ext_resource type="PackedScene" path="res://src/ui/pause_menu.tscn" id="5_menu"]
@@ -22,7 +22,7 @@ background_mode = 1
 background_color = Color(0, 0, 0, 1)
 ambient_light_source = 2
 ambient_light_color = Color(0.106, 0.129, 0.157, 1)
-ambient_light_energy = 0.45
+ambient_light_energy = 0.72
 tonemap_mode = 2
 tonemap_exposure = 1.0
 tonemap_white = 4.0
@@ -76,10 +76,12 @@ script = ExtResource("16_journal")
 script = ExtResource("13_score")
 tuning = ExtResource("14_scoretune")
 
-[node name="GrayboxRoom" parent="." instance=ExtResource("2_room")]
+[node name="Powerhouse" parent="." instance=ExtResource("2_room")]
 
+; Four hours into the survey, in the generator hall, facing the switchgear end.
+; Fourteen fifty-two: the sequence has just fired and the bus has just dropped.
 [node name="Player" parent="." instance=ExtResource("3_player")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.05, 3.2)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 4, 0.1, 3)
 
 [node name="PostStack" parent="." instance=ExtResource("10_post")]
 

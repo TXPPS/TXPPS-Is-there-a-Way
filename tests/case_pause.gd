@@ -14,12 +14,13 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	var move: VirtualStick = hud.get_node("Controls/MoveStick")
 	var touch: RefCounted = TOUCH.new(tree.root)
 
+	var start := player.global_position
 	touch.press(1, move.position)
 	touch.drag(1, move.position + Vector2(0.0, -120.0))
 	for frame in SETTLE_FRAMES:
 		await tree.physics_frame
 	var walked := player.global_position
-	expect.ok(walked.distance_to(Vector3(0.5, 0.05, 3.2)) > 0.05, "the player walks before pausing")
+	expect.ok(walked.distance_to(start) > 0.05, "the player walks before pausing")
 
 	menu.open()
 	await tree.physics_frame

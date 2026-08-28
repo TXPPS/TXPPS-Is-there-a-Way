@@ -28,6 +28,22 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)
 near = 0.05
 far = 90.0
 
+; The auditor's own four-cell. Held, so it is offset down and to the right of
+; the eye; no battery attrition (DECISIONS.md D14); and deliberately NOT a light
+; the entity can travel along -- Protocol 4.1 says the schedule luminaire, and a
+; hand torch is not one.
+[node name="Flashlight" type="SpotLight3D" parent="Head/Camera"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.19, -0.14, 0)
+light_color = Color(0.96, 0.94, 0.87, 1)
+light_energy = 4.6
+light_specular = 0.4
+shadow_enabled = true
+shadow_bias = 0.03
+spot_range = 24.0
+spot_angle = 35.0
+spot_angle_attenuation = 1.1
+spot_attenuation = 1.2
+
 ; On the camera, so it aims with the view rather than with the body.
 [node name="Interactor" type="Node3D" parent="Head/Camera"]
 script = ExtResource("3_interactor")

@@ -33,17 +33,17 @@ const SETTLE_FRAMES := 8
 ## The document column is there because a page is art too, and a page nobody has
 ## looked at is a page whose line breaks are wrong.
 const SHOTS: Array = [
-	["01-establishing", Vector3(0.50, 0.0, 3.20), 60.6, 5.1],
-	["02-lamp-close", Vector3(-4.40, 0.0, -0.80), 90.0, 18.4],
-	["03-across-the-dark", Vector3(-4.00, 0.0, 3.50), -54.5, -2.8],
-	["04-painted-crate", Vector3(0.60, 0.0, 0.60), -48.0, -22.6],
-	["05-north-wall", Vector3(0.50, 0.0, 0.90), 0.0, -0.7],
-	["06-waterline", Vector3(-3.00, 0.0, 1.00), 90.0, -13.0],
-	["07-ceiling", Vector3(-5.20, 0.0, 0.00), 90.0, 44.7],
-	["08-floor-falloff", Vector3(-6.00, 0.0, 2.60), 14.0, -21.6],
-	["09-page-typed", Vector3(-1.50, 0.0, -3.00), 0.0, 0.0,
+	["01-hall-west", Vector3(6.00, 0.00, 0.00), 80.7, 2.4],
+	["02-lamp-close", Vector3(-5.40, 0.00, -2.50), 90.0, 34.1],
+	["03-across-the-dark", Vector3(-6.00, 0.00, 4.00), -59.3, -1.5],
+	["04-generator-set", Vector3(0.00, 0.00, 2.60), -30.8, -6.7],
+	["05-switchgear-door", Vector3(-5.60, 0.00, -2.00), 90.0, -11.3],
+	["06-office-desk", Vector3(-9.60, 0.00, 3.20), 68.2, -17.3],
+	["07-stair-head", Vector3(9.90, 0.00, 0.60), -180.0, -38.1],
+	["08-gallery", Vector3(9.90, -3.90, 12.00), -180.0, -1.2],
+	["09-page-typed", Vector3(-6.60, 0.00, -4.00), 90.0, 0.0,
 		"res://assets/documents/d04_sequence_card.tres"],
-	["10-page-pencil", Vector3(-1.50, 0.0, -3.00), 0.0, 0.0,
+	["10-page-pencil", Vector3(-6.60, 0.00, -4.00), 90.0, 0.0,
 		"res://assets/documents/d03_emil_log.tres"],
 ]
 

@@ -18,14 +18,45 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	var fear: FearState = main.get_node("Fear")
 	var settings: GameSettings = main.get_node("Settings")
 	var player: Player = main.get_node("Player")
-	var hum: AudioStreamPlayer3D = main.get_node("GrayboxRoom/BulkheadLamp/Hum")
+	var hum: AudioStreamPlayer3D = main.get_node("Powerhouse/Lamps/HallWest/Hum")
 
 	_buses(expect)
+	_loops(expect)
 	await _volumes(tree, settings, expect)
 	await _score_layers(tree, score, fear, expect)
 	await _occlusion(tree, player, hum, expect)
 	await _reverb(tree, expect)
 	await _footsteps(tree, player, expect)
+
+
+## Godot's WAV importer numbers loop modes 0 = Detect From WAV, 1 = Disabled,
+## 2 = Forward -- which is not what those numbers look like they mean, and
+## setting 1 played every loop in the game exactly once and then stopped. It
+## passed locally for a fortnight of seconds and failed on a slower CI runner
+## that took long enough to reach the end of a sixteen-second sample.
+##
+## Asserted on the imported resource rather than by listening, so it is a fact
+## about the build and not about how fast the machine ran.
+const LOOPING := [
+	"score_bed", "score_room", "score_strain", "score_edge",
+	"amb_powerhouse", "amb_water", "mach_ballast", "mach_gallery",
+]
+const ONE_SHOT := ["metal_door", "metal_wrench", "click_breaker", "step_concrete_1"]
+
+
+func _loops(expect: RefCounted) -> void:
+	for name in LOOPING:
+		var stream := load("res://assets/audio/%s.wav" % name) as AudioStreamWAV
+		expect.ok(
+			stream != null and stream.loop_mode == AudioStreamWAV.LOOP_FORWARD,
+			"%s loops forward" % name
+		)
+	for name in ONE_SHOT:
+		var stream := load("res://assets/audio/%s.wav" % name) as AudioStreamWAV
+		expect.ok(
+			stream != null and stream.loop_mode == AudioStreamWAV.LOOP_DISABLED,
+			"%s does not loop" % name
+		)
 
 
 func _buses(expect: RefCounted) -> void:
@@ -124,15 +155,15 @@ func _occlusion(
 ) -> void:
 	var occluder: AudioOccluder = hum.get_node("Occluder")
 	var home := hum.global_position
-	player.global_position = Vector3(0.5, 0.0, 0.0)
+	player.global_position = Vector3(-4.0, 0.0, -2.5)
 	await tree.physics_frame
 	for frame in 40:
 		await tree.physics_frame
 	expect.near(occluder.blockage(), 0.0, 0.05, "a clear path is not filtered")
 	var open_hz := hum.attenuation_filter_cutoff_hz
 
-	# Beyond the north wall: the ray now crosses 400 mm of concrete.
-	hum.global_position = Vector3(0.5, 1.6, -6.0)
+	# Beyond the hall's north wall: the ray now crosses 400 mm of concrete.
+	hum.global_position = Vector3(-4.0, 1.6, -8.0)
 	for frame in 60:
 		await tree.physics_frame
 	expect.ok(occluder.blockage() > 0.8, "a wall in the way blocks (%.2f)" % occluder.blockage())

@@ -8,7 +8,9 @@ extends RefCounted
 
 const TOUCH := preload("res://tests/touch.gd")
 ## Just past a step's reach of the plate, looking straight at it.
-const STAND_AT := Vector3(0.5, 0.0, -3.2)
+## In the switchgear room, a step off the west wall the lock is on.
+const STAND_AT := Vector3(-13.0, 0.0, -3.2)
+const FACING := 90.0
 ## Slightly more than one click, so each drag lands exactly one step.
 const STEP_TRAVEL := 47.0
 
@@ -18,7 +20,7 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	var player: Player = main.get_node("Player")
 	var state: GameState = main.get_node("State")
 	var rects: HudRects = hud.get_node("HudRects")
-	var lock: DialLock = main.get_node("GrayboxRoom/DialLock")
+	var lock: DialLock = main.get_node("Powerhouse/DialLock")
 	var interactor: Interactor = player.get_node("Head/Camera/Interactor")
 	var camera: Camera3D = player.get_node("Head/Camera")
 	var touch: RefCounted = TOUCH.new(tree.root)
@@ -26,7 +28,7 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	player.global_position = STAND_AT
 	player.velocity = Vector3.ZERO
 	# Earlier cases left the camera somewhere else entirely.
-	player.face(0.0, 0.0)
+	player.face(deg_to_rad(FACING), 0.0)
 	await tree.physics_frame
 	await tree.physics_frame
 

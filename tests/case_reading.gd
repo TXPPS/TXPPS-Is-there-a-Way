@@ -9,7 +9,9 @@ extends RefCounted
 ## machinery first.
 
 const TOUCH := preload("res://tests/touch.gd")
-const STAND_AT := Vector3(-1.5, 0.0, -3.0)
+## A step off the hall's west wall, where the sequence card is.
+const STAND_AT := Vector3(-6.6, 0.0, -4.0)
+const FACING := 90.0
 
 
 func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
@@ -24,7 +26,7 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	var button: Control = hud.get_node("Controls/ActionButton")
 
 	player.global_position = STAND_AT
-	player.face(0.0, 0.0)
+	player.face(deg_to_rad(FACING), 0.0)
 	await tree.physics_frame
 	await tree.physics_frame
 

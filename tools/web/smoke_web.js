@@ -196,8 +196,12 @@ function overlaps(list) {
 		await page.waitForTimeout(AUDIO_SETTLE_MS);
 		const after = (await readProbe()).audio_source;
 		const at = (s) => parseFloat(String(s).split(' ')[1] || '0');
+		// Changed, not increased: these are looping samples, so a read either
+		// side of a loop point legitimately goes backwards. Requiring an
+		// increase makes the assertion depend on how fast the machine ran,
+		// which is how a genuinely broken loop passed here for a day.
 		t.check(
-			/^on /.test(after) && at(after) > at(before),
+			/^on /.test(before) && /^on /.test(after) && at(after) !== at(before),
 			`audio unlocked and the mixer is consuming the stream (${before} -> ${after})`
 		);
 		t.check(probe.listener === true, 'the scene has a 3D audio listener');

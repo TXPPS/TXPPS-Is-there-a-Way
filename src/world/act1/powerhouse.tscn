@@ -1,0 +1,307 @@
+[gd_scene load_steps=28 format=3]
+
+; Act 1 -- the powerhouse.
+;
+; Five spaces on the 0.5 m grid, built by src/world/kit/ from their dimensions
+; rather than from several hundred hand-placed boxes. Derived from
+; docs/STORY.md ("The place") and docs/PUZZLES.md (Act 1).
+;
+; Where two rooms share a wall, only one of them builds it -- otherwise the
+; surfaces are coplanar, fight, and cost twice the geometry for the privilege.
+; The room whose doorway it is keeps it.
+;
+; Every lamp starts dark. Emergency lighting is P1.1, the first puzzle in the
+; game, and the flashlight is the only light until it is solved.
+
+[ext_resource type="Script" path="res://src/world/kit/room_box.gd" id="1_room"]
+[ext_resource type="Script" path="res://src/world/kit/opening.gd" id="2_open"]
+[ext_resource type="Script" path="res://src/world/kit/slab.gd" id="3_slab"]
+[ext_resource type="Script" path="res://src/world/kit/stair_run.gd" id="4_stair"]
+[ext_resource type="Material" path="res://assets/materials/graybox_concrete.tres" id="5_concrete"]
+[ext_resource type="Material" path="res://assets/materials/graybox_steel.tres" id="6_steel"]
+[ext_resource type="Material" path="res://assets/materials/graybox_paint.tres" id="7_paint"]
+[ext_resource type="PackedScene" path="res://src/world/kit/bulkhead_lamp.tscn" id="8_lamp"]
+[ext_resource type="Script" path="res://src/world/surface_tag.gd" id="9_tag"]
+[ext_resource type="Resource" path="res://assets/surfaces/concrete.tres" id="10_surface"]
+[ext_resource type="Script" path="res://src/audio/reverb_zone.gd" id="11_verb"]
+[ext_resource type="AudioStream" path="res://assets/audio/amb_powerhouse.wav" id="12_tone"]
+[ext_resource type="AudioStream" path="res://assets/audio/mach_gallery.wav" id="13_rumble"]
+[ext_resource type="PackedScene" path="res://src/world/readable.tscn" id="14_page"]
+[ext_resource type="Resource" path="res://assets/documents/d04_sequence_card.tres" id="15_seq"]
+[ext_resource type="Resource" path="res://assets/documents/d03_emil_log.tres" id="16_log"]
+[ext_resource type="Resource" path="res://assets/documents/d05_third_step.tres" id="17_step"]
+[ext_resource type="Resource" path="res://assets/documents/d06_battery_tag.tres" id="18_batt"]
+[ext_resource type="Resource" path="res://assets/documents/d01_site_book.tres" id="19_book"]
+[ext_resource type="Resource" path="res://assets/documents/d02_pfeiffer_log.tres" id="20_pfeiffer"]
+[ext_resource type="PackedScene" path="res://src/world/puzzles/dial_lock.tscn" id="21_dial"]
+
+[sub_resource type="Resource" id="Opening_1"]
+script = ExtResource("2_open")
+wall = 2
+offset = -2.0
+width = 1.4
+height = 2.2
+sill = 0.0
+
+[sub_resource type="Resource" id="Opening_2"]
+script = ExtResource("2_open")
+wall = 2
+offset = 3.0
+width = 1.2
+height = 2.2
+sill = 0.0
+
+[sub_resource type="Resource" id="Opening_3"]
+script = ExtResource("2_open")
+wall = 3
+offset = 2.0
+width = 1.4
+height = 2.2
+sill = 0.0
+
+[sub_resource type="Resource" id="Opening_4"]
+script = ExtResource("2_open")
+wall = 1
+offset = 0.0
+width = 1.4
+height = 2.2
+sill = 0.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hall"]
+size = Vector3(16, 4.5, 10)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_gallery"]
+size = Vector3(3, 2.6, 20)
+
+[node name="Powerhouse" type="Node3D"]
+
+[node name="GeneratorHall" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.0, 0.0)
+script = ExtResource("1_room")
+interior = Vector3(16.0, 4.5, 10.0)
+thickness = 0.4
+openings = Array[ExtResource("2_open")]([SubResource("Opening_1"), SubResource("Opening_2"), SubResource("Opening_3")])
+wall_material = ExtResource("5_concrete")
+floor_material = ExtResource("5_concrete")
+
+[node name="Switchgear" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.4, 0.0, -2.0)
+script = ExtResource("1_room")
+interior = Vector3(6.0, 3.0, 5.0)
+thickness = 0.4
+wall_material = ExtResource("5_concrete")
+floor_material = ExtResource("5_concrete")
+omit_walls = Array[int]([3])
+
+[node name="Office" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.9, 0.0, 3.0)
+script = ExtResource("1_room")
+interior = Vector3(5.0, 2.8, 4.0)
+thickness = 0.4
+wall_material = ExtResource("5_concrete")
+floor_material = ExtResource("5_concrete")
+omit_walls = Array[int]([3])
+
+[node name="StairShaft" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.9, -3.9, 2.5)
+script = ExtResource("1_room")
+interior = Vector3(3.0, 8.4, 11.0)
+thickness = 0.4
+openings = Array[ExtResource("2_open")]([SubResource("Opening_4")])
+wall_material = ExtResource("5_concrete")
+floor_material = ExtResource("5_concrete")
+omit_walls = Array[int]([2])
+
+[node name="Gallery" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.9, -3.9, 18.4)
+script = ExtResource("1_room")
+interior = Vector3(3.0, 2.6, 20.0)
+thickness = 0.4
+wall_material = ExtResource("5_concrete")
+floor_material = ExtResource("5_concrete")
+omit_walls = Array[int]([0])
+
+; The landing at hall level, over the open shaft. Its top face is y = 0, which
+; is the hall's floor, so stepping through the doorway is stepping onto it.
+[node name="ShaftLanding" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.9, -0.2, -0.15)
+script = ExtResource("3_slab")
+size = Vector3(3, 0.4, 5.7)
+material = ExtResource("5_concrete")
+
+; Thirteen steps down, and the third one is not there. See d05_third_step.
+[node name="StairRun" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.9, 0, 2.7)
+script = ExtResource("4_stair")
+missing_step = 3
+steps = 13
+rise = 0.3
+tread = 0.315
+width = 1.4
+material = ExtResource("6_steel")
+
+[node name="Surface" type="Node" parent="."]
+script = ExtResource("9_tag")
+surface = ExtResource("10_surface")
+
+[node name="Props" type="Node3D" parent="."]
+
+[node name="OfficeDesk" type="Node3D" parent="Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.6, 0.86, 2.4)
+script = ExtResource("3_slab")
+size = Vector3(2.6, 0.08, 1.0)
+material = ExtResource("6_steel")
+
+[node name="OfficeDeskLeg" type="Node3D" parent="Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.6, 0.43, 2.75)
+script = ExtResource("3_slab")
+size = Vector3(2.4, 0.86, 0.1)
+material = ExtResource("6_steel")
+
+[node name="SetOneBed" type="Node3D" parent="Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 0.15, -1.6)
+script = ExtResource("3_slab")
+size = Vector3(2.8, 0.3, 5.0)
+material = ExtResource("5_concrete")
+
+[node name="SetOne" type="Node3D" parent="Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 1.05, -1.6)
+script = ExtResource("3_slab")
+size = Vector3(2.2, 1.5, 4.4)
+material = ExtResource("7_paint")
+
+[node name="SetTwoBed" type="Node3D" parent="Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0.15, -1.6)
+script = ExtResource("3_slab")
+size = Vector3(2.8, 0.3, 5.0)
+material = ExtResource("5_concrete")
+
+[node name="SetTwo" type="Node3D" parent="Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 1.05, -1.6)
+script = ExtResource("3_slab")
+size = Vector3(2.2, 1.5, 4.4)
+material = ExtResource("7_paint")
+
+[node name="SwgrCubicles" type="Node3D" parent="Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.9, 1.15, -2.6)
+script = ExtResource("3_slab")
+size = Vector3(0.9, 2.3, 3.6)
+material = ExtResource("7_paint")
+
+[node name="GalleryPipe" type="Node3D" parent="Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.7, -1.75, 18.4)
+script = ExtResource("3_slab")
+size = Vector3(0.24, 0.24, 19.0)
+material = ExtResource("6_steel")
+
+[node name="Lamps" type="Node3D" parent="."]
+
+[node name="HallWest" parent="Lamps" instance=ExtResource("8_lamp")]
+transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -7.88, 3.3, -2.5)
+circuit = &"LT-1"
+lit = false
+
+[node name="HallEast" parent="Lamps" instance=ExtResource("8_lamp")]
+transform = Transform3D(0.0, 0.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 7.88, 3.3, 2.5)
+circuit = &"LT-1"
+lit = false
+
+[node name="Switchgear" parent="Lamps" instance=ExtResource("8_lamp")]
+transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -14.28, 2.3, -2.0)
+circuit = &"LT-2"
+lit = false
+
+[node name="Office" parent="Lamps" instance=ExtResource("8_lamp")]
+transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -13.28, 2.1, 3.0)
+circuit = &"LT-2"
+lit = false
+
+[node name="ShaftTop" parent="Lamps" instance=ExtResource("8_lamp")]
+transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 8.52, 3.2, 0.0)
+circuit = &"LT-6"
+lit = false
+
+[node name="GalleryFar" parent="Lamps" instance=ExtResource("8_lamp")]
+transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 8.52, -2.0, 26.0)
+circuit = &"LT-4"
+lit = false
+
+[node name="RoomTone" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("12_tone")
+volume_db = -19.0
+autoplay = true
+bus = &"SFX"
+
+; Distant plant, at the far end of the gallery: the only thing in Act 1 that is
+; running and cannot be seen.
+[node name="GalleryPlant" type="AudioStreamPlayer3D" parent="." groups=["audio_probe"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.9, -3, 28)
+stream = ExtResource("13_rumble")
+volume_db = -14.0
+autoplay = true
+bus = &"SFX"
+unit_size = 9.0
+max_db = 0.0
+
+[node name="HallReverb" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.25, 0)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("11_verb")
+room_size = 0.82
+damping = 0.38
+wet = 0.28
+predelay_msec = 42.0
+
+[node name="Shape" type="CollisionShape3D" parent="HallReverb"]
+shape = SubResource("BoxShape3D_hall")
+
+[node name="GalleryReverb" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.9, -2.6, 18.4)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("11_verb")
+room_size = 0.55
+damping = 0.62
+wet = 0.38
+predelay_msec = 16.0
+
+[node name="Shape" type="CollisionShape3D" parent="GalleryReverb"]
+shape = SubResource("BoxShape3D_gallery")
+
+[node name="SequenceCard" parent="." instance=ExtResource("14_page")]
+transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -7.97, 1.5, -4.0)
+document = ExtResource("15_seq")
+prompt_override = "Read the card"
+
+[node name="ThirdStepCard" parent="." instance=ExtResource("14_page")]
+transform = Transform3D(0.0, 0.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 11.37, 1.4, 2.2)
+document = ExtResource("17_step")
+prompt_override = "Read the card"
+
+[node name="BatteryTag" parent="." instance=ExtResource("14_page")]
+transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -14.37, 1.5, -0.6)
+document = ExtResource("18_batt")
+prompt_override = "Read the service tag"
+
+[node name="SiteBook" parent="." instance=ExtResource("14_page")]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -12.3, 0.93, 2.4)
+document = ExtResource("19_book")
+prompt_override = "Read the sign-in book"
+
+[node name="PfeifferLog" parent="." instance=ExtResource("14_page")]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -11.6, 0.93, 2.4)
+document = ExtResource("20_pfeiffer")
+prompt_override = "Read the older log"
+
+[node name="EmilLog" parent="." instance=ExtResource("14_page")]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -10.9, 0.93, 2.4)
+document = ExtResource("16_log")
+prompt_override = "Read the log"
+
+; Temporary. PUZZLES.md P3.1 replaces this with the programme's own cam
+; timeclock in Act 3; it is here so the focused-interaction framework stays
+; exercised while Act 1's own puzzles are built.
+[node name="DialLock" parent="." instance=ExtResource("21_dial")]
+transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -14.37, 1.55, -3.2)
+

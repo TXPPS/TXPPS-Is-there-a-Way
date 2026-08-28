@@ -7,15 +7,16 @@ extends RefCounted
 ## on. `Storage.simulate_unavailable` exists to make that path reachable here
 ## rather than only on a phone nobody can reproduce.
 
-const HERE := Vector3(-2.0, 0.0, 1.5)
-const THERE := Vector3(3.0, 0.0, -2.0)
+## Two clear spots in the generator hall, neither inside a generator set.
+const HERE := Vector3(-1.5, 0.0, 3.5)
+const THERE := Vector3(5.5, 0.0, 3.5)
 const AIM := 0.9
 
 
 func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	var saves: SaveService = main.get_node("Saves")
 	var player: Player = main.get_node("Player")
-	var lock: DialLock = main.get_node("GrayboxRoom/DialLock")
+	var lock: DialLock = main.get_node("Powerhouse/DialLock")
 
 	await _round_trip(tree, saves, player, lock, expect)
 	await _codes(tree, saves, player, expect)
@@ -79,18 +80,18 @@ func _codes(
 func _migration(
 	tree: SceneTree, saves: SaveService, player: Player, expect: RefCounted
 ) -> void:
-	var unversioned := {"nodes": {"player": {"at": [4.0, 0.0, -1.0], "aim": [0.25, 0.0]}}}
+	var unversioned := {"nodes": {"player": {"at": [6.0, 0.0, 3.5], "aim": [0.25, 0.0]}}}
 	expect.ok(SaveGame.migrate(unversioned).get("version") == SaveGame.VERSION,
 		"an unversioned save migrates to the current version")
 	expect.ok(saves.apply(unversioned), "and applies")
 	await tree.physics_frame
-	expect.near(player.global_position.x, 4.0, 0.01, "carrying its state with it")
+	expect.near(player.global_position.x, 6.0, 0.01, "carrying its state with it")
 
 	var future := {"version": SaveGame.VERSION + 99, "nodes": {"player": {"at": [0.0, 0.0, 0.0]}}}
 	expect.ok(SaveGame.migrate(future).is_empty(), "a save from a newer build is refused")
 	expect.ok(not saves.apply(future), "and does not reach the world")
 	await tree.physics_frame
-	expect.near(player.global_position.x, 4.0, 0.01, "which is left where it was")
+	expect.near(player.global_position.x, 6.0, 0.01, "which is left where it was")
 
 
 func _degrades(tree: SceneTree, saves: SaveService, expect: RefCounted) -> void:

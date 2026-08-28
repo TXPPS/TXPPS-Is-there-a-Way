@@ -1,0 +1,57 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Material" path="res://assets/materials/graybox_steel.tres" id="1_steel"]
+[ext_resource type="Material" path="res://assets/materials/graybox_lamp_glass.tres" id="2_glass"]
+[ext_resource type="AudioStream" path="res://assets/audio/mach_ballast.wav" id="3_hum"]
+[ext_resource type="Script" path="res://src/audio/occluder.gd" id="4_occl"]
+[ext_resource type="Script" path="res://src/world/kit/bulkhead_lamp.gd" id="5_lamp"]
+[ext_resource type="Material" path="res://assets/materials/graybox_lamp_dead.tres" id="6_dead"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_housing"]
+size = Vector3(0.24, 0.44, 0.62)
+
+[sub_resource type="BoxMesh" id="BoxMesh_glass"]
+size = Vector3(0.1, 0.3, 0.44)
+
+; A sodium bulkhead fitting: housing, glass, light, and the ballast that makes
+; the noise. One scene, because Act 1 has six of them and a light with no
+; fixture reads as an engine demo (docs/ART_BIBLE.md, "Lighting rules").
+;
+; Faces +X by default. Rotate it to hang it on another wall.
+[node name="BulkheadLamp" type="Node3D"]
+script = ExtResource("5_lamp")
+circuit = &"LT-1"
+lit = true
+energy = 4.2
+glass_lit = ExtResource("2_glass")
+glass_dark = ExtResource("6_dead")
+
+[node name="Housing" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_housing")
+surface_material_override/0 = ExtResource("1_steel")
+
+[node name="Glass" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.16, 0, 0)
+mesh = SubResource("BoxMesh_glass")
+surface_material_override/0 = ExtResource("2_glass")
+
+[node name="Hum" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 0, 0)
+stream = ExtResource("3_hum")
+volume_db = -13.0
+bus = &"SFX"
+unit_size = 3.4
+max_db = 0.0
+attenuation_filter_cutoff_hz = 20500.0
+
+[node name="Occluder" type="Node" parent="Hum"]
+script = ExtResource("4_occl")
+
+[node name="Light" type="OmniLight3D" parent="." groups=["practical"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.42, 0, 0)
+light_color = Color(1, 0.706, 0.42, 1)
+light_energy = 4.2
+light_specular = 0.3
+shadow_enabled = true
+shadow_bias = 0.04
+omni_range = 14.0

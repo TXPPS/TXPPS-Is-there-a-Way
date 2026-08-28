@@ -1,0 +1,10 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+; The same fitting with nothing behind it. Not black -- an unlit sodium tube is
+; a pale grey cylinder and reads as a lamp that is off rather than as a hole.
+
+[resource]
+resource_name = "Graybox Lamp Glass (dead)"
+albedo_color = Color(0.13, 0.125, 0.115, 1)
+metallic = 0.0
+roughness = 0.55
