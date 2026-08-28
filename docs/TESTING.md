@@ -433,6 +433,23 @@ Two lessons worth keeping:
 
 ---
 
+## The gallery is a test
+
+`tools/web/capture_shots.js` walks thirty-five vantages across the four acts,
+photographs each one, and **reports what each frame cost**. It runs in CI and
+uploads the gallery as an artifact.
+
+It is there because `smoke_web.js` asserts the draw-call budget once, standing
+where the game starts, and reported green on every build for weeks while three
+acts ran thirty times over it. A budget checked in the first room of four acts
+is not a budget.
+
+It fails a frame past the **ceiling** (400 draw calls) and warns past the
+**target** (120), because those are different claims: 120 was chosen for a phone
+without a phone in the room, and an order of magnitude past it is a bug rather
+than a tuning question. It also fails any frame under 4 kB, which is a black
+image, which means the post stack ate the scene.
+
 ## Two things about the live site that are easy to get wrong
 
 **The build is not byte-reproducible, and that is fine.** The same commit built

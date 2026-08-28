@@ -164,6 +164,21 @@ jobs:
       - name: Smoke test the update path
         run: node tools/web/smoke_pwa.js build
 
+      # smoke_web.js measures the draw-call budget once, standing where the
+      # game starts. That reported green for weeks while three acts ran thirty
+      # times over it, because nothing else ever stood anywhere else. This walks
+      # all thirty-five vantages across the four acts, reports every frame's
+      # cost, and fails past the ceiling. It also produces the gallery.
+      - name: Walk every space, and cost every frame
+        run: node tools/web/capture_shots.js build build-gallery
+
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: gallery
+          path: build-gallery
+          retention-days: 14
+
       - uses: actions/upload-artifact@v5
         if: always()
         with:
