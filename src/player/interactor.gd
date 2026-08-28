@@ -13,8 +13,11 @@ signal target_changed(target: Interactable)
 ## that the player has to actually walk over.
 @export_range(0.5, 6.0, 0.1) var reach: float = 2.8
 
-## Physics layer 3, "interactable". See project.godot.
-@export_flags_3d_physics var mask: int = 4
+## Layers 1 and 3 -- world and interactable. Both, deliberately: a ray that only
+## tests interactables finds them through walls, and a card readable through
+## 400 mm of concrete is a card in the wrong room. First hit wins, and if the
+## first hit is a wall then there is nothing there.
+@export_flags_3d_physics var mask: int = 5
 
 ## Asked before accepting a target: is the point on screen underneath a control?
 ## Wired to HudRects through Hud, so the player can never pick up something their
@@ -49,14 +52,24 @@ func _look_for_one() -> Interactable:
 		from, from - global_transform.basis.z * reach, mask
 	)
 	query.collide_with_areas = true
-	query.collide_with_bodies = false
+	query.collide_with_bodies = true
+	query.exclude = [_body()]
 	var hit := space.intersect_ray(query)
 	if hit.is_empty():
 		return null
+	# A body first means something solid is in the way, and `as` gives null.
 	var found := hit["collider"] as Interactable
 	if found == null or not found.available or _is_covered(hit["position"] as Vector3):
 		return null
 	return found
+
+
+## The player's own collider, so the ray does not start inside it.
+func _body() -> RID:
+	var owner_body := get_parent()
+	while owner_body != null and not (owner_body is CollisionObject3D):
+		owner_body = owner_body.get_parent()
+	return (owner_body as CollisionObject3D).get_rid() if owner_body != null else RID()
 
 
 func _is_covered(world_point: Vector3) -> bool:

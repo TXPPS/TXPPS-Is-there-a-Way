@@ -274,14 +274,93 @@ func _the_edge(
 func _saving(
 	tree: SceneTree, saves: SaveService, logic: PowerhouseLogic, expect: RefCounted
 ) -> void:
+	var before := saves.collect()["nodes"] as Dictionary
+	expect.ok(before.size() >= 12, "the act has state worth saving (%d nodes)" % before.size())
 	expect.ok(saves.save_to(SaveService.MANUAL), "the act saves")
-	logic.load_state({"wrench": false, "reached": []})
-	logic.get_parent().get_node("GalleryDoor").open = false
+
+	# Not three spot checks: derange *everything* that claims to be saveable, so
+	# a device added later with a broken `load_state` fails here rather than in
+	# someone's playthrough.
+	var refused := _derange(tree)
+	expect.ok(
+		refused.is_empty(),
+		"every saveable node can be disturbed through its own protocol (%s)" % ", ".join(refused)
+	)
 	await tree.physics_frame
 	expect.ok(not logic.has_wrench(), "the act's own state can be cleared")
+
 	expect.ok(saves.load_from(SaveService.MANUAL), "and the slot loads")
 	await tree.physics_frame
-	expect.ok(logic.has_wrench(), "bringing the wrench back")
-	expect.ok(logic.probe()["gallery"], "and the doors that were open")
+	var after := saves.collect()["nodes"] as Dictionary
+	var lost := _differences(before, after)
+	expect.ok(lost.is_empty(), "and every node comes back exactly as it was (%s)" % ", ".join(lost))
+	expect.ok(logic.has_wrench(), "including the wrench")
+	expect.ok(logic.probe()["gallery"], "the doors that were open")
 	expect.ok(logic.probe()["lit"], "and the lights that were on")
 	saves.erase(SaveService.MANUAL)
+
+
+## Feeds every saveable node a state that is not the one it has, and then checks
+## that the node noticed.
+##
+## The check matters more than the derangement. An earlier version of this only
+## called `load_state` with wrong values and then reloaded the slot, which is
+## circular: a `load_state` that does nothing leaves the node holding its
+## original state, the reload restores what was never lost, and the test passes
+## while the device is broken. Verified by breaking one on purpose -- it passed.
+## So the contract asserted here is the honest one: **`load_state` must be
+## observable in the next `save_state`.** A node that swallows what it is given
+## is named and fails.
+##
+## Returns the keys that refused to change, which is the failure worth printing.
+func _derange(tree: SceneTree) -> Array[String]:
+	var refused: Array[String] = []
+	for node in tree.get_nodes_in_group(&"saveable"):
+		var state: Dictionary = node.call("save_state")
+		var wrong := {}
+		var changeable := false
+		for field in state:
+			wrong[field] = _opposite(state[field])
+			changeable = changeable or str(wrong[field]) != str(state[field])
+		if not changeable:
+			continue  # nothing here this check knows how to make wrong
+		node.call("load_state", wrong)
+		if str(node.call("save_state")) == str(state):
+			refused.append("%s ignored load_state" % node.get("save_key"))
+	return refused
+
+
+## The wrong value for a field, whatever kind of field it is. Anything exotic is
+## left alone -- a value we cannot invert is one this check cannot speak about,
+## and pretending otherwise would be worse than skipping it.
+##
+## Arrays are opposed element by element rather than emptied. Emptying them is
+## the obvious thing and it is wrong: a `load_state` that sensibly guards on
+## `at.size() == 3` before trusting a position reads an empty array as absent,
+## changes nothing, and gets reported as broken when it is the only one here
+## doing the careful thing.
+func _opposite(value: Variant) -> Variant:
+	match typeof(value):
+		TYPE_BOOL:
+			return not value
+		TYPE_INT:
+			return int(value) + 7
+		TYPE_FLOAT:
+			return float(value) + 7.0
+		TYPE_STRING, TYPE_STRING_NAME:
+			return "%s-wrong" % value
+		TYPE_ARRAY:
+			return (value as Array).map(_opposite)
+	return value
+
+
+## Which keys did not survive the round trip, named so the failure says which
+## device is broken rather than that one of them is.
+func _differences(before: Dictionary, after: Dictionary) -> Array[String]:
+	var lost: Array[String] = []
+	for key in before:
+		if not after.has(key):
+			lost.append("%s vanished" % key)
+		elif str(after[key]) != str(before[key]):
+			lost.append("%s is %s, was %s" % [key, after[key], before[key]])
+	return lost

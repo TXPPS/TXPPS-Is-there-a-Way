@@ -39,7 +39,30 @@ tests/case_render.gd   post-stack wiring, reduce motion, and the fear number
 tests/case_audio.gd    buses, the score's layers, occlusion, reverb, footsteps
 tests/case_reading.gd  picking a page up, scrolling it, and remembering it
 tests/case_act1.gd     the whole act, from the first breaker to the door
+tests/case_reach.gd    can a player actually stand somewhere and touch each thing
 ```
+
+### What `case_reach` is for
+
+`case_act1` proves the act can be *completed* — but it completes it by putting
+the player at a known-good spot in front of each device, which is exactly the
+information a level author is most likely to get wrong. `case_reach` asks the
+opposite question: given only the prop's own transform, where would a person
+have to stand, and can they see it from there?
+
+It steps back `1.15 m` along the prop's facing, drops to whatever floor is
+underneath, aims from `1.62 m` eye height, and calls the real `Interactor`. It
+reports why it failed rather than merely that it did — no floor, wrong thing
+found, sight line blocked, or nothing there at all — because "unreachable" on
+its own tells you nothing about which of four unrelated bugs you have.
+
+It was written after the act was already green and immediately found three:
+every east- and west-facing prop was mounted facing *into* its wall, the
+interactor could target through concrete, and the demo lock was behind a
+cabinet. None of them are visible in a screenshot: the props were flat panels
+on a wall, and a wall-mounted panel looks identical from the front whichever
+way its normal points. It is the cheapest test in the suite by far and it has
+the best record.
 
 Two things about the harness are worth knowing before adding a case.
 
@@ -95,6 +118,7 @@ mix untestable until the wire comes off for the duration.
 | audio | a volume slider moved while ducked staying ducked; a wall that is not heard as a wall; one stride making three footsteps |
 | reading | a page that scrolls the wrong way; a document read in Act 1 that a reload forgets |
 | act1 | **is it finishable.** Every other case asserts a mechanism; this one walks the act. It also walks the stair rather than teleporting past it, because the only way to know a ramp under the nosings is right is to put a player on it and see where they end up. |
+| reach | **is it touchable.** For every interactable in the act it works out where a player would have to stand, checks there is floor there, aims from eye height, and asks the interactor what it sees. It is the only case that can fail with "line of sight blocked by StaticBody3D", and it is the case that found the most: see below. |
 
 A case that leaves the world somewhere runs before one that assumes where it is.
 `case_interact.gd` puts the player where it needs them **and** calls
@@ -364,3 +388,29 @@ browser can answer it:
 - Whether an installed home-screen PWA behaves like the browser tab.
 - Whether the touch targets are reachable with the thumbs that are actually
   holding the phone.
+
+---
+
+## One warning about writing a test that disturbs state
+
+`case_act1`'s save check deranges every saveable node and then asserts it comes
+back. The first version disturbed each node *by calling its own `load_state`*,
+which is circular and proves nothing: a `load_state` that quietly does nothing
+leaves the node holding the state it already had, the reload restores what was
+never lost, and the check passes over a broken device. That was not reasoned
+out — it was found by breaking `DeviceToggle.load_state` on purpose and watching
+the suite stay green.
+
+The fix is to assert the contract directly: **whatever `load_state` is given
+must be visible in the next `save_state`.** A node that swallows its input is
+named and fails.
+
+Two lessons worth keeping:
+
+- **A new check earns its place by failing.** Break the thing it covers and
+  watch it go red before believing it. Three checks in this suite were rewritten
+  after failing that.
+- **A false positive is a bug in the check.** The same sweep first accused
+  `Player` of ignoring `load_state`; it was the sweep emptying arrays, and the
+  player's `at.size() == 3` guard correctly reading an empty array as absent.
+  The careful code looked broken to the careless test.

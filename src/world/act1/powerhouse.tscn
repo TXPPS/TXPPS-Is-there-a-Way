@@ -232,32 +232,32 @@ material = ExtResource("6_steel")
 [node name="Lamps" type="Node3D" parent="."]
 
 [node name="HallWest" parent="Lamps" instance=ExtResource("8_lamp")]
-transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -7.88, 3.3, -2.5)
+transform = Transform3D(0.0, 0.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.0, -7.88, 3.3, -2.5)
 circuit = &"LT-1"
 lit = false
 
 [node name="HallEast" parent="Lamps" instance=ExtResource("8_lamp")]
-transform = Transform3D(0.0, 0.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 7.88, 3.3, 2.5)
+transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 7.88, 3.3, 2.5)
 circuit = &"LT-1"
 lit = false
 
 [node name="Switchgear" parent="Lamps" instance=ExtResource("8_lamp")]
-transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -14.28, 2.3, -2.0)
+transform = Transform3D(0.0, 0.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.0, -14.28, 2.3, -2.0)
 circuit = &"LT-2"
 lit = false
 
 [node name="Office" parent="Lamps" instance=ExtResource("8_lamp")]
-transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -13.28, 2.1, 3.0)
+transform = Transform3D(0.0, 0.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.0, -13.28, 2.1, 3.0)
 circuit = &"LT-2"
 lit = false
 
 [node name="ShaftTop" parent="Lamps" instance=ExtResource("8_lamp")]
-transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 8.52, 3.2, 0.0)
+transform = Transform3D(0.0, 0.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 8.52, 3.2, 0.0)
 circuit = &"LT-6"
 lit = false
 
 [node name="GalleryFar" parent="Lamps" instance=ExtResource("8_lamp")]
-transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 8.52, -2.0, 26.0)
+transform = Transform3D(0.0, 0.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 8.52, -2.0, 26.0)
 circuit = &"LT-4"
 lit = false
 
@@ -305,17 +305,17 @@ predelay_msec = 16.0
 shape = SubResource("BoxShape3D_gallery")
 
 [node name="SequenceCard" parent="." instance=ExtResource("14_page")]
-transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -7.97, 1.5, -4.0)
+transform = Transform3D(0.0, 0.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.0, -7.97, 1.5, -4.0)
 document = ExtResource("15_seq")
 prompt_override = "Read the card"
 
 [node name="ThirdStepCard" parent="." instance=ExtResource("14_page")]
-transform = Transform3D(0.0, 0.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 11.37, 1.4, 2.2)
+transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 11.37, 1.4, 2.2)
 document = ExtResource("17_step")
 prompt_override = "Read the card"
 
 [node name="BatteryTag" parent="." instance=ExtResource("14_page")]
-transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -14.37, 1.5, -0.6)
+transform = Transform3D(0.0, 0.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.0, -14.37, 1.5, -0.6)
 document = ExtResource("18_batt")
 prompt_override = "Read the service tag"
 
@@ -338,10 +338,10 @@ prompt_override = "Read the log"
 ; timeclock in Act 3; it is here so the focused-interaction framework stays
 ; exercised while Act 1's own puzzles are built.
 [node name="DialLock" parent="." instance=ExtResource("21_dial")]
-transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -14.37, 1.55, -3.2)
+transform = Transform3D(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -11.4, 1.55, -4.47)
 
 [node name="Panel" type="Node3D" parent="."]
-transform = Transform3D(1.0, 0.0, -0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -6.0, 0.0, -4.96)
+transform = Transform3D(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, -0.0, 0.0, 1.0, -6.0, 0.0, -4.96)
 
 [node name="Backplate" type="Node3D" parent="Panel"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, -0.05)
@@ -411,33 +411,33 @@ prompt_when_off = "Close the bus main"
 travel = Vector3(0, -0.09, 0)
 
 [node name="SwitchgearDoor" parent="." instance=ExtResource("25_door")]
-transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -8.2, 1.12, -2.0)
+transform = Transform3D(0.0, 0.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.0, -8.2, 1.12, -2.0)
 save_key = &"door_switchgear"
 travel = Vector3(0, 2.3, 0)
 
 [node name="GalleryDoor" parent="." instance=ExtResource("25_door")]
-transform = Transform3D(1.0, 0.0, -0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 9.9, -2.78, 8.2)
+transform = Transform3D(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, -0.0, 0.0, 1.0, 9.9, -2.78, 8.2)
 save_key = &"door_gallery"
 travel = Vector3(0, 2.3, 0)
 
 [node name="ShelterDoor" parent="." instance=ExtResource("25_door")]
-transform = Transform3D(1.0, 0.0, -0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 9.9, -2.78, 28.6)
+transform = Transform3D(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, -0.0, 0.0, 1.0, 9.9, -2.78, 28.6)
 save_key = &"door_shelter"
 travel = Vector3(0, 2.3, 0)
 seconds = 5.5
 
 [node name="Wrench" parent="." instance=ExtResource("24_push")]
-transform = Transform3D(0.0, 0.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 11.34, -2.5, 7.6)
+transform = Transform3D(0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 11.37, -2.5, 7.6)
 label = "on its hook"
 prompt = "Take the dog wrench"
 
 [node name="SeizedDog" parent="." instance=ExtResource("24_push")]
-transform = Transform3D(-1.0, 0.0, -0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0, 10.55, -2.9, 8.05)
+transform = Transform3D(-1.0, 0.0, 0.0, 0.0, 1.0, 0.0, -0.0, 0.0, -1.0, 10.55, -2.9, 8.05)
 label = "eighth dog"
 prompt = "Work the last dog"
 
 [node name="AdmitBell" parent="." instance=ExtResource("24_push")]
-transform = Transform3D(-1.0, 0.0, -0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0, 10.7, -2.6, 28.35)
+transform = Transform3D(-1.0, 0.0, 0.0, 0.0, 1.0, 0.0, -0.0, 0.0, -1.0, 10.7, -2.6, 28.35)
 label = "SHELTER — RING FOR ADMITTANCE"
 prompt = "Ring for admittance"
 sound = ExtResource("27_bell")

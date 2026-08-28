@@ -25,6 +25,10 @@ human.
 - **Act 1 is playable start to finish** and `tests/case_act1.gd` walks it every
   build — including down the stair, which is the only way to know a ramp under
   the nosings is right.
+- **Every interactable is provably reachable.** `tests/case_reach.gd` works out
+  where a player would have to stand for each one and asks the interactor what
+  it can see from there. Written last, it found the three worst bugs in the act
+  (below), none of which any screenshot or existing test could show.
 - The **story bible** exists (`STORY.md`), the puzzle set is derived from it
   (`PUZZLES.md`), and every puzzle device in the game traces to a line in the
   programme's equipment schedule.
@@ -277,11 +281,18 @@ Report anything **not** on this list.
   branch.** It costs nothing now — the deploy job declares no environment — but
   it means the run page shows no environment URL. Fixable in Settings →
   Environments → github-pages if you ever want that back.
-- **There is nothing yet worth saving.** Save/load works and is tested, but the
-  only state in the world is where you are standing and what the demo dial
-  reads. It becomes meaningful in P5.
-- **Nothing calls `checkpoint()` yet** except the suite. Autosave therefore only
-  fires when the tab goes away. P5 puts checkpoints at the doors.
+- **A save restores the act's state, not the act's staging.** Every latch,
+  breaker, valve and door reports its own state and comes back — `case_act1`
+  saves mid-act, feeds *every* saveable node a deliberately wrong state, checks
+  each one actually noticed, reloads, and compares the whole collected
+  dictionary key by key — and `PowerhouseLogic` fires a checkpoint at each of
+  the five gates. What a reload does *not* restore is
+  anything transient that was mid-flight when you left: a door part-way through
+  its swing finishes closed, the admit bell's eleven-second delay restarts, and
+  a page you were holding is put down. All three are recoverable in play, none
+  of them can strand you, and fixing them properly means saving timers rather
+  than states — which is worth doing when there is a second act to lose, not
+  now.
 - **Haptics do nothing on iOS.** The setting exists and the call site is right;
   Safari does not implement `navigator.vibrate`, so on this device it is a no-op
   by the platform's choice rather than ours. Leave it on.

@@ -8,9 +8,9 @@ extends RefCounted
 
 const TOUCH := preload("res://tests/touch.gd")
 ## Just past a step's reach of the plate, looking straight at it.
-## In the switchgear room, a step off the west wall the lock is on.
-const STAND_AT := Vector3(-13.0, 0.0, -3.2)
-const FACING := 90.0
+## In the switchgear room, a step off the north wall the lock is on.
+const STAND_AT := Vector3(-11.4, 0.0, -3.2)
+const FACING := 0.0
 ## Slightly more than one click, so each drag lands exactly one step.
 const STEP_TRAVEL := 47.0
 

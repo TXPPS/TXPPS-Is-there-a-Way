@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://src/world/readable.gd" id="1_readable"]
 [ext_resource type="Script" path="res://src/world/interactable.gd" id="2_zone"]
-[ext_resource type="Material" path="res://assets/materials/graybox_paint.tres" id="3_paper"]
+[ext_resource type="Material" path="res://assets/materials/graybox_paper.tres" id="3_paper"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_page"]
 size = Vector3(0.21, 0.297, 0.004)
