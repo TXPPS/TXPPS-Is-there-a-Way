@@ -40,8 +40,10 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 		"the act's checkpoints fire once each, in order (%s)" % [seen]
 	)
 	await _sounds(tree, house, player, expect)
-	await _the_edge(tree, main, house, player, expect)
+	# Saving before the edge, deliberately: walking through the shelter door
+	# frees this act, and `logic` with it.
 	await _saving(tree, saves, logic, expect)
+	await _the_edge(tree, main, house, player, expect)
 
 
 func _dark(tree: SceneTree, house: Node3D, logic: PowerhouseLogic, expect: RefCounted) -> void:
@@ -263,12 +265,26 @@ func _the_edge(
 	)
 
 	reader.close()
+	# The swap is deferred -- freeing the act from inside a node of that act is
+	# the one thing that is never safe -- so it lands on the next idle frame.
+	await tree.process_frame
 	await tree.process_frame
 	expect.near(float(post.probe()["exposure"]), 1.0, 0.02, "putting it down brings the world back")
+
+	var runner: ActRunner = main.get_node("Acts")
+	expect.eq(runner.current(), 1, "and the shelter is what comes back")
+	expect.ok(main.get_node_or_null("Powerhouse") == null, "the powerhouse is gone, not merely hidden")
+	expect.ok(main.get_node_or_null("Shelter") != null, "and the shelter is mounted in its place")
 	expect.ok(
-		player.global_position.z < 26.0,
-		"and puts the player back in the gallery (z %.1f)" % player.global_position.z
+		player.global_position.z > 11.0 and absf(player.global_position.x) < 2.0,
+		"with the player in the shelter vestibule (%.1f, %.1f)"
+			% [player.global_position.x, player.global_position.z]
 	)
+
+	# Every case after this one expects Act 1, so put it back. A case that
+	# leaves the world somewhere else is a case that breaks its neighbours.
+	runner.load_act(0)
+	await tree.physics_frame
 
 
 func _saving(
@@ -356,11 +372,40 @@ func _opposite(value: Variant) -> Variant:
 
 ## Which keys did not survive the round trip, named so the failure says which
 ## device is broken rather than that one of them is.
+##
+## Numbers are compared with a tolerance and everything else exactly. That is
+## not slack: a physics body settles under gravity in the frames between saving
+## and loading, so the player comes back four millimetres lower than they left
+## and no amount of correctness will make those two floats equal. A restore that
+## has actually failed is out by metres, or by a bool.
+const SLACK := 0.01
+
+
 func _differences(before: Dictionary, after: Dictionary) -> Array[String]:
 	var lost: Array[String] = []
 	for key in before:
 		if not after.has(key):
 			lost.append("%s vanished" % key)
-		elif str(after[key]) != str(before[key]):
+		elif not _alike(before[key], after[key]):
 			lost.append("%s is %s, was %s" % [key, after[key], before[key]])
 	return lost
+
+
+func _alike(a: Variant, b: Variant) -> bool:
+	if a is float or a is int:
+		return (b is float or b is int) and absf(float(a) - float(b)) <= SLACK
+	if a is Array:
+		if not (b is Array) or (a as Array).size() != (b as Array).size():
+			return false
+		for i in (a as Array).size():
+			if not _alike(a[i], b[i]):
+				return false
+		return true
+	if a is Dictionary:
+		if not (b is Dictionary) or (a as Dictionary).size() != (b as Dictionary).size():
+			return false
+		for key in a as Dictionary:
+			if not (b as Dictionary).has(key) or not _alike(a[key], b[key]):
+				return false
+		return true
+	return a == b

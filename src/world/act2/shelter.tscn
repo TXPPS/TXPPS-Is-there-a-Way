@@ -1,0 +1,627 @@
+[gd_scene load_steps=39 format=3]
+
+[ext_resource type="Script" path="res://src/world/kit/room_box.gd" id="1_room"]
+[ext_resource type="Script" path="res://src/world/kit/opening.gd" id="2_open"]
+[ext_resource type="Script" path="res://src/world/kit/slab.gd" id="3_slab"]
+[ext_resource type="Material" path="res://assets/materials/graybox_concrete.tres" id="4_concrete"]
+[ext_resource type="Material" path="res://assets/materials/graybox_steel.tres" id="5_steel"]
+[ext_resource type="Material" path="res://assets/materials/graybox_paint.tres" id="6_paint"]
+[ext_resource type="Material" path="res://assets/materials/graybox_silt.tres" id="7_silt"]
+[ext_resource type="Material" path="res://assets/materials/graybox_paper.tres" id="7b_paper"]
+[ext_resource type="PackedScene" path="res://src/world/kit/bulkhead_lamp.tscn" id="8_lamp"]
+[ext_resource type="Script" path="res://src/world/surface_tag.gd" id="9_tag"]
+[ext_resource type="Resource" path="res://assets/surfaces/concrete.tres" id="10_surface"]
+[ext_resource type="Script" path="res://src/audio/reverb_zone.gd" id="11_verb"]
+[ext_resource type="PackedScene" path="res://src/world/readable.tscn" id="12_page"]
+[ext_resource type="PackedScene" path="res://src/world/devices/device_toggle.tscn" id="13_toggle"]
+[ext_resource type="PackedScene" path="res://src/world/devices/device_push.tscn" id="14_push"]
+[ext_resource type="PackedScene" path="res://src/world/devices/device_door.tscn" id="15_door"]
+[ext_resource type="PackedScene" path="res://src/world/devices/device_valve.tscn" id="16_valve"]
+[ext_resource type="PackedScene" path="res://src/world/devices/device_selector.tscn" id="17_selector"]
+[ext_resource type="Script" path="res://src/world/act2/shelter_logic.gd" id="18_logic"]
+[ext_resource type="Script" path="res://src/world/act1/act_end.gd" id="19_end"]
+[ext_resource type="Resource" path="res://assets/documents/act_end_card.tres" id="20_card"]
+[ext_resource type="Script" path="res://src/world/act2/light_seam.gd" id="21_seam"]
+[ext_resource type="AudioStream" path="res://assets/audio/amb_powerhouse.wav" id="22_tone"]
+[ext_resource type="Resource" path="res://assets/documents/d07_stocking_manifest.tres" id="doc_d07"]
+[ext_resource type="Resource" path="res://assets/documents/d08_ration_card.tres" id="doc_d08"]
+[ext_resource type="Resource" path="res://assets/documents/d09_generator_card.tres" id="doc_d09"]
+[ext_resource type="Resource" path="res://assets/documents/operating_card.tres" id="doc_d09a"]
+[ext_resource type="Resource" path="res://assets/documents/shelter_panel_schedule.tres" id="doc_d09b"]
+[ext_resource type="Resource" path="res://assets/documents/d10_postcard.tres" id="doc_d10"]
+[ext_resource type="Resource" path="res://assets/documents/d11_occupancy_notice.tres" id="doc_d11"]
+[ext_resource type="Resource" path="res://assets/documents/d12_work_unit_cover.tres" id="doc_d12"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_end"]
+size = Vector3(2.6, 2.2, 0.6)
+
+[sub_resource type="Resource" id="Opening_1"]
+script = ExtResource("2_open")
+wall = 1
+offset = 0
+width = 1.2
+height = 2.1
+sill = 0.0
+
+[sub_resource type="Resource" id="Opening_2"]
+script = ExtResource("2_open")
+wall = 2
+offset = -4
+width = 1.4
+height = 2.2
+sill = 0.0
+
+[sub_resource type="Resource" id="Opening_3"]
+script = ExtResource("2_open")
+wall = 2
+offset = 5.5
+width = 1
+height = 2.1
+sill = 0.0
+
+[sub_resource type="Resource" id="Opening_4"]
+script = ExtResource("2_open")
+wall = 3
+offset = 5
+width = 1
+height = 2.1
+sill = 0.0
+
+[sub_resource type="Resource" id="Opening_5"]
+script = ExtResource("2_open")
+wall = 3
+offset = -3
+width = 0.9
+height = 2.1
+sill = 0.0
+
+[sub_resource type="Resource" id="Opening_6"]
+script = ExtResource("2_open")
+wall = 0
+offset = 0
+width = 1.2
+height = 2.1
+sill = 0.0
+
+[node name="Shelter" type="Node3D" groups=["act"]]
+
+[node name="Corridor" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+script = ExtResource("1_room")
+interior = Vector3(2.5, 2.6, 20)
+thickness = 0.4
+openings = Array[ExtResource("2_open")]([SubResource("Opening_1"), SubResource("Opening_2"), SubResource("Opening_3"), SubResource("Opening_4"), SubResource("Opening_5"), SubResource("Opening_6")])
+wall_material = ExtResource("4_concrete")
+floor_material = ExtResource("4_concrete")
+
+[node name="Surface" type="Node" parent="Corridor"]
+script = ExtResource("9_tag")
+surface = ExtResource("10_surface")
+
+[node name="Vestibule" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 11.9)
+script = ExtResource("1_room")
+interior = Vector3(4, 2.6, 3)
+thickness = 0.4
+omit_walls = Array[int]([0])
+wall_material = ExtResource("4_concrete")
+floor_material = ExtResource("4_concrete")
+
+[node name="Surface" type="Node" parent="Vestibule"]
+script = ExtResource("9_tag")
+surface = ExtResource("10_surface")
+
+[node name="PlantRoom" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.15, 0, -4)
+script = ExtResource("1_room")
+interior = Vector3(7, 3, 7)
+thickness = 0.4
+omit_walls = Array[int]([3])
+wall_material = ExtResource("4_concrete")
+floor_material = ExtResource("4_concrete")
+
+[node name="Surface" type="Node" parent="PlantRoom"]
+script = ExtResource("9_tag")
+surface = ExtResource("10_surface")
+
+[node name="Mess" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.65, 0, 5.5)
+script = ExtResource("1_room")
+interior = Vector3(6, 2.6, 6)
+thickness = 0.4
+omit_walls = Array[int]([3])
+wall_material = ExtResource("4_concrete")
+floor_material = ExtResource("4_concrete")
+
+[node name="Surface" type="Node" parent="Mess"]
+script = ExtResource("9_tag")
+surface = ExtResource("10_surface")
+
+[node name="BunkRoom" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.65, 0, 5)
+script = ExtResource("1_room")
+interior = Vector3(6, 2.6, 5)
+thickness = 0.4
+omit_walls = Array[int]([2])
+wall_material = ExtResource("4_concrete")
+floor_material = ExtResource("4_concrete")
+
+[node name="Surface" type="Node" parent="BunkRoom"]
+script = ExtResource("9_tag")
+surface = ExtResource("10_surface")
+
+[node name="StoreRoom" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.15, 0, -3)
+script = ExtResource("1_room")
+interior = Vector3(3, 2.6, 4)
+thickness = 0.4
+omit_walls = Array[int]([2])
+wall_material = ExtResource("4_concrete")
+floor_material = ExtResource("4_concrete")
+
+[node name="Surface" type="Node" parent="StoreRoom"]
+script = ExtResource("9_tag")
+surface = ExtResource("10_surface")
+
+[node name="StairHead" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12.4)
+script = ExtResource("1_room")
+interior = Vector3(3, 2.6, 4)
+thickness = 0.4
+omit_walls = Array[int]([1])
+wall_material = ExtResource("4_concrete")
+floor_material = ExtResource("4_concrete")
+
+[node name="Surface" type="Node" parent="StairHead"]
+script = ExtResource("9_tag")
+surface = ExtResource("10_surface")
+
+[node name="Lamps" type="Node3D" parent="."]
+
+[node name="CorridorSouth" parent="Lamps" instance=ExtResource("8_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -1.13, 2.2, 7)
+circuit = &"SHLT"
+lit = false
+
+[node name="CorridorMid" parent="Lamps" instance=ExtResource("8_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -1.13, 2.2, 0)
+circuit = &"SHLT"
+lit = false
+
+[node name="CorridorNorth" parent="Lamps" instance=ExtResource("8_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -1.13, 2.2, -7)
+circuit = &"SHLT"
+lit = false
+
+[node name="Plant" parent="Lamps" instance=ExtResource("8_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -8.53, 2.5, -4)
+circuit = &"SHLT"
+lit = false
+
+[node name="Mess" parent="Lamps" instance=ExtResource("8_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -7.53, 2.2, 5.5)
+circuit = &"SHLT"
+lit = false
+
+[node name="Bunk" parent="Lamps" instance=ExtResource("8_lamp")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, 7.53, 2.2, 5)
+circuit = &"SHLT"
+lit = false
+
+[node name="Store" parent="Lamps" instance=ExtResource("8_lamp")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, 4.53, 2.2, -3)
+circuit = &"SHLT"
+lit = false
+
+[node name="Vestibule" parent="Lamps" instance=ExtResource("8_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -1.88, 2.2, 11.9)
+circuit = &"SHLT"
+lit = false
+
+[node name="StairHead" parent="Lamps" instance=ExtResource("8_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -1.38, 2.2, -12.4)
+circuit = &"SHLT"
+lit = false
+
+[node name="Plant" type="Node3D" parent="."]
+
+[node name="Pad" type="Node3D" parent="Plant"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.2, 0.07, -5.9)
+script = ExtResource("3_slab")
+size = Vector3(3, 0.15, 1.8)
+material = ExtResource("4_concrete")
+solid = true
+
+[node name="Set" type="Node3D" parent="Plant"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.2, 0.85, -5.9)
+script = ExtResource("3_slab")
+size = Vector3(2.6, 1.4, 1.4)
+material = ExtResource("6_paint")
+solid = true
+
+[node name="Exhaust" type="Node3D" parent="Plant"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.3, 1.9, -6.5)
+script = ExtResource("3_slab")
+size = Vector3(0.24, 1.9, 0.24)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="DayTank" type="Node3D" parent="Plant"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.1, 1.85, -2.6)
+script = ExtResource("3_slab")
+size = Vector3(0.9, 0.9, 0.7)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="Cabinet" type="Node3D" parent="Plant"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.4, 1.5, -7.42)
+script = ExtResource("3_slab")
+size = Vector3(1.1, 0.9, 0.16)
+material = ExtResource("6_paint")
+solid = true
+
+[node name="SetBoard" type="Node3D" parent="Plant"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 1.4, -7.43)
+script = ExtResource("3_slab")
+size = Vector3(1.4, 0.7, 0.14)
+material = ExtResource("6_paint")
+solid = true
+
+[node name="DayTankValve" parent="Plant" instance=ExtResource("16_valve")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -8.5, 1.25, -2.6)
+save_key = &"day_tank"
+label = "DAY TANK ISOL"
+turns_to_open = 3
+
+[node name="Starter" parent="Plant" instance=ExtResource("14_push")]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, 0, 1, -6.95, 1.5, -7.36)
+label = "START"
+prompt = "Press start"
+
+[node name="SetMain" parent="Plant" instance=ExtResource("13_toggle")]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, 0, 1, -6.05, 1.5, -7.36)
+save_key = &"set_main"
+label = "SET MAIN"
+on = false
+prompt_when_on = "Open the set main"
+prompt_when_off = "Close the set main"
+
+[node name="TransferSwitch" parent="Plant" instance=ExtResource("17_selector")]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, 0, 1, -4.4, 1.4, -7.34)
+save_key = &"transfer"
+index = 1
+
+[node name="Panel" type="Node3D" parent="."]
+
+[node name="Board" type="Node3D" parent="Panel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.16, 1.5, -6.5)
+script = ExtResource("3_slab")
+size = Vector3(0.08, 1.3, 1)
+material = ExtResource("6_paint")
+solid = true
+
+[node name="Breakers" type="Node3D" parent="Panel"]
+
+[node name="Sump" parent="Panel/Breakers" instance=ExtResource("13_toggle")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.13, 1.85, -6.75)
+save_key = &"Sump"
+label = "1  SUMP PUMP 7.5 HP"
+on = true
+load_kw = 6.9
+surge_kw = 26
+prompt_when_on = "Open the breaker"
+prompt_when_off = "Close the breaker"
+
+[node name="AnnexLighting" parent="Panel/Breakers" instance=ExtResource("13_toggle")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.13, 1.65, -6.75)
+save_key = &"AnnexLighting"
+label = "3  ANNEX LIGHTING"
+on = true
+load_kw = 4.4
+prompt_when_on = "Open the breaker"
+prompt_when_off = "Close the breaker"
+
+[node name="ShelterLighting" parent="Panel/Breakers" instance=ExtResource("13_toggle")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.13, 1.45, -6.75)
+save_key = &"ShelterLighting"
+label = "5  SHELTER LIGHTING"
+on = true
+load_kw = 2.6
+prompt_when_on = "Open the breaker"
+prompt_when_off = "Close the breaker"
+
+[node name="Mess" parent="Panel/Breakers" instance=ExtResource("13_toggle")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.13, 1.25, -6.75)
+save_key = &"Mess"
+label = "7  MESS & GALLEY"
+on = true
+load_kw = 5.2
+prompt_when_on = "Open the breaker"
+prompt_when_off = "Close the breaker"
+
+[node name="Vent" parent="Panel/Breakers" instance=ExtResource("13_toggle")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.13, 1.05, -6.75)
+save_key = &"Vent"
+label = "9  VENT FAN 3 HP"
+on = true
+load_kw = 2.8
+surge_kw = 8.4
+prompt_when_on = "Open the breaker"
+prompt_when_off = "Close the breaker"
+
+[node name="Chambers" parent="Panel/Breakers" instance=ExtResource("13_toggle")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.13, 1.85, -6.25)
+save_key = &"Chambers"
+label = "11 CHAMBER LUMINAIRES"
+on = true
+load_kw = 2.5
+prompt_when_on = "Open the breaker"
+prompt_when_off = "Close the breaker"
+
+[node name="Recorders" parent="Panel/Breakers" instance=ExtResource("13_toggle")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.13, 1.65, -6.25)
+save_key = &"Recorders"
+label = "13 RECORDER BAY"
+on = true
+load_kw = 3.1
+prompt_when_on = "Open the breaker"
+prompt_when_off = "Close the breaker"
+
+[node name="Well" parent="Panel/Breakers" instance=ExtResource("13_toggle")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.13, 1.45, -6.25)
+save_key = &"Well"
+label = "15 WELL PUMP 2 HP"
+on = true
+load_kw = 1.9
+surge_kw = 7.6
+prompt_when_on = "Open the breaker"
+prompt_when_off = "Close the breaker"
+
+[node name="Heater" parent="Panel/Breakers" instance=ExtResource("13_toggle")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.13, 1.25, -6.25)
+save_key = &"Heater"
+label = "17 UNIT HEATER"
+on = true
+load_kw = 9
+prompt_when_on = "Open the breaker"
+prompt_when_off = "Close the breaker"
+
+[node name="Dressing" type="Node3D" parent="."]
+
+[node name="BunkMadeFrame" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6, 0.55, 3.4)
+script = ExtResource("3_slab")
+size = Vector3(0.9, 0.1, 1.9)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="BunkMade" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6, 0.68, 3.4)
+script = ExtResource("3_slab")
+size = Vector3(0.86, 0.16, 1.8)
+material = ExtResource("7b_paper")
+solid = true
+
+[node name="BunkMadeShelf" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6, 0.88, 3.4)
+script = ExtResource("3_slab")
+size = Vector3(0.34, 0.05, 0.5)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="BunkStripped" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6, 0.55, 6.4)
+script = ExtResource("3_slab")
+size = Vector3(0.9, 0.1, 1.9)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="BunkStrippedUpper" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6, 1.45, 6.4)
+script = ExtResource("3_slab")
+size = Vector3(0.9, 0.08, 1.9)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="Drum1" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1, 0.43, -4.4)
+script = ExtResource("3_slab")
+size = Vector3(0.56, 0.86, 0.56)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="Drum2" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.76, 0.43, -4.4)
+script = ExtResource("3_slab")
+size = Vector3(0.56, 0.86, 0.56)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="Drum3" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1, 0.43, -3.74)
+script = ExtResource("3_slab")
+size = Vector3(0.56, 0.86, 0.56)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="Drum4" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.76, 0.43, -3.74)
+script = ExtResource("3_slab")
+size = Vector3(0.56, 0.86, 0.56)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="Shelf" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.15, 1.2, -1.6)
+script = ExtResource("3_slab")
+size = Vector3(2.6, 0.06, 0.5)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="Carton1" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1, 1.38, -1.6)
+script = ExtResource("3_slab")
+size = Vector3(0.4, 0.3, 0.4)
+material = ExtResource("6_paint")
+solid = true
+
+[node name="Carton2" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.55, 1.38, -1.6)
+script = ExtResource("3_slab")
+size = Vector3(0.4, 0.3, 0.4)
+material = ExtResource("6_paint")
+solid = true
+
+[node name="Carton3" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1.38, -1.6)
+script = ExtResource("3_slab")
+size = Vector3(0.4, 0.3, 0.4)
+material = ExtResource("6_paint")
+solid = true
+
+[node name="Carton4" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.45, 1.38, -1.6)
+script = ExtResource("3_slab")
+size = Vector3(0.4, 0.3, 0.4)
+material = ExtResource("6_paint")
+solid = true
+
+[node name="Carton5" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.9, 1.38, -1.6)
+script = ExtResource("3_slab")
+size = Vector3(0.4, 0.3, 0.4)
+material = ExtResource("6_paint")
+solid = true
+
+[node name="MessTable" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.65, 0.74, 5.5)
+script = ExtResource("3_slab")
+size = Vector3(1.6, 0.06, 0.8)
+material = ExtResource("6_paint")
+solid = true
+
+[node name="MessLeg1" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.35, 0.36, 5.2)
+script = ExtResource("3_slab")
+size = Vector3(0.06, 0.72, 0.06)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="MessLeg2" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.95, 0.36, 5.8)
+script = ExtResource("3_slab")
+size = Vector3(0.06, 0.72, 0.06)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="MessChair" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.65, 0.46, 6.4)
+script = ExtResource("3_slab")
+size = Vector3(0.42, 0.05, 0.42)
+material = ExtResource("6_paint")
+solid = true
+
+[node name="TapedCable" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0.02, -2)
+script = ExtResource("3_slab")
+size = Vector3(2.2, 0.05, 0.09)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="CableTape1" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.9, 0.03, -2)
+script = ExtResource("3_slab")
+size = Vector3(0.12, 0.06, 0.13)
+material = ExtResource("7b_paper")
+solid = true
+
+[node name="CableTape2" type="Node3D" parent="Dressing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.1, 0.03, -2)
+script = ExtResource("3_slab")
+size = Vector3(0.12, 0.06, 0.13)
+material = ExtResource("7b_paper")
+solid = true
+
+[node name="Readables" type="Node3D" parent="."]
+
+[node name="StockingManifest" parent="Readables" instance=ExtResource("12_page")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -1.88, 1.55, 11.4)
+document = ExtResource("doc_d07")
+
+[node name="OccupancyNotice" parent="Readables" instance=ExtResource("12_page")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.88, 1.55, 12.3)
+document = ExtResource("doc_d11")
+
+[node name="RationCard" parent="Readables" instance=ExtResource("12_page")]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, 0, 1, 3.15, 1.5, -4.88)
+document = ExtResource("doc_d08")
+
+[node name="ServiceCard" parent="Readables" instance=ExtResource("12_page")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -8.53, 1.5, -3)
+document = ExtResource("doc_d09")
+
+[node name="OperatingCard" parent="Readables" instance=ExtResource("12_page")]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, 0, 1, -4.4, 1.78, -7.38)
+document = ExtResource("doc_d09a")
+
+[node name="PanelSchedule" parent="Readables" instance=ExtResource("12_page")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.1, 1.95, -6.5)
+document = ExtResource("doc_d09b")
+
+[node name="Postcard" parent="Readables" instance=ExtResource("12_page")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 5.6, 0.92, 3.4)
+document = ExtResource("doc_d10")
+
+[node name="WorkUnitCover" parent="Readables" instance=ExtResource("12_page")]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, 0, 1, -4.65, 0.78, 5.5)
+document = ExtResource("doc_d12")
+
+[node name="ShelterDoor" parent="." instance=ExtResource("15_door")]
+transform = Transform3D(-1, 0, -0, 0, 1, 0, 0, 0, -1, 0, 0, 13.6)
+save_key = &"shelter_door"
+open = false
+prompt = "It will not move from this side"
+available = false
+
+[node name="AnnexDoor" parent="." instance=ExtResource("15_door")]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, 0, 1, 0, 0, -14.4)
+save_key = &"annex_door"
+open = false
+available = false
+
+[node name="StairWater" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.17, -12.4)
+script = ExtResource("3_slab")
+size = Vector3(2.9, 0.34, 3.9)
+material = ExtResource("7_silt")
+solid = false
+
+[node name="Logic" type="Node" parent="." groups=["saveable"]]
+script = ExtResource("18_logic")
+save_key = &"act2"
+
+[node name="Seam" type="Node3D" parent="." groups=["saveable"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2, 1.3, 2)
+script = ExtResource("21_seam")
+save_key = &"seam"
+
+[node name="ActEnd" type="Area3D" parent="." groups=["act_end"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -15.6)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("19_end")
+card = ExtResource("20_card")
+return_to = Vector3(0, 0.1, -11.0)
+
+[node name="Shape" type="CollisionShape3D" parent="ActEnd"]
+shape = SubResource("BoxShape3D_end")
+
+[node name="Air" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+stream = ExtResource("22_tone")
+volume_db = -19.0
+bus = &"SFX"
+unit_size = 22.0
+max_db = 0.0
+autoplay = true
+

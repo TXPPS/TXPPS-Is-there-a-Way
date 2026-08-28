@@ -47,6 +47,7 @@ const PUMP_SECONDS := 6.0
 @onready var _annex_light: DeviceToggle = $"../Panel/Breakers/AnnexLighting"
 @onready var _annex_door: DeviceDoor = $"../AnnexDoor"
 @onready var _stair_water: Node3D = $"../StairWater"
+@onready var _seam: LightSeam = $"../Seam"
 
 var _running := false
 var _live := false
@@ -259,6 +260,10 @@ func _apply() -> void:
 		_annex_door.open = true
 		_mark("annex")
 		annex_found.emit()
+		# The act's last beat, in a corridor the player has already walked.
+		# Once, and never explained. See LightSeam.
+		if _seam != null:
+			_seam.show_once()
 
 
 func _mark(id: String) -> void:

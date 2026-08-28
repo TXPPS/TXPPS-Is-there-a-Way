@@ -15,8 +15,18 @@ signal reached
 
 @export var card: Document
 @export_range(0.5, 8.0, 0.1) var fade_seconds: float = 2.2
-## Where the player is put when they put the card down.
+## Where the player is put when they put the card down. Used only when this is
+## the edge of what is built; an act that hands on to another does not need it.
 @export var return_to: Vector3 = Vector3(9.9, -3.8, 24.0)
+
+## The act to mount when the card is put down, or -1 for "there is no next one".
+## The card reads "End of Act One" either way -- the difference is whether the
+## player is put back where they were standing or somewhere else entirely.
+@export var next_act: int = -1
+
+## Where the player stands at the start of the act this hands on to.
+@export var arrive_at: Vector3 = Vector3.ZERO
+@export var arrive_facing: float = 0.0
 
 var _post: PostStack
 var _reader: Reader
@@ -55,6 +65,18 @@ func _process(delta: float) -> void:
 
 
 func _restore() -> void:
+	var runner := get_tree().get_first_node_in_group(&"act_runner") as ActRunner
+	if next_act >= 0 and runner != null:
+		# The player and the post stack are not part of the act, so they can be
+		# set up now. The swap itself is deferred: `load_act` frees the act this
+		# node is inside, and freeing the object whose method is running is the
+		# one thing that is never safe.
+		_player.global_position = arrive_at
+		_player.face(deg_to_rad(arrive_facing), 0.0)
+		_player.velocity = Vector3.ZERO
+		_post.on_setting(&"brightness", 1.0)
+		runner.load_act.call_deferred(next_act)
+		return
 	_player.global_position = return_to
 	_player.velocity = Vector3.ZERO
 	_post.on_setting(&"brightness", 1.0)

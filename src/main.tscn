@@ -16,6 +16,8 @@
 [ext_resource type="Resource" path="res://src/audio/score_tuning.tres" id="14_scoretune"]
 [ext_resource type="PackedScene" path="res://src/ui/reader.tscn" id="15_reader"]
 [ext_resource type="Script" path="res://src/core/journal.gd" id="16_journal"]
+[ext_resource type="Script" path="res://src/world/act_runner.gd" id="17_runner"]
+[ext_resource type="PackedScene" path="res://src/world/act2/shelter.tscn" id="18_shelter"]
 
 [sub_resource type="Environment" id="Environment_main"]
 background_mode = 1
@@ -76,6 +78,14 @@ script = ExtResource("16_journal")
 [node name="Score" type="Node" parent="." groups=["score"]]
 script = ExtResource("13_score")
 tuning = ExtResource("14_scoretune")
+
+; Exactly one act is mounted at a time; this is what swaps them. The first is
+; placed by hand below so that opening the project shows a level rather than an
+; empty root, and the runner adopts it. See ActRunner.
+[node name="Acts" type="Node" parent="." groups=["act_runner"]]
+script = ExtResource("17_runner")
+acts = Array[PackedScene]([ExtResource("2_room"), ExtResource("18_shelter")])
+mount = NodePath("..")
 
 [node name="Powerhouse" parent="." instance=ExtResource("2_room")]
 

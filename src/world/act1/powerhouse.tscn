@@ -93,7 +93,7 @@ size = Vector3(16, 4.5, 10)
 [sub_resource type="BoxShape3D" id="BoxShape3D_gallery"]
 size = Vector3(3, 2.6, 20)
 
-[node name="Powerhouse" type="Node3D"]
+[node name="Powerhouse" type="Node3D" groups=["act"]]
 
 [node name="GeneratorHall" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.0, 0.0)
@@ -455,6 +455,11 @@ script = ExtResource("29_end")
 card = ExtResource("30_card")
 fade_seconds = 2.2
 return_to = Vector3(9.9, -3.8, 24)
+; Act 1 hands on to Act 2. The player comes out of the blast door into the
+; shelter vestibule, facing north up the spine corridor.
+next_act = 1
+arrive_at = Vector3(0, 0.1, 12.6)
+arrive_facing = 180.0
 
 [node name="Shape" type="CollisionShape3D" parent="ActEnd"]
 shape = SubResource("BoxShape3D_end")
