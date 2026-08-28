@@ -5,7 +5,8 @@
 > feels right, sounds right, or looks right, and neither is an iPhone.
 >
 > Numbered so it can be run in one sitting. Report anything that fails by its
-> number.
+> number. Ninety-five items; the Act 2 section (78 onward) is the newest and the
+> least examined.
 
 ---
 
@@ -225,12 +226,70 @@ to end every build. What no test can tell me is whether it is *playable*
 75. Read all seven documents. Any that are hard to read on the device, or whose
     line breaks are wrong, say which.
 76. Walk through the shelter door. The world fades and a card says **End of
-    Act One**. That is the edge of what is built, not a bug — putting the card
-    down puts you back in the gallery.
+    Act One**. Putting the card down now puts you in the **shelter vestibule**,
+    facing north up a corridor — Act 2 begins there.
 77. **Pause mid-act and reload the page.** The autosave fires on checkpoints and
     on the tab going away; the breakers, the doors and the wrench must all come
     back as you left them.
 
+**Act 2 — the shelter.** Three gates that are one system, plus one scene.
+`tests/case_act2.gd` walks all of it, including the wrong answer.
+
+78. You arrive in the vestibule in the dark. Two notices on the walls: the 1962
+    stocking manifest and the 1964 occupancy notice taped over the capacity
+    sign. Read both — the second is the first time the programme is named.
+79. Walk north up the corridor. **Is the corridor lamp too bright at arm's
+    length?** In the captures it clips to white a metre away. That is the one
+    thing in Act 2 I could not judge without a phone in a dark room, and it is
+    the difference between "a bare lamp is dazzling, which is true" and "the
+    fitting is broken".
+80. Find the **plant room** on the west side. Press **START**. It cranks and
+    does not fire, and it should sound like an engine turning over willingly
+    rather than a machine refusing. That sound *is* the puzzle.
+81. Read the **service card** in its frame on the wall. Forty-seven monthly
+    entries, every one ending `DAY TANK ISOL`. Say whether that lands as an
+    answer or as wallpaper — it is the only place the solution exists.
+82. Open the **day tank isolating valve**: three turns of the handwheel. Say
+    whether three is right, or tedious, or too few to register.
+83. Press **START** again. It catches and runs. **Does the running loop have an
+    audible seam?** It is sixteen seconds long and every frequency in it is a
+    multiple of 1/16 Hz, so it should not — but a click at the loop point is
+    the loudest thing in a room this quiet.
+84. Close the **SET MAIN**. Nothing happens, because the transfer switch is in
+    `TEST`. Read the operating card taped inside the cabinet door, then move the
+    switch to `EMERGENCY`.
+85. The bus picks up, the lights come on — **and about four seconds later it
+    trips**, audibly, and the set main flips open. Nothing is lost.
+86. Go to **panel DP-2** in the corridor. Read the schedule in the door. Open
+    the **UNIT HEATER** breaker (9 kW, the biggest single load) and close the
+    set main again. It holds.
+87. **Wait.** After about nine seconds the sump's float calls for it, the start
+    surge takes the bus down again, and the trip message is different from the
+    first one. **This is the act's best moment and I have never seen it happen
+    on a device.** Tell me whether it reads as your own miscalculation or as
+    the game being unfair — it is meant to be the former.
+88. Shed more (the galley is 5.2 kW; there are 73 allocations that work) and
+    close the main. It rides the sump start, the sump runs, and the stair at the
+    north end drains.
+89. Somewhere in here — twenty-four seconds after the bus first came up — the
+    **intercom** in the mess speaks. Four lines, as subtitles. Were you in a
+    position to notice? Did it land as somebody talking to you, or as a tooltip?
+90. Try shedding **SHELTER LIGHTING** while you are at the panel. You should
+    end up in the dark with a flashlight and a live bus. That is the act's
+    lesson working: light is finite and you chose where it went.
+91. The **bunk room**: one bunk made, one stripped. The **store room**: cartons
+    rotated front to back. The **mess**: one place set. None of it is remarked
+    on. Did any of it register before the intercom spoke?
+92. Walk to the **stair head**. The annex door is open. Going through it ends
+    the act — and somewhere on the way back down the corridor, **once**, there
+    is a vertical seam of light on a wall where there is no gap. No sound, no
+    consequence. **Did you see it?** A "no" is a useful answer.
+93. **Reload mid-act.** The valve, the switch, every breaker and whether the
+    sump has run must all come back. So must the act itself: you should reload
+    into the shelter, not the powerhouse.
+94. Read all six Act 2 documents plus the operating card and the panel
+    schedule. Same question as before: any line breaks wrong on the device?
+
 **Errors**
-78. If anything at all goes wrong, a toast should say what. If something goes
+95. If anything at all goes wrong, a toast should say what. If something goes
     wrong **silently**, that is itself the bug worth reporting.

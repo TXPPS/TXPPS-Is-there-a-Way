@@ -5,18 +5,23 @@
 
 ## Resume here
 
-**Unattended run, finished.** The work order was A finish P1, B write the story
-bible, C P2 rendering, D P3 audio, E Act 1 as a vertical slice, F later acts
-only if credits remained. **A through E are done and live. F was deliberately
-not started** — the work order's own rule was that a polished Act 1 plus a clear
-plan beats four half-dressed acts, and Act 1 has still never been played by a
-human.
+**Unattended run.** The work order was A finish P1, B write the story bible,
+C P2 rendering, D P3 audio, E Act 1 as a vertical slice, F later acts only if
+credits remained. **A through E are done and live. F is under way: Act 2 is
+built, playable start to finish, and walked by the suite.**
+
+Acts 3 and 4 are **not** started, and the rule that says so is the work order's
+own: do not start an act you cannot finish to the same standard. Act 2 met that
+bar. Whether to spend the remaining budget on Act 3 or on getting a human to
+play the two that exist is the open question, and my answer is the second —
+neither act has been played by a person, and Act 2's central puzzle in
+particular has a failure mode (item 88 in the QA list) that I cannot evaluate.
 
 | | |
 |---|---|
 | **Live** | <https://txpps.github.io/TXPPS-Is-there-a-Way/> |
-| **Stamp to expect** | `v0.1.0 4d2097d` (or later — every push deploys) |
-| **First thing to do** | `docs/NEEDS_DEVICE_QA.md`, all 78 items, in order. Section "Controls" first: if that fails, stop, because everything else stands on it. |
+| **Stamp to expect** | see "Deploy state" below (or later — every push deploys) |
+| **First thing to do** | `docs/NEEDS_DEVICE_QA.md`, all 95 items, in order. Section "Controls" first: if that fails, stop, because everything else stands on it. |
 | **Blocked on a human** | Everything unverifiable. Nothing is blocked on a decision. |
 | **Frozen** | The input layer. No change to touch semantics, layout or the router without a failing test to justify it. |
 
@@ -39,24 +44,46 @@ human.
 - **Saves persist**, survive a tab being discarded, and can be exported as a
   text code — which on this platform is the only save the player really owns.
 
-### What Act 2 needs, when it starts
+### Act 2, as built
 
-`PUZZLES.md` has the design. What is missing is only content and two systems:
+Three gates that are one system, and every one of them is the correct end state
+of the last thing Emil did — which is the act's subject, not its obstacle.
 
-1. **The shelter's spaces** — bunk room, mess, latrines, plant room, ration
-   store. The kit builds them; the work is dimensions and dressing.
-2. **A generator that runs** (`P2.1`–`P2.3`). The devices exist; the load-shed
-   panel is arithmetic on nameplates and wants a small `LoadPanel` that sums
-   what is connected and trips when it exceeds the set.
-3. **The intercom** (`P2.4`) — Emil's first four sentences. Needs a voice, and
-   this project generates its audio, so that is a genuine open problem worth
-   deciding before it is built.
-4. **A second LUT** and a fluorescent practical: the palette shift from sodium
-   to sick green-white is what marks leaving the dam and entering the programme.
-5. **The six S1 rooms** from `STORY.md` — the staged rations, the made bunk, the
-   service card. Those are the act's whole job.
+| | |
+|---|---|
+| **P2.1** | The set cranks and will not fire: the day tank is isolated, as it is after every monthly exercise. The service card says `DAY TANK ISOL` forty-seven times in his handwriting. |
+| **P2.2** | It runs and the bus stays dead: the transfer switch is in `TEST`, which runs the engine without connecting it. |
+| **P2.3** | The bus picks up and trips: 30 kW does not carry 38.4 kW. Shedding the biggest single load gets under the rating — and nine seconds later the sump's float calls, the start surge asks for 48.5 kW, and the bus goes down again. 73 of the 128 allocations work, so it is a budget to spend, not one answer. |
+| **P2.4** | The intercom. Twenty-four seconds after the bus comes up, Emil says four sentences, none of them a question. He is not answering anything and cannot be answered. |
 
-Do not start it until the device QA in `NEEDS_DEVICE_QA.md` has come back.
+It ends with the annex door found already open, and one vertical seam of light
+in a corridor already walked. Once. No sound, no consequence.
+
+### What Act 3 needs, when it starts
+
+`PUZZLES.md` has the design (P3.1–P3.4). What is missing is content and three
+things that do not exist yet:
+
+1. **A second LUT and a fluorescent practical.** The palette shift from sodium
+   to sick green-white is what marks leaving the *dam* and entering the
+   *programme*, and it is the single highest-value thing in Act 3 because it is
+   the one the player feels before they read anything. `tools/gen/make_lut.py`
+   takes a palette; the fitting is a second scene beside `bulkhead_lamp.tscn`.
+2. **The entity.** Act 3 is where it becomes active, and its rule — *it is only
+   ever between you and a light* — is the first thing in this project that is
+   behaviour rather than state. `LightSeam` is the motif and nothing more; the
+   thing that moves does not exist.
+3. **A held tool.** P3.2 needs the photometer carried between rooms, which the
+   interaction system does not do: it engages with things in place. That is a
+   real addition to `Interactor`, not a prop.
+
+Everything else Act 3 needs is content: the annex spaces, the chambers, the
+tank room, the recorder bay, and D-13 through D-19.
+
+**Do not start it until the device QA in `NEEDS_DEVICE_QA.md` has come back.**
+Two acts are built and neither has been played by a person. A third would only
+add to what is unverified, and Act 2's central puzzle has a failure mode
+(QA item 88) that decides whether the whole design works.
 
 **Engine:** Godot 4.6.3-stable, Compatibility (WebGL2), single-threaded web export.
 **Target:** iPhone 16 Pro Max, Safari, **landscape**.
@@ -69,7 +96,7 @@ Do not start it until the device QA in `NEEDS_DEVICE_QA.md` has come back.
 
 | | Status |
 |---|---|
-| Build | **green.** Export, budgets (download, texture size, shipped audio), **248-check headless suite**, 55-check gameplay smoke, 28-check update-path smoke. |
+| Build | **green.** Export, budgets (download, texture size, shipped audio), the loop-mode check, a **352-check headless suite**, 55-check gameplay smoke, 28-check update-path smoke. |
 | Publish | **automatic.** Every push to `main` deploys, and so does a manual **Run workflow** on `main` — both proven, runs #15 and #16. |
 | Verified | the `verify` job fetches the live URL after every deploy and fails the build unless it serves *this* commit with every payload file answering 200 and the wasm as `application/wasm`. |
 | Cloudflare Pages | still no credentials; that job skips. Optional — it buys `web/_headers` and nothing else. See `DEPLOY.md`. |

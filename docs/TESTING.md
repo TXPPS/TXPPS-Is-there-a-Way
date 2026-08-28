@@ -38,7 +38,9 @@ tests/case_save.gd     round-trip, codes, migration, and failing to save
 tests/case_render.gd   post-stack wiring, reduce motion, and the fear number
 tests/case_audio.gd    buses, the score's layers, occlusion, reverb, footsteps
 tests/case_reading.gd  picking a page up, scrolling it, and remembering it
+tests/case_devices.gd  Act 2's parts on their own, and the load arithmetic
 tests/case_act1.gd     the whole act, from the first breaker to the door
+tests/case_act2.gd     the shelter, including the answer that looks right
 tests/case_reach.gd    can a player actually stand somewhere and touch each thing
 ```
 
@@ -118,6 +120,8 @@ mix untestable until the wire comes off for the duration.
 | audio | a volume slider moved while ducked staying ducked; a wall that is not heard as a wall; one stride making three footsteps |
 | reading | a page that scrolls the wrong way; a document read in Act 1 that a reload forgets |
 | act1 | **is it finishable.** Every other case asserts a mechanism; this one walks the act. It also walks the stair rather than teleporting past it, because the only way to know a ramp under the nosings is right is to put a player on it and see where they end up. |
+| devices | a valve that reports open one turn early; a selector that runs off the end of its own plate; a nameplate edited on a prop until the load puzzle has one answer or none |
+| act2 | **is the wrong answer still interesting.** It walks the shed-the-heater allocation that holds for nine seconds and then dies when the sump starts, because that failure is the act's best moment and would ship broken silently |
 | reach | **is it touchable.** For every interactable in the act it works out where a player would have to stand, checks there is floor there, aims from eye height, and asks the interactor what it sees. It is the only case that can fail with "line of sight blocked by StaticBody3D", and it is the case that found the most: see below. |
 
 A case that leaves the world somewhere runs before one that assumes where it is.
