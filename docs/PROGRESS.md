@@ -35,7 +35,7 @@ than anything else that could be built on top of this.**
 | | |
 |---|---|
 | **Live** | <https://txpps.github.io/TXPPS-Is-there-a-Way/> |
-| **Stamp to expect** | `v0.1.0 ccb9191` (or later — every push deploys) |
+| **Stamp to expect** | `v0.1.0 aaeb509` (or later — every push deploys) |
 | **First thing to do** | `docs/NEEDS_DEVICE_QA.md`, all 121 items, in order. Section "Controls" first: if that fails, stop, because everything else stands on it. |
 | **Blocked on a human** | Everything unverifiable. Nothing is blocked on a decision. |
 | **If you only do one thing** | Play it, once, on the phone, to an ending. Every number in this file is a number I checked; not one of them is an opinion about whether it is any good. |
@@ -125,6 +125,31 @@ operable with the control house dead.
 
 Neither card says which was right. Both itemise what it cost.
 
+### What the audits found
+
+With the game finished, I stopped adding and started asking different questions
+about what was already there. Eleven real defects in a few hours, every one of
+them green in CI the whole time, because in each case what was missing was a
+*connection* — and a test written from the same understanding that built a thing
+makes the same assumption it does.
+
+The questions that worked, roughly in order of yield:
+
+1. **Does anything use this?** Signals with no listeners, classes with no
+   references, settings with no consumers. Found the autosave nobody read, three
+   acts with no reverb, a puzzle with no answer in it, and the largest
+   contribution to the fear number being fed by nothing at all.
+2. **Where else is this true?** A budget asserted in one room of four acts. A
+   layout rule followed in Act 1 and abandoned afterwards. A door height right
+   in one scene and wrong in another.
+3. **What could a player do that nobody meant them to?** An ending reachable on
+   arrival, a central puzzle you could walk around, a reload timed to land in
+   the wrong building.
+4. **Do the two copies agree?** Every puzzle is a fact written in a document and
+   again as a constant. Nothing had ever compared them.
+
+Each question is now a test, so each answer stays answered.
+
 ### What an audit for dead wiring found
 
 Late in the run, with the game finished, I swept for things that were built and
@@ -165,10 +190,12 @@ had been green in CI the whole time:
    and not a ray, and visibly sunk into the concrete.
 
 None of them could fail a test, because in each case the thing that was missing
-was the *connection* — and a test written from the same understanding that built
-it makes the same assumption. What found them was asking different questions:
-not "does this work" but "does anything use this", "where else is this true",
-and "what could a player do that nobody meant them to".
+was the *connection*.
+
+**The one that should worry a reader most** is the draw-call budget: it was
+asserted on every build, reported green for weeks, and was wrong by a factor of
+thirty-four in three of the four acts. A green tick is only as good as the place
+it was measured.
 
 Worth repeating on anything built over a long stretch, and worth doing before
 adding more.
@@ -199,8 +226,8 @@ bench unit first, then the piers.
 
 | | Status |
 |---|---|
-| Build | **green.** Export, budgets (download, texture size, shipped audio), the import-settings check, a **635-check headless suite**, 55-check gameplay smoke, 28-check update-path smoke, and a thirty-five-frame walk of every space in the game that costs each frame and uploads the gallery. |
-| Last verified | `v0.1.0 ccb9191`, serving from GitHub Pages with every payload file answering 200 and the wasm as `application/wasm`. |
+| Build | **green.** Export, budgets (download, texture size, shipped audio), the import-settings check, a **639-check headless suite**, 55-check gameplay smoke, 28-check update-path smoke, and a thirty-five-frame walk of every space in the game that costs each frame and uploads the gallery. |
+| Last verified | `v0.1.0 aaeb509`, serving from GitHub Pages with every payload file answering 200 and the wasm as `application/wasm`. |
 | Publish | **automatic.** Every push to `main` deploys, and so does a manual **Run workflow** on `main` — both proven, runs #15 and #16. |
 | Verified | the `verify` job fetches the live URL after every deploy and fails the build unless it serves *this* commit with every payload file answering 200 and the wasm as `application/wasm`. |
 | Cloudflare Pages | still no credentials; that job skips. Optional — it buys `web/_headers` and nothing else. See `DEPLOY.md`. |
