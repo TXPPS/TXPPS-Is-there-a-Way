@@ -361,8 +361,13 @@ that building every time they walked through a door.
 Two rules around it, both learned the hard way:
 
 - **Never swap an act from inside that act.** `ActEnd` lives in the act it ends,
-  so it defers the swap: freeing the object whose method is running is the one
-  thing that is never safe.
+  so it queues the swap through `request_act`: freeing the object whose method
+  is running is the one thing that is never safe.
+- **An explicit switch cancels a queued one.** That one-frame window is a real
+  window — load a save inside it and the queued request used to run afterwards
+  and put the player in the act the *card* was leaving rather than the one the
+  save named. Reload at the wrong moment, wake up in the wrong building.
+  Whoever asks now knows more than whoever asked a frame ago.
 - **A test that changes acts puts the act back.** Cases run in one process
   against one tree, so a case that finishes in the wrong building breaks its
   neighbours rather than itself, which is the worst way to find out.

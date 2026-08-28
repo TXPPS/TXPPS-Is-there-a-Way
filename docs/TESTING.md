@@ -47,6 +47,7 @@ tests/case_act4.gd     the gate, and both ways out of it
 tests/case_tools.gd    carrying something, and what the meter reads
 tests/case_observer.gd the entity's rule, row by row from the bible
 tests/case_playthrough.gd the whole game, once, by the doors
+tests/case_edges.gd    two things at once, at the joins
 tests/case_reach.gd    can a player actually stand somewhere and touch each thing
 ```
 
@@ -134,6 +135,7 @@ mix untestable until the wire comes off for the duration.
 | act4 | **does it end.** The first thing in this project that branches, so the only case that walks the same act twice and expects two different answers. It reloads between runs rather than undoing an ending: a test that could take one back would be testing something the player cannot do |
 | playthrough | **do the acts join up.** Every other act case sets its own preconditions, which is the right trade and leaves exactly one thing uncovered. This one never calls `load_act`: it walks through the shelter door, takes the reel, and comes out in the gallery, and it is the only check that the act runner, the stashes and the two handovers work in the order a player meets them |
 | fiction | **does the paperwork say what the machinery does.** Every puzzle here is a fact written in two places — a `.tres` somebody wrote in-world and a constant somebody typed — and nothing else would notice if they stopped agreeing. The game would pass every other test while being unsolvable, because the only thing broken is the relationship between what the player is told and what is true |
+| edges | **is it still playable afterwards.** Every other case does one thing at a time, because that is how you find out whether the thing works. This one pauses during a fade, saves with a page held up, and reloads while an act change is still in flight — none of them exotic, because a phone takes a call whenever it likes and a player pauses exactly when they did not understand something |
 | reach | **is it touchable.** For every interactable in the act it works out where a player would have to stand, checks there is floor there, aims from eye height, and asks the interactor what it sees. It is the only case that can fail with "line of sight blocked by StaticBody3D", and it is the case that found the most: see below. |
 
 A case that leaves the world somewhere runs before one that assumes where it is.

@@ -42,6 +42,9 @@ var _root: Node
 ## would be the building undoing an hour of the player's work.
 var _stashes: Dictionary[int, Dictionary] = {}
 
+## An act asked for on the next idle frame, or -1. See `request_act`.
+var _pending := -1
+
 
 func _ready() -> void:
 	# The first act is already in the scene, placed by hand, so that opening the
@@ -67,7 +70,31 @@ func index_of(scene: PackedScene) -> int:
 ## `_ready` before it returns, so by the time this comes back the new act's
 ## nodes are in the tree and in their groups, and a save can be applied over
 ## them in the same frame.
+## Ask for an act on the next idle frame.
+##
+## `ActEnd` lives inside the act it ends, and freeing the object whose method is
+## running is never safe, so the swap has to wait a frame. That frame is a
+## window, and a save loaded inside it used to lose: the queued switch ran
+## afterwards and put the player in the act the *card* was leaving rather than
+## the one the save named. Reload at the wrong moment, wake up in the wrong
+## building.
+func request_act(index: int) -> void:
+	_pending = index
+	_run_pending.call_deferred()
+
+
+func _run_pending() -> void:
+	if _pending < 0:
+		return
+	var wanted := _pending
+	_pending = -1
+	load_act(wanted)
+
+
 func load_act(index: int) -> Node:
+	# An explicit switch wins over anything queued. Whoever is asking now knows
+	# more than whoever asked a frame ago.
+	_pending = -1
 	if index < 0 or index >= acts.size():
 		push_error("No act %d; there are %d." % [index, acts.size()])
 		return _root

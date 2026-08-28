@@ -80,14 +80,17 @@ func _restore() -> void:
 	var runner := get_tree().get_first_node_in_group(&"act_runner") as ActRunner
 	if next_act >= 0 and runner != null:
 		# The player and the post stack are not part of the act, so they can be
-		# set up now. The swap itself is deferred: `load_act` frees the act this
+		# set up now. The swap itself is queued: `load_act` frees the act this
 		# node is inside, and freeing the object whose method is running is the
-		# one thing that is never safe.
+		# one thing that is never safe. `request_act` rather than a bare
+		# `call_deferred` so that a save loaded inside that one-frame window
+		# wins -- it knows which act it wants and this only knows which it is
+		# leaving.
 		_player.global_position = arrive_at
 		_player.face(deg_to_rad(arrive_facing), 0.0)
 		_player.velocity = Vector3.ZERO
 		_post.on_setting(&"brightness", 1.0)
-		runner.load_act.call_deferred(next_act)
+		runner.request_act(next_act)
 		return
 	_player.global_position = return_to
 	_player.velocity = Vector3.ZERO
