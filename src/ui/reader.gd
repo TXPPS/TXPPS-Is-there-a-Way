@@ -20,6 +20,11 @@ const SCROLL_RATE := 1.0
 ## in. Reference-counted in the shell, because the pause menu wants it too.
 const COVER_CALL := "window.__itaw_coverStamp && window.__itaw_coverStamp('page', %s)"
 
+## Emitted when a page is put down. Distinct from `close()` being called for any
+## other reason, so something that showed a page can know the player is done
+## with it rather than that the game moved on.
+signal closed_by_player
+
 @onready var _panel: PanelContainer = $Safe/Panel
 @onready var _title: Label = $Safe/Panel/Pad/Body/Title
 @onready var _byline: Label = $Safe/Panel/Pad/Body/Byline
@@ -55,6 +60,7 @@ func close() -> void:
 	_open = false
 	visible = false
 	_cover_stamp(false)
+	closed_by_player.emit()
 
 
 func is_open() -> bool:

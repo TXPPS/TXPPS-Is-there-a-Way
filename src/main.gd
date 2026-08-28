@@ -96,6 +96,8 @@ func _wire_act() -> void:
 	if logic == null:
 		return
 	logic.checkpoint_reached.connect(_saves.checkpoint)
+	for node in get_tree().get_nodes_in_group(&"act_end"):
+		(node as ActEnd).bind(_post, _reader, _player)
 
 
 ## Every page in the level, wired here rather than each one finding the reader

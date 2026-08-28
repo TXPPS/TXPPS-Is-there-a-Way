@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3]
+[gd_scene load_steps=39 format=3]
 
 ; Act 1 -- the powerhouse.
 ;
@@ -41,6 +41,8 @@
 [ext_resource type="Resource" path="res://assets/documents/d07_panel_schedule.tres" id="26_sched"]
 [ext_resource type="AudioStream" path="res://assets/audio/bell_admit.wav" id="27_bell"]
 [ext_resource type="Resource" path="res://assets/surfaces/grating.tres" id="28_grating"]
+[ext_resource type="Script" path="res://src/world/act1/act_end.gd" id="29_end"]
+[ext_resource type="Resource" path="res://assets/documents/d08_act_end.tres" id="30_card"]
 
 [sub_resource type="Resource" id="Opening_1"]
 script = ExtResource("2_open")
@@ -81,6 +83,9 @@ offset = 0.0
 width = 1.4
 height = 2.2
 sill = 0.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_end"]
+size = Vector3(3, 2.6, 3)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_hall"]
 size = Vector3(16, 4.5, 10)
@@ -441,3 +446,15 @@ sound = ExtResource("27_bell")
 script = ExtResource("22_logic")
 admit_delay = 11.0
 
+; The vestibule beyond the shelter door, and the edge of what is built.
+[node name="ActEnd" type="Area3D" parent="." groups=["act_end"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.9, -2.6, 30.3)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("29_end")
+card = ExtResource("30_card")
+fade_seconds = 2.2
+return_to = Vector3(9.9, -3.8, 24)
+
+[node name="Shape" type="CollisionShape3D" parent="ActEnd"]
+shape = SubResource("BoxShape3D_end")

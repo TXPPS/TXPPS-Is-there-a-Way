@@ -40,6 +40,7 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 		"the act's checkpoints fire once each, in order (%s)" % [seen]
 	)
 	await _sounds(tree, house, player, expect)
+	await _the_edge(tree, main, house, player, expect)
 	await _saving(tree, saves, logic, expect)
 
 
@@ -230,6 +231,44 @@ func _sounds(
 			all_steel = false
 	expect.ok(all_steel, "a footstep on the stair is a footstep on steel (%s)" % [heard])
 	feet.stepped.disconnect(listener)
+
+
+## Walking through the shelter door ends the slice. Without this the player
+## steps into a three-metre concrete box and reports that nothing happened,
+## which is a fair thing to report.
+func _the_edge(
+	tree: SceneTree, main: Node, house: Node3D, player: Player, expect: RefCounted
+) -> void:
+	var reader: Reader = main.get_node("Reader")
+	var post: PostStack = main.get_node("PostStack")
+	var end: ActEnd = house.get_node("ActEnd")
+	player.global_position = Vector3(9.9, -3.8, 30.3)
+	player.velocity = Vector3.ZERO
+	for frame in 6:
+		await tree.physics_frame
+	expect.ok(not reader.is_open(), "the fade runs before the card, not with it")
+	for frame in 240:
+		await tree.process_frame
+		if reader.is_open():
+			break
+	expect.ok(reader.is_open(), "walking through the shelter door ends the act")
+	expect.near(
+		float(post.probe()["exposure"]), 0.0, 0.02,
+		"having faded the world out first"
+	)
+	var title: Label = reader.get_node("Safe/Panel/Pad/Body/Title")
+	expect.ok(
+		title.text.contains("Act One"),
+		"and says so plainly rather than pretending to be fiction (%s)" % title.text
+	)
+
+	reader.close()
+	await tree.process_frame
+	expect.near(float(post.probe()["exposure"]), 1.0, 0.02, "putting it down brings the world back")
+	expect.ok(
+		player.global_position.z < 26.0,
+		"and puts the player back in the gallery (z %.1f)" % player.global_position.z
+	)
 
 
 func _saving(
