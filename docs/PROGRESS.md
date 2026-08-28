@@ -258,7 +258,11 @@ refuse.
 - **Audio buses** wired: Master, SFX, Music, Voice, with the volume sliders live.
 - **Focused interaction**: a centre-screen ray finds an `Interactable`, the
   action button engages it, the sticks go away and every gesture goes to the
-  thing engaged with. Seven device types use it — toggle, push, door, valve,
+  thing engaged with. The throwaway dial lock it was built against is gone — it
+  was a combination lock with no combination anywhere in the fiction whose
+  `solved` signal went nowhere — and its test runs against the annex timeclock,
+  which is what `PUZZLES.md` always said would replace it. Seven device types
+  use it — toggle, push, door, valve,
   selector, interlock and gauge — plus the timeclock and the photometer.
 - **A tool the player carries.** `Hands` holds one thing by reparenting it under
   the camera, so it crosses an act boundary with no special case at all.

@@ -3,7 +3,7 @@ extends Node3D
 
 ## A thing in the world with something written on it.
 ##
-## Follows DialLock's shape rather than inheriting from Interactable: the zone
+## Holds an `Interactable` rather than being one: the zone
 ## is a child, this owns the behaviour, and `Interactable` stays a dumb
 ## component. Engaging opens the reader; the drag that would have turned the
 ## camera scrolls the page instead, which is the focused-interaction contract

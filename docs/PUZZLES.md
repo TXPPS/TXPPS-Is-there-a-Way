@@ -211,8 +211,10 @@ loop back into Act 2.
 
 ### P3.1 — The timeclock ★
 
-**This is what replaces the throwaway dial demo.** Same interaction grammar —
-numbered wheels turned with a thumb — with a reason to exist.
+**This replaced the throwaway dial demo, and the demo is gone.** Same
+interaction grammar — numbered wheels turned with a thumb — with a reason to
+exist. `tests/case_interact.gd`, which is the focused-interaction framework's
+only test, now runs against this.
 
 | | |
 |---|---|

@@ -21,7 +21,7 @@ const EYE := 1.62
 ## Every act, not just the first. An act nobody walks is an act whose props are
 ## wherever the generator put them.
 const ACTS := [
-	{"index": 0, "node": "Powerhouse", "least": 26},
+	{"index": 0, "node": "Powerhouse", "least": 25},
 	{"index": 1, "node": "Shelter", "least": 40},
 ]
 

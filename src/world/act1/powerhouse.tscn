@@ -1,4 +1,4 @@
-[gd_scene load_steps=41 format=3]
+[gd_scene load_steps=40 format=3]
 
 ; Act 1 -- the powerhouse.
 ;
@@ -33,7 +33,6 @@
 [ext_resource type="Resource" path="res://assets/documents/d06_battery_tag.tres" id="18_batt"]
 [ext_resource type="Resource" path="res://assets/documents/d01_site_book.tres" id="19_book"]
 [ext_resource type="Resource" path="res://assets/documents/d02_pfeiffer_log.tres" id="20_pfeiffer"]
-[ext_resource type="PackedScene" path="res://src/world/puzzles/dial_lock.tscn" id="21_dial"]
 [ext_resource type="Script" path="res://src/world/act1/powerhouse_logic.gd" id="22_logic"]
 [ext_resource type="PackedScene" path="res://src/world/devices/device_toggle.tscn" id="23_toggle"]
 [ext_resource type="PackedScene" path="res://src/world/devices/device_push.tscn" id="24_push"]
@@ -346,9 +345,6 @@ prompt_override = "Read the log"
 ; Temporary. PUZZLES.md P3.1 replaces this with the programme's own cam
 ; timeclock in Act 3; it is here so the focused-interaction framework stays
 ; exercised while Act 1's own puzzles are built.
-[node name="DialLock" parent="." instance=ExtResource("21_dial")]
-transform = Transform3D(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, -11.4, 1.55, -4.47)
-
 [node name="Panel" type="Node3D" parent="."]
 transform = Transform3D(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, -0.0, 0.0, 1.0, -6.0, 0.0, -4.96)
 

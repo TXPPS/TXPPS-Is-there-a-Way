@@ -16,9 +16,14 @@ const AIM := 0.9
 func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	var saves: SaveService = main.get_node("Saves")
 	var player: Player = main.get_node("Player")
-	var lock: DialLock = main.get_node("Powerhouse/DialLock")
+	# A device with wheels, to prove more than a bool round-trips. Act 1's
+	# throwaway dial lock used to be it; the panel's main breaker is the thing
+	# that is actually there now, and PowerhouseLogic's own state carries the
+	# wheels' worth of complication.
+	var breaker: DeviceToggle = main.get_node("Powerhouse/Panel/Main")
+	var logic: PowerhouseLogic = main.get_node("Powerhouse/Logic")
 
-	await _round_trip(tree, saves, player, lock, expect)
+	await _round_trip(tree, saves, player, breaker, logic, expect)
 	await _codes(tree, saves, player, expect)
 	await _migration(tree, saves, player, expect)
 	await _an_act_you_leave(tree, main, saves, expect)
@@ -28,24 +33,27 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 
 
 func _round_trip(
-	tree: SceneTree, saves: SaveService, player: Player, lock: DialLock, expect: RefCounted
+	tree: SceneTree, saves: SaveService, player: Player, breaker: DeviceToggle,
+	logic: PowerhouseLogic, expect: RefCounted
 ) -> void:
 	player.global_position = HERE
 	player.face(AIM, 0.0)
-	lock.load_state({"digits": [3, 3, 3], "open": false})
+	breaker.on = false
+	logic.load_state({"wrench": true, "reached": ["lighting"]})
 	await tree.physics_frame
 	expect.ok(saves.save_to(SaveService.MANUAL), "a save is written and read back")
 
 	player.global_position = THERE
 	player.face(0.0, 0.0)
-	lock.load_state({"digits": [9, 9, 9], "open": true})
+	breaker.on = true
+	logic.load_state({"wrench": false, "reached": []})
 	await tree.physics_frame
 	expect.ok(saves.load_from(SaveService.MANUAL), "the slot loads")
 	await tree.physics_frame
 	expect.near(player.global_position.x, HERE.x, 0.01, "the player is put back where they were")
 	expect.near(player.rotation.y, AIM, 0.01, "and pointing where they were pointing")
-	expect.ok(lock.digits() == PackedInt32Array([3, 3, 3]), "the wheels read what they read")
-	expect.ok(not lock.is_open(), "and an unsolved lock stays unsolved")
+	expect.ok(not breaker.on, "the breaker reads what it read")
+	expect.ok(logic.has_wrench(), "and the act's own state comes with it")
 
 	saves.checkpoint("test-checkpoint")
 	expect.ok(saves.has(SaveService.AUTO), "a checkpoint writes the autosave")

@@ -15,7 +15,6 @@ extends Node
 ## shelves are ordered.
 
 signal chamber_opened
-signal seam_measured(lux_drop: float)
 signal tank_drained
 signal reel_found(accession: String)
 signal checkpoint_reached(id: String)
