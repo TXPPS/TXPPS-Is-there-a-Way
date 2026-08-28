@@ -26,7 +26,7 @@ happen.
 | | |
 |---|---|
 | **Live** | <https://txpps.github.io/TXPPS-Is-there-a-Way/> |
-| **Stamp to expect** | see "Deploy state" below (or later — every push deploys) |
+| **Stamp to expect** | `v0.1.0 14c1ff4` (or later — every push deploys) |
 | **First thing to do** | `docs/NEEDS_DEVICE_QA.md`, all 107 items, in order. Section "Controls" first: if that fails, stop, because everything else stands on it. |
 | **Blocked on a human** | Everything unverifiable. Nothing is blocked on a decision. |
 | **Frozen** | The input layer. No change to touch semantics, layout or the router without a failing test to justify it. |
@@ -130,7 +130,7 @@ bench unit first, then the piers.
 | | Status |
 |---|---|
 | Build | **green.** Export, budgets (download, texture size, shipped audio), the import-settings check, a **496-check headless suite**, 55-check gameplay smoke, 28-check update-path smoke. |
-| Last verified | `v0.1.0 a48ab44`, serving from GitHub Pages with every payload file answering 200 and the wasm as `application/wasm`. |
+| Last verified | `v0.1.0 14c1ff4`, serving from GitHub Pages with every payload file answering 200 and the wasm as `application/wasm`. |
 | Publish | **automatic.** Every push to `main` deploys, and so does a manual **Run workflow** on `main` — both proven, runs #15 and #16. |
 | Verified | the `verify` job fetches the live URL after every deploy and fails the build unless it serves *this* commit with every payload file answering 200 and the wasm as `application/wasm`. |
 | Cloudflare Pages | still no credentials; that job skips. Optional — it buys `web/_headers` and nothing else. See `DEPLOY.md`. |
