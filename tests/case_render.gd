@@ -21,6 +21,86 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	await _reduce_motion(tree, post, settings, expect)
 	await _fear_drives_grain(tree, post, expect)
 	await _fear_state(tree, fear, expect)
+	await _the_act_chooses_the_grade(tree, main, post, expect)
+	await _the_tube_flickers(tree, expect)
+
+
+## The palette shift from sodium to fluorescent is what tells the player they
+## have left the dam and entered the programme, so it belongs to the act rather
+## than to a setting -- and an act that names a grade nobody wrote must fail
+## loudly rather than washing out to nothing.
+func _the_act_chooses_the_grade(
+	tree: SceneTree, main: Node, post: PostStack, expect: RefCounted
+) -> void:
+	var runner: ActRunner = main.get_node("Acts")
+	expect.eq(String(post.grade()), "act1", "the dam is graded as the dam")
+
+	post.set_grade(&"annex")
+	expect.eq(String(post.grade()), "annex", "and the annex grade can be loaded")
+	var loaded: Texture2D = (post.get_node("Screen").material as ShaderMaterial) \
+		.get_shader_parameter("grade_lut")
+	expect.ok(loaded != null, "with a lookup table actually in the shader")
+	expect.eq(loaded.get_width(), 256, "256 wide: sixteen slices of sixteen")
+	expect.eq(loaded.get_height(), 16, "and sixteen tall")
+
+	post.set_grade(&"nothing_wrote_this")
+	expect.eq(
+		String(post.grade()), "annex",
+		"a grade nobody wrote is refused, and the last good one stays"
+	)
+
+	# The guard above keeps a typo from washing an act out to nothing. This is
+	# what keeps the typo from being shipped in the first place.
+	for index in runner.acts.size():
+		var act := runner.acts[index].instantiate()
+		var named := String(act.get_meta(&"grade", "act1"))
+		expect.ok(
+			ResourceLoader.exists("res://assets/luts/%s.png" % named),
+			"act %d asks for a grade that exists ('%s')" % [index, named]
+		)
+		act.free()
+
+	# Remounting the act puts its own grade back, which is the path that runs
+	# in play -- nothing calls set_grade by hand.
+	runner.load_act(1)
+	await tree.physics_frame
+	expect.eq(String(post.grade()), "act1", "the shelter is still the dam's palette")
+	runner.load_act(0)
+	await tree.physics_frame
+
+
+## A tired tube stumbles; a sodium lamp does not. The difference is most of what
+## makes a fluorescent read as a fluorescent, and it is a number on the fitting
+## rather than a different class.
+func _the_tube_flickers(tree: SceneTree, expect: RefCounted) -> void:
+	var tube: BulkheadLamp = load("res://src/world/kit/fluorescent.tscn").instantiate()
+	var bulkhead: BulkheadLamp = load("res://src/world/kit/bulkhead_lamp.tscn").instantiate()
+	tree.root.add_child(tube)
+	tree.root.add_child(bulkhead)
+	await tree.process_frame
+
+	expect.ok(tube.flicker_depth > 0.0, "the tube is a fitting that flickers")
+	expect.near(bulkhead.flicker_depth, 0.0, 0.001, "the sodium bulkhead is not")
+
+	var seen: Array[float] = []
+	for frame in 400:
+		await tree.process_frame
+		seen.append((tube.get_node("Light") as OmniLight3D).light_energy)
+	var low: float = seen.min()
+	var high: float = seen.max()
+	expect.near(high, tube.energy, 0.01, "it burns at its rated output most of the time")
+	expect.ok(low < tube.energy * 0.95, "and drops below it when it stumbles (%.2f)" % low)
+	expect.ok(low > 0.0, "without ever going out, which would be a different fitting")
+
+	var steady: Array[float] = []
+	for frame in 200:
+		await tree.process_frame
+		steady.append((bulkhead.get_node("Light") as OmniLight3D).light_energy)
+	expect.near(steady.min(), steady.max(), 0.001, "and the sodium lamp is rock steady")
+
+	tube.queue_free()
+	bulkhead.queue_free()
+	await tree.process_frame
 
 
 func _wiring(tree: SceneTree, post: PostStack, expect: RefCounted) -> void:

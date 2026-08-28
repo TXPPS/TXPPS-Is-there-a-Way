@@ -34,8 +34,8 @@ if ! git diff --quiet -- 'assets/audio/*.wav'; then
 	exit 1
 fi
 
-echo "==> checking every loop is imported as a loop"
-python3 tools/ci/check_loops.py || exit 1
+echo "==> checking assets are imported the way they are meant to be"
+python3 tools/ci/check_imports.py || exit 1
 
 echo "==> fencing the output directory off from the resource scanner"
 # A .gdignore keeps Godot from importing the previous build (a 37 MB wasm) back

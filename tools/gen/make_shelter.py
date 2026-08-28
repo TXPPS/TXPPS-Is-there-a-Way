@@ -510,7 +510,7 @@ def _ways_out():
     # Water in the stair head, up over the nosings, until the sump has run.
     out += box("StairWater", (2.9, 0.34, 3.9), (0.0, 0.17, -12.4), ext_id("silt"), ".", solid=False)
 
-    out.append('[node name="Logic" type="Node" parent="." groups=["saveable"]]')
+    out.append('[node name="Logic" type="Node" parent="." groups=["saveable", "act_logic"]]')
     out.append('script = ExtResource("18_logic")')
     out.append('save_key = &"act2"')
     out.append("")

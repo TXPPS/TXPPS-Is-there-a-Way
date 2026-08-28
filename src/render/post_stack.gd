@@ -11,13 +11,19 @@ extends CanvasLayer
 ## the authored values, GameSettings for the player's, and FearState for the
 ## one number that breathes.
 
-const LUT_PATH := "res://assets/luts/act1.png"
+## Each act's grade, by name. The palette shift from sodium to fluorescent is
+## the marker that the player has left the *dam* and entered the *programme*
+## (`ART_BIBLE.md`, "Palette"), so which one is loaded is a property of the act
+## rather than a setting.
+const LUT_DIR := "res://assets/luts/"
+const DEFAULT_GRADE := &"act1"
 
 @export var tuning: RenderTuning
 
 @onready var _screen: ColorRect = $Screen
 
 var _material: ShaderMaterial
+var _grade := &""
 var _fear := 0.0
 var _reduce_motion := false
 var _brightness := 1.0
@@ -27,8 +33,32 @@ func _ready() -> void:
 	assert(tuning != null, "PostStack needs a RenderTuning resource assigned.")
 	_material = _screen.material as ShaderMaterial
 	assert(_material != null, "PostStack's ColorRect needs the post shader.")
-	_material.set_shader_parameter("grade_lut", load(LUT_PATH))
+	set_grade(DEFAULT_GRADE)
 	_apply()
+
+
+## Loads an act's grade. Named rather than passed as a Texture so that a level
+## can say which colour it is in one word in its own scene file, and so that a
+## name nobody wrote a LUT for fails loudly here rather than washing the whole
+## act out to nothing.
+func set_grade(name: StringName) -> void:
+	if name == _grade:
+		return
+	var path := "%s%s.png" % [LUT_DIR, name]
+	if not ResourceLoader.exists(path):
+		# A warning rather than an error, and deliberately: a grade name comes
+		# from a level's own metadata, so a wrong one is a content mistake, and
+		# the game survives it by keeping the last good grade. What makes it
+		# hard to ship is `case_render`, which checks every act's declared grade
+		# exists -- a build-time guarantee beats a runtime scream.
+		push_warning("No grade named '%s'; keeping '%s'." % [name, _grade])
+		return
+	_grade = name
+	_material.set_shader_parameter("grade_lut", load(path))
+
+
+func grade() -> StringName:
+	return _grade
 
 
 ## 0..1. Drives grain amount and how far the grain stretches.
@@ -58,6 +88,7 @@ func probe() -> Dictionary:
 		"barrel": _material.get_shader_parameter("barrel_amount"),
 		"exposure": _material.get_shader_parameter("exposure"),
 		"dither": _material.get_shader_parameter("dither_amount"),
+		"grade": String(_grade),
 	}
 
 

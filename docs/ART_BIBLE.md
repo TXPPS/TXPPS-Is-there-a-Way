@@ -83,6 +83,24 @@ Later acts shift the practical, not the concrete: the shelter levels move from
 sodium to a sick fluorescent green-white, which is the visual marker that the
 player has left the *dam* and entered the *programme*.
 
+**Both grades are built.** `assets/luts/annex.png` is that shift, and it is
+measured rather than eyeballed — at the top end, Act 1 runs red-minus-blue
+`+0.080` with a green lead of `+0.017`; the annex runs `-0.018` and `+0.054`.
+Cool instead of warm, with three times the green. Neither lifts true black.
+
+The fitting that goes with it is `src/world/kit/fluorescent.tscn`: a four-foot
+tube in a painted trough, wider and dimmer than the sodium bulkhead because a
+tube is a line of light and Compatibility has no area lights. It runs the same
+script — the script is the behaviour, the scene is the fitting — and the only
+thing it adds is a stumble. A tired tube does not shimmer, it fails to strike
+for a fraction of a second and recovers, which is why it is modelled as an
+occasional dip rather than as noise on the brightness. Noise reads as a bad
+shader; a dip reads as a bad tube.
+
+**The annex palette has never been seen on a device**, and the room it is for
+does not exist yet. It is verified numerically and by the suite, and nothing
+more than that.
+
 ## Never do this
 
 - Purple-and-teal gradient lighting. It is the genre's uniform and it is not ours.
@@ -136,7 +154,7 @@ One fullscreen shader, every parameter drivable from gameplay:
 | # | Status |
 |---|---|
 | 1 filmic tonemap | **engine.** `WorldEnvironment`, the hardware path. Doing it twice makes the grade fight the curve. |
-| 2 LUT grade | **built.** `tools/gen/make_lut.py` writes it as a function. Act 1 only so far. |
+| 2 LUT grade | **built.** `tools/gen/make_lut.py` writes each grade as a function of the four numbers it turns on. Two exist: `act1` and `annex`. |
 | 3 thresholded bloom | **engine.** `Environment.glow`. A hand-rolled version from the screen's mip chain produced no halo: Compatibility gives the backbuffer no mips. |
 | 4 CA + barrel | **built**, edge-weighted, one lens. Off under `reduce motion`. |
 | 5 anisotropic grain | **built**, breathing with the fear state. Softened, not removed, under `reduce motion` — it also hides banding the dither does not reach. |

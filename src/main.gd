@@ -21,6 +21,7 @@ extends Node3D
 @onready var _journal: Journal = $Journal
 @onready var _world: WorldEnvironment = $WorldEnvironment
 @onready var _interactor: Interactor = $Player/Head/Camera/Interactor
+@onready var _acts: ActRunner = $Acts
 
 ## Whatever the player is engaged with, or null. The only thing gestures go to
 ## while GameState says FOCUSED.
@@ -52,6 +53,8 @@ func _ready() -> void:
 		_shots.bind(_player, _hud, _reader)
 	_wire_readables()
 	_wire_act()
+	if is_instance_valid(_acts):
+		_acts.act_changed.connect(_on_act_changed)
 	_settings.apply_all()
 	_state.enter(GameState.State.FREE)
 	print("Is There a Way? — build %s" % BuildInfo.describe())
@@ -93,12 +96,24 @@ func _on_resumed() -> void:
 ## silent: a toast saying "checkpoint" would be the game addressing the player,
 ## which nothing in it does.
 func _wire_act() -> void:
-	var logic := get_node_or_null("Powerhouse/Logic") as PowerhouseLogic
-	if logic == null:
-		return
-	logic.checkpoint_reached.connect(_saves.checkpoint)
 	for node in get_tree().get_nodes_in_group(&"act_end"):
 		(node as ActEnd).bind(_post, _reader, _player)
+	for node in get_tree().get_nodes_in_group(&"act"):
+		# An act says what colour it is in one word in its own scene file. The
+		# shift from sodium to fluorescent is the marker that the player has
+		# left the dam and entered the programme, so it belongs to the level.
+		_post.set_grade(StringName(node.get_meta(&"grade", "act1")))
+	var logic := get_tree().get_first_node_in_group(&"act_logic")
+	if logic == null:
+		return
+	logic.connect(&"checkpoint_reached", Callable(_saves, "checkpoint"))
+
+
+## An act was swapped in. Everything that was wired to the old one is gone with
+## it, so this is the same wiring again rather than an update of it.
+func _on_act_changed(_root: Node) -> void:
+	_wire_readables()
+	_wire_act()
 
 
 ## Every page in the level, wired here rather than each one finding the reader

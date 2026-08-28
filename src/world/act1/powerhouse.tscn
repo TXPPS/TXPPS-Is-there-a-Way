@@ -442,7 +442,7 @@ label = "SHELTER — RING FOR ADMITTANCE"
 prompt = "Ring for admittance"
 sound = ExtResource("27_bell")
 
-[node name="Logic" type="Node" parent="." groups=["saveable"]]
+[node name="Logic" type="Node" parent="." groups=["saveable", "act_logic"]]
 script = ExtResource("22_logic")
 admit_delay = 11.0
 

@@ -1,0 +1,66 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Material" path="res://assets/materials/graybox_paint.tres" id="1_paint"]
+[ext_resource type="Material" path="res://assets/materials/graybox_tube_lit.tres" id="2_tube"]
+[ext_resource type="AudioStream" path="res://assets/audio/mach_ballast.wav" id="3_hum"]
+[ext_resource type="Script" path="res://src/audio/occluder.gd" id="4_occl"]
+[ext_resource type="Script" path="res://src/world/kit/bulkhead_lamp.gd" id="5_lamp"]
+[ext_resource type="Material" path="res://assets/materials/graybox_lamp_dead.tres" id="6_dead"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_trough"]
+size = Vector3(1.24, 0.12, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tube"]
+size = Vector3(1.16, 0.05, 0.05)
+
+; The annex practical: a four-foot fluorescent in a painted steel trough, on a
+; magnetic ballast that has been humming since 1964. Same script as the sodium
+; bulkhead -- the script is the behaviour, the scene is the fitting.
+;
+; Faces +X, like the bulkhead, so the two are interchangeable in a wall.
+; The ballast noise is the same file: a magnetic ballast is a magnetic ballast,
+; and mach_ballast was written as twice line frequency with a tired second
+; harmonic, which is exactly this.
+[node name="Fluorescent" type="Node3D"]
+script = ExtResource("5_lamp")
+circuit = &"ANNEX"
+lit = true
+energy = 3.1
+glass_lit = ExtResource("2_tube")
+glass_dark = ExtResource("6_dead")
+flicker_depth = 0.4
+flicker_rate = 0.7
+
+[node name="Trough" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_trough")
+surface_material_override/0 = ExtResource("1_paint")
+
+[node name="Glass" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.09, 0, 0)
+mesh = SubResource("BoxMesh_tube")
+surface_material_override/0 = ExtResource("2_tube")
+
+[node name="Hum" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0, 0)
+stream = ExtResource("3_hum")
+volume_db = -11.0
+bus = &"SFX"
+unit_size = 3.8
+max_db = 0.0
+attenuation_filter_cutoff_hz = 20500.0
+pitch_scale = 1.06
+
+[node name="Occluder" type="Node" parent="Hum"]
+script = ExtResource("4_occl")
+
+; Wider and dimmer than the sodium bulkhead. A tube is a line of light, and
+; Compatibility has no area lights, so the approximation is a softer omni with
+; more range and less energy -- which is also what a diffuser does.
+[node name="Light" type="OmniLight3D" parent="." groups=["practical"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 0, 0)
+light_color = Color(0.83, 1, 0.87, 1)
+light_energy = 3.1
+light_specular = 0.2
+shadow_enabled = true
+shadow_bias = 0.04
+omni_range = 11.0

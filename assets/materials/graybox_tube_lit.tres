@@ -1,0 +1,20 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+; The tube of the annex fluorescent. Same energy discipline as the sodium glass
+; -- 1.5, below the filmic shoulder, with the bloom doing the work of making it
+; read as bright -- and a different hue, which is the whole point of it.
+;
+; Green-white and slightly short of red: a forty-year-old halophosphate tube
+; that has been on a schedule since 1964. ART_BIBLE.md calls the palette shift
+; from sodium to this "the marker that the player has left the *dam* and entered
+; the *programme*", and it is the first thing they will notice about the annex,
+; before they have read a word of it.
+
+[resource]
+resource_name = "Graybox Tube Lit"
+albedo_color = Color(0.04, 0.047, 0.042, 1)
+metallic = 0.0
+roughness = 0.35
+emission_enabled = true
+emission = Color(0.78, 1, 0.83, 1)
+emission_energy_multiplier = 1.5

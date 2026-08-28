@@ -33,19 +33,72 @@ STEPS = 16
 WIDTH = STEPS * STEPS
 HEIGHT = STEPS
 
-# docs/ART_BIBLE.md, "Palette": the cold fill and the sodium practical.
-COLD_FILL = (0.106, 0.129, 0.157)
-HIGHLIGHT_GAIN = (1.015, 0.99, 0.93)
-
 # The pivot is low, and that is the whole trick. This game's image lives below
 # a quarter brightness; contrast about the usual 0.5 pivot does not add
 # contrast to it, it deletes it -- 0.10 comes out at 0.05 and the room goes
 # black. Pivoting where the picture actually is puts the S-curve across the
-# range that has detail in it.
+# range that has detail in it. Every grade here keeps that pivot; what changes
+# between acts is the hue at the two ends.
 CONTRAST_PIVOT = 0.22
-CONTRAST = 1.10
-SHADOW_TINT = 0.42
-MID_DESATURATE = 0.14
+
+
+class Grade:
+    """One act's colour, as the four numbers the grade actually turns on."""
+
+    def __init__(self, name, cold_fill, highlight_gain, contrast,
+                 shadow_tint, mid_desaturate, note):
+        self.name = name
+        self.cold_fill = cold_fill
+        self.highlight_gain = highlight_gain
+        self.contrast = contrast
+        self.shadow_tint = shadow_tint
+        self.mid_desaturate = mid_desaturate
+        self.note = note
+
+    @property
+    def cold_direction(self):
+        """The fill hue at unit luminance.
+
+        Tinting toward the fill *colour* rather than its direction lifts true
+        black to a grey haze, which is how the first version of this made the
+        whole room look fogged. Normalising by luminance tints the hue and
+        leaves the level alone.
+        """
+        luma = _luma(*self.cold_fill)
+        return tuple(c / luma for c in self.cold_fill)
+
+
+GRADES = [
+    Grade(
+        name="act1",
+        # docs/ART_BIBLE.md, "Palette": the cold fill and the sodium practical.
+        cold_fill=(0.106, 0.129, 0.157),
+        highlight_gain=(1.015, 0.99, 0.93),
+        contrast=1.10,
+        shadow_tint=0.42,
+        mid_desaturate=0.14,
+        note="the dam: sodium practicals, cold blue-grey fill, warm top end",
+    ),
+    Grade(
+        name="annex",
+        # The palette shift that marks leaving the *dam* and entering the
+        # *programme*. Everything a person notices is at the top end: the
+        # practical stops being a warm sodium fitting and becomes a tired
+        # fluorescent tube, which is green-white and slightly short of red.
+        cold_fill=(0.098, 0.122, 0.126),
+        highlight_gain=(0.955, 1.025, 0.975),
+        # Fluorescent light is flatter than a point source: broad fittings,
+        # less falloff, fewer places for the eye to find an edge.
+        contrast=1.06,
+        shadow_tint=0.34,
+        # Less desaturation than Act 1, deliberately. The dam pulls colour out
+        # of the midtones so sodium is the only hue in the frame; the annex
+        # wants its sickness *in* the midtones, so the green reaches the walls
+        # rather than staying in the fittings.
+        mid_desaturate=0.05,
+        note="the programme: fluorescent green-white, flatter, colour in the mids",
+    ),
+]
 
 
 def _luma(r: float, g: float, b: float) -> float:
@@ -68,40 +121,39 @@ def _smoothstep(edge0: float, edge1: float, x: float) -> float:
 # black to a grey haze -- fog, which docs/ART_BIBLE.md forbids by name -- and
 # flattens everything below it into one value. Tinting toward the direction
 # moves the hue and leaves the luminance exactly where it was.
-_COLD_LUMA = 0.2126 * COLD_FILL[0] + 0.7152 * COLD_FILL[1] + 0.0722 * COLD_FILL[2]
-COLD_DIRECTION = tuple(c / _COLD_LUMA for c in COLD_FILL)
-
-
-def grade(r: float, g: float, b: float) -> tuple[float, float, float]:
+def grade(r: float, g: float, b: float, look: "Grade") -> tuple[float, float, float]:
     # 1. Contrast about a low pivot. No black-point lift: black stays black.
     channels = [
-        max(0.0, (c - CONTRAST_PIVOT) * CONTRAST + CONTRAST_PIVOT)
+        max(0.0, (c - CONTRAST_PIVOT) * look.contrast + CONTRAST_PIVOT)
         for c in (r, g, b)
     ]
 
-    # 2. Shadows toward the cold hue, at their own luminance.
+    # 2. Shadows toward the fill hue, at their own luminance.
     lum = _luma(*channels)
-    shadow = _smoothstep(0.30, 0.0, lum) * SHADOW_TINT
+    shadow = _smoothstep(0.30, 0.0, lum) * look.shadow_tint
     channels = [
         c + (direction * lum - c) * shadow
-        for c, direction in zip(channels, COLD_DIRECTION)
+        for c, direction in zip(channels, look.cold_direction)
     ]
 
-    # 3. Keep the top end warm.
+    # 3. Push the top end toward whatever this act's practical is.
     lum = _luma(*channels)
-    warm = _smoothstep(0.52, 1.0, lum)
-    channels = [_clamp(c * (1.0 + (gain - 1.0) * warm)) for c, gain in zip(channels, HIGHLIGHT_GAIN)]
+    top = _smoothstep(0.52, 1.0, lum)
+    channels = [
+        _clamp(c * (1.0 + (gain - 1.0) * top))
+        for c, gain in zip(channels, look.highlight_gain)
+    ]
 
-    # 4. Pull a little colour out of the middle so sodium is the only hue.
+    # 4. Pull colour out of the middle, so the practical is the frame's hue.
     lum = _luma(*channels)
     mid = 1.0 - abs(lum - 0.5) * 2.0
-    pull = MID_DESATURATE * max(0.0, mid)
+    pull = look.mid_desaturate * max(0.0, mid)
     channels = [c + (lum - c) * pull for c in channels]
 
     return tuple(_clamp(c) for c in channels)
 
 
-def build() -> bytearray:
+def build(look: "Grade") -> bytearray:
     pixels = bytearray(WIDTH * HEIGHT * 4)
     for slice_index in range(STEPS):
         blue = slice_index / (STEPS - 1)
@@ -109,7 +161,7 @@ def build() -> bytearray:
             green = y / (HEIGHT - 1)
             for x in range(STEPS):
                 red = x / (STEPS - 1)
-                out = grade(red, green, blue)
+                out = grade(red, green, blue, look)
                 at = (y * WIDTH + slice_index * STEPS + x) * 4
                 pixels[at + 0] = int(out[0] * 255.0 + 0.5)
                 pixels[at + 1] = int(out[1] * 255.0 + 0.5)
@@ -124,9 +176,10 @@ def main() -> int:
     args = parser.parse_args()
     out = pathlib.Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
-    path = out / "act1.png"
-    write_rgba(path, WIDTH, HEIGHT, build())
-    print(f"wrote {path} ({path.stat().st_size:,} bytes)")
+    for look in GRADES:
+        path = out / f"{look.name}.png"
+        write_rgba(path, WIDTH, HEIGHT, build(look))
+        print(f"wrote {path} ({path.stat().st_size:,} bytes) -- {look.note}")
     return 0
 
 

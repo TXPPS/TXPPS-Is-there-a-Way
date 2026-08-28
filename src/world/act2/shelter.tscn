@@ -765,7 +765,7 @@ size = Vector3(2.9, 0.34, 3.9)
 material = ExtResource("7_silt")
 solid = false
 
-[node name="Logic" type="Node" parent="." groups=["saveable"]]
+[node name="Logic" type="Node" parent="." groups=["saveable", "act_logic"]]
 script = ExtResource("18_logic")
 save_key = &"act2"
 
