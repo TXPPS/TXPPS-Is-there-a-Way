@@ -507,6 +507,13 @@ on = false
 prompt_when_on = "Shut the drain"
 prompt_when_off = "Open the drain"
 
+[node name="LibraryDoor" parent="Annex" instance=ExtResource("15_door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.9, 1.12, -18.55)
+save_key = &"library_door"
+open = false
+prompt = "Watertight, and the room behind it is not dry"
+available = false
+
 [node name="TankWater" type="Node3D" parent="Annex"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.9, 0.25, -16.05)
 script = ExtResource("3_slab")
@@ -927,14 +934,14 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.9, 1.62, -22.83)
 document = ExtResource("doc_d20")
 
 [node name="ShelterDoor" parent="." instance=ExtResource("15_door")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 13.6)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 1.12, 13.6)
 save_key = &"shelter_door"
 open = false
 prompt = "It will not move from this side"
 available = false
 
 [node name="AnnexDoor" parent="." instance=ExtResource("15_door")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -14.4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.12, -14.4)
 save_key = &"annex_door"
 open = false
 available = false

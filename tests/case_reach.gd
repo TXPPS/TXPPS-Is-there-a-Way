@@ -41,6 +41,15 @@ func _walk(
 ) -> void:
 	var player: Player = main.get_node("Player")
 	var interactor: Interactor = player.get_node("Head/Camera/Interactor")
+	# Reachability is a question about placement, not progression: a door that
+	# is legitimately shut makes what is behind it unreachable *for now*, which
+	# is the door working. So every door the act has is opened first, and what
+	# is asked is whether the props behind them can be stood in front of at all.
+	for node in _doors(main.get_node(act_node)):
+		node.open = true
+	await tree.physics_frame
+	await tree.physics_frame
+
 	var zones := _find(main.get_node(act_node))
 	expect.ok(
 		zones.size() >= least,
@@ -57,6 +66,18 @@ func _walk(
 		"every one of %s's can be reached from the floor (%s)"
 			% [act_node, "none unreachable" if unreachable.is_empty() else " | ".join(unreachable)]
 	)
+
+
+func _doors(root: Node) -> Array[DeviceDoor]:
+	var found: Array[DeviceDoor] = []
+	var stack: Array[Node] = [root]
+	while not stack.is_empty():
+		var node: Node = stack.pop_back()
+		if node is DeviceDoor:
+			found.append(node)
+		for child in node.get_children():
+			stack.append(child)
+	return found
 
 
 func _find(root: Node) -> Array[Interactable]:

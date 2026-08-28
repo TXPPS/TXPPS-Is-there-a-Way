@@ -441,6 +441,19 @@ def _annex():
     out.append('prompt_when_off = "Open the drain"')
     out.append("")
 
+    # A watertight door, of the same class as the one at the foot of Act 1's
+    # stair. Without it the flood is scenery: the water is not solid -- you have
+    # to be able to wade to the drain valve -- so the player could walk straight
+    # through the tank room, take Reel 9-C, and never meet P3.3 at all. Which is
+    # the puzzle the whole act is built around.
+    out.append('[node name="LibraryDoor" parent="Annex" instance=ExtResource("15_door")]')
+    out.append("transform = %s" % t3(facing(SOUTH), (-11.9, DOOR_Y, -18.55)))
+    out.append('save_key = &"library_door"')
+    out.append("open = false")
+    out.append('prompt = "Watertight, and the room behind it is not dry"')
+    out.append("available = false")
+    out.append("")
+
     # And the water that is over the sill until P3.3 takes a load off the set.
     out += solo_box("TankWater", (4.9, 0.5, 4.9), (-11.9, 0.25, -16.05),
                     ext_id("silt"), "Annex", solid=False)
@@ -715,11 +728,18 @@ def _pages():
     return out
 
 
+# A DeviceDoor's leaf is centred on its own node, so the node belongs at the
+# middle of the opening rather than on the floor. All three of these sat at
+# floor level for a while: half the leaf underground, the top half of every
+# doorway standing open, and a shut door you could see the bottom of.
+DOOR_Y = 1.12
+
+
 def _ways_out():
     """The door back to Act 1, the door on to Act 3, and what is under it."""
     out = []
     out.append('[node name="ShelterDoor" parent="." instance=ExtResource("15_door")]')
-    out.append("transform = %s" % t3(facing(NORTH), (0.0, 0.0, 13.6)))
+    out.append("transform = %s" % t3(facing(NORTH), (0.0, DOOR_Y, 13.6)))
     out.append('save_key = &"shelter_door"')
     out.append("open = false")
     out.append('prompt = "It will not move from this side"')
@@ -727,7 +747,7 @@ def _ways_out():
     out.append("")
 
     out.append('[node name="AnnexDoor" parent="." instance=ExtResource("15_door")]')
-    out.append("transform = %s" % t3(facing(SOUTH), (0.0, 0.0, -14.4)))
+    out.append("transform = %s" % t3(facing(SOUTH), (0.0, DOOR_Y, -14.4)))
     out.append('save_key = &"annex_door"')
     out.append("open = false")
     out.append("available = false")

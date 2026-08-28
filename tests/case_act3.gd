@@ -36,6 +36,7 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	await _the_interlock_holds(tree, annex, logic, expect)
 	await _the_cam(tree, annex, logic, expect)
 	await _the_meter_and_the_lamp(tree, main, annex, expect)
+	await _the_library_is_behind_the_flood(tree, main, annex, logic, expect)
 	await _the_tank_refuses(tree, annex, logic, power, breakers, trips, expect)
 	await _the_tank_drains(tree, annex, logic, power, breakers, expect)
 	_the_annex_is_heard(annex, expect)
@@ -166,6 +167,38 @@ func _the_meter_and_the_lamp(
 	)
 
 
+## P3.3 has to be *in the way*, not beside it.
+##
+## The flood is a door, not the water: the water is deliberately not solid,
+## because the drain valve is on the far wall of the tank room and the player
+## has to be able to wade to it. Which meant that for a while they could wade
+## straight on through to the library, take Reel 9-C, and never meet the act's
+## central puzzle at all.
+func _the_library_is_behind_the_flood(
+	tree: SceneTree, main: Node, annex: Node3D, logic: AnnexLogic, expect: RefCounted
+) -> void:
+	var door: DeviceDoor = annex.get_node("LibraryDoor")
+	expect.ok(not logic.drained(), "the tank room is still flooded")
+	expect.ok(not door.open, "so the door to the library is shut")
+
+	# Shut means shut: the leaf carries its own collider, so a ray that would
+	# reach the shelf hits the door instead. Anything that can walk to the reels
+	# can also see them.
+	var player: Player = main.get_node("Player")
+	player.global_position = Vector3(-11.9, 0.1, -17.6)
+	player.face(0.0, 0.0)
+	await tree.physics_frame
+	await tree.physics_frame
+	var space := player.get_world_3d().direct_space_state
+	var query := PhysicsRayQueryParameters3D.create(
+		Vector3(-11.9, 1.6, -17.6), Vector3(-11.9, 1.6, -21.5), 1
+	)
+	expect.ok(
+		not space.intersect_ray(query).is_empty(),
+		"and there is something solid between the player and the tape library"
+	)
+
+
 ## P3.3, the wrong way. Shedding the chamber luminaires looks like enough.
 func _the_tank_refuses(
 	tree: SceneTree, annex: Node3D, logic: AnnexLogic, power: ShelterLogic,
@@ -212,6 +245,10 @@ func _the_tank_drains(
 	await tree.physics_frame
 	expect.ok(logic.drained(), "the sump starts and the tank room drains")
 	expect.ok(not annex.get_node("TankWater").visible, "and the water is gone")
+	expect.ok(
+		(annex.get_node("LibraryDoor") as DeviceDoor).open,
+		"and the way to the library opens, which is what the puzzle was for"
+	)
 	expect.ok(
 		not annex.get_node("TubeLibrary").lit,
 		"in a corridor you have just put the lights out in, which is the price"

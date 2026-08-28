@@ -39,6 +39,7 @@ const RUN_9_LAST := "RF-0840"
 @onready var _interlock: DeviceInterlock = $"../Interlock"
 @onready var _observer: Observer = $"../Observer"
 @onready var _tank_water: Node3D = $"../TankWater"
+@onready var _library_door: DeviceDoor = $"../LibraryDoor"
 @onready var _reels: Node3D = $"../Reels"
 @onready var _end: ActEnd = $"../../ActEnd"
 @onready var _drain: DeviceToggle = $"../TankDrain"
@@ -190,6 +191,10 @@ func _apply() -> void:
 	_apply_chamber_lamps()
 	if _tank_water != null:
 		_tank_water.visible = not _drained
+	# The door is the flood. The water itself is not solid, because the drain
+	# valve is on the far wall and the player has to be able to wade to it.
+	if _library_door != null:
+		_library_door.open = _drained
 	for node in _reels.get_children():
 		var reel := node as DevicePush
 		if reel != null:
