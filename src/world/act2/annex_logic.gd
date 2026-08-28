@@ -15,6 +15,7 @@ extends Node
 ## shelves are ordered.
 
 signal chamber_opened
+signal observation_concluded
 signal tank_drained
 signal reel_found(accession: String)
 signal checkpoint_reached(id: String)
@@ -66,6 +67,10 @@ func _ready() -> void:
 	for node in _reels.get_children():
 		(node as DevicePush).pushed.connect(_on_reel_taken.bind(node.get("label")))
 	_drain.toggled.connect(_on_drain_worked)
+	# Protocol 4.4, and Ending A: standing at the lamp and letting it close over
+	# you *is* the final observation. The entity does not attack -- it arrives,
+	# and arriving is the whole event.
+	_observer.arrived.connect(_on_observation_finished)
 	if _shelter != null:
 		_shelter.bus_live.connect(_on_power_changed)
 		_shelter.bus_tripped.connect(func(_why: String) -> void: _on_power_changed())
@@ -185,6 +190,17 @@ func _apply_chamber_lamps() -> void:
 		if lamp == null or not CHAMBER_CIRCUITS.has(lamp.circuit):
 			continue
 		lamp.lit = _chamber_energised(CHAMBER_CIRCUITS[lamp.circuit])
+
+
+## The observer reached the player and neither of them moved. That is the run
+## concluded, and it is the only thing in this act that outlives the act.
+func _on_observation_finished() -> void:
+	var run := get_tree().get_first_node_in_group(&"run_state") as RunState
+	if run == null or run.run_concluded():
+		return
+	run.conclude()
+	_mark("observed")
+	observation_concluded.emit()
 
 
 func _apply() -> void:

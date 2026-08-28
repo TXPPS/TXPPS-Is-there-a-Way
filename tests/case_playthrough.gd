@@ -22,7 +22,9 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	var reader: Reader = main.get_node("Reader")
 	var journal: Journal = main.get_node("Journal")
 
-	# A new game, and nothing carried in from the cases before this one.
+	# A new game, and nothing carried in from the cases before this one --
+	# including the run itself, which lives outside every act on purpose.
+	(main.get_node("Run") as RunState).load_state({})
 	runner.restart(0)
 	journal.load_state({"read": []})
 	await tree.physics_frame
@@ -266,13 +268,17 @@ func _act_four(
 	await tree.physics_frame
 	expect.ok(not logic.probe()["key"], "and it will not let go until the run concludes")
 
-	logic.call("_finish", &"conclude")
+	# Ending A, the long way round: the run is concluded in the annex, by
+	# standing at the lamp, and it is *read* here -- two acts and two scenes
+	# apart, which is the whole reason `RunState` exists outside both.
+	(main.get_node("Run") as RunState).conclude()
 	await tree.physics_frame
 	gate.get_node("House/Interlock/Zone").engage()
 	await tree.physics_frame
+	expect.ok(logic.probe()["key"], "with the run concluded the cabinet gives up the key")
 	gate.get_node("House/LatchReset/Zone").engage()
 	await tree.physics_frame
-	expect.ok(not logic.latched(), "conclude the run and the sequence resets")
+	expect.ok(not logic.latched(), "and the sequence resets")
 
 	for frame in PATIENCE:
 		await tree.process_frame

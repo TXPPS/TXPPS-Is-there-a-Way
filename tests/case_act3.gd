@@ -44,7 +44,7 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	await _the_reel(tree, main, annex, logic, expect)
 
 	expect.ok(
-		seen == ["chamber", "tank", "reel"],
+		seen == ["chamber", "tank", "observed", "reel"],
 		"the act's checkpoints fire once each, in order (%s)" % [seen]
 	)
 
@@ -312,6 +312,24 @@ func _the_observer_is_here(
 	expect.ok(
 		(fear.parts()["proximity"] as float) > before,
 		"and the fear number is hearing about it"
+	)
+
+	# Protocol 4.4, and Ending A. Letting it arrive *is* the final observation:
+	# it does not attack, it reaches you, and reaching you is the whole event.
+	# The control house is two acts away and will read this.
+	var run: RunState = main.get_node("Run")
+	run.load_state({})
+	for frame in PATIENCE:
+		await tree.physics_frame
+		if run.run_concluded():
+			break
+	expect.ok(
+		run.run_concluded(),
+		"stand still and let it close over you, and the run is concluded"
+	)
+	expect.ok(
+		String(entity.probe()["lamp"]) != "",
+		"which happened at a lamp, because that is the only place it happens"
 	)
 
 	# The bargain, stated as a check: the schedule luminaire is its road.

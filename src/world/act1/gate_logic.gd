@@ -114,7 +114,8 @@ func _on_bench_changed(_on: bool) -> void:
 ## Which of the two endings the player takes decides the answer, and both are
 ## things they do with equipment rather than options on a menu.
 func _run_in_progress(_channel: StringName) -> bool:
-	return _ending != &"conclude"
+	var run := get_tree().get_first_node_in_group(&"run_state") as RunState
+	return not (run != null and run.run_concluded())
 
 
 func _on_key_released(_channel: StringName) -> void:
@@ -136,6 +137,15 @@ func _on_reset_pushed() -> void:
 	_finish(&"conclude")
 
 
+## Ending B is a refusal, and a refusal only means something once there is
+## something to refuse. The local permissive is itself interlocked with the
+## flood command: you cannot take a gate off a permissive that is actively
+## being told there is a flood. Once the panel is being fed the truth, the
+## local control is available and the choice is real.
+func _permissive_available() -> bool:
+	return not _bench.on
+
+
 # --- Ending B ---------------------------------------------------------------
 
 ## Refuse. The tainter gate is designed to be operable when the control house is
@@ -145,6 +155,20 @@ func _on_permissive_changed(_on: bool) -> void:
 	if _permissive.on or _ending != &"":
 		return
 	_finish(&"open")
+
+
+func _apply_permissive() -> void:
+	if _permissive == null:
+		return
+	var zone := _permissive.get_node_or_null("Zone") as Interactable
+	if zone == null:
+		return
+	zone.available = _permissive_available() and _ending == &""
+	_permissive.prompt_when_on = (
+		"Take the gate off its permissive"
+		if _permissive_available()
+		else "Held: the sequence is commanding the gates"
+	)
 
 
 func _finish(which: StringName) -> void:
@@ -162,6 +186,7 @@ func _finish(which: StringName) -> void:
 
 
 func _apply() -> void:
+	_apply_permissive()
 	if _held_lamp != null:
 		_held_lamp.on = _latched
 	if _reset != null:

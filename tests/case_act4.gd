@@ -17,7 +17,12 @@ const PATIENCE := 400
 
 func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	var runner: ActRunner = main.get_node("Acts")
-	runner.load_act(0)
+	# A game nobody has finished. `RunState` lives outside every act, so
+	# `restart()` does not touch it -- and `case_act3` legitimately concludes the
+	# run by letting the entity arrive, which is the game working and would
+	# otherwise walk into this case as a key already released.
+	(main.get_node("Run") as RunState).load_state({})
+	runner.restart(0)
 	await tree.physics_frame
 
 	await _the_way_up(tree, main, expect)
@@ -175,13 +180,12 @@ func _ending_a(
 	logic.ending_reached.connect(func(which: StringName) -> void: endings.append(String(which)))
 
 	# Standing at the lamp and letting the seam close is what `Observer` does to
-	# a player who does not step off the line; the act reads it as a concluded
-	# channel. Driven directly here -- `case_observer` walks the approach.
-	logic.call("_finish", &"conclude")
+	# a player who does not step off the line, and `AnnexLogic` turns its
+	# `arrived` into this. Set directly here -- `case_observer` walks the
+	# approach and `case_act3` walks the annex.
+	(main.get_node("Run") as RunState).conclude()
 	await tree.physics_frame
-	expect.eq(endings, ["conclude"], "concluding the run is an ending")
-	expect.eq(String(logic.ending()), "conclude", "and the act knows which")
-
+	await tree.physics_frame
 	var interlock: DeviceInterlock = gate.get_node("House/Interlock")
 	interlock.get_node("Zone").engage()
 	await tree.physics_frame
@@ -190,6 +194,8 @@ func _ending_a(
 	gate.get_node("House/LatchReset/Zone").engage()
 	await tree.physics_frame
 	expect.ok(not logic.latched(), "and the sequence resets")
+	expect.eq(endings, ["conclude"], "which is the ending")
+	expect.eq(String(logic.ending()), "conclude", "and the act knows which")
 
 	for frame in PATIENCE:
 		await tree.process_frame
@@ -212,6 +218,7 @@ func _ending_b(
 ) -> void:
 	# A fresh act: an ending is the end, and a test that could take one back
 	# would be testing something the player cannot do.
+	(main.get_node("Run") as RunState).load_state({})
 	runner.restart(0)
 	await tree.physics_frame
 
@@ -220,8 +227,21 @@ func _ending_b(
 	var reader: Reader = main.get_node("Reader")
 	expect.eq(String(logic.ending()), "", "a building nobody has finished yet")
 
+	# A refusal only means something once there is something to refuse: the local
+	# permissive is held while the sequence is still being told there is a
+	# flood, so Ending B is not reachable before P4.2 either.
 	var permissive: DeviceToggle = gate.get_node("Pier/HandPump")
 	expect.ok(permissive.on, "the gate is on its permissive")
+	expect.ok(
+		not (permissive.get_node("Zone") as Interactable).available,
+		"and the local control is held while the sequence is commanding the gates"
+	)
+	gate.get_node("Gallery/BenchLead/Zone").engage()
+	await tree.physics_frame
+	expect.ok(
+		(permissive.get_node("Zone") as Interactable).available,
+		"tell the panel the truth and the choice becomes a real one"
+	)
 	permissive.get_node("Zone").engage()
 	await tree.physics_frame
 	expect.eq(String(logic.ending()), "open", "taking it off by hand is the other ending")

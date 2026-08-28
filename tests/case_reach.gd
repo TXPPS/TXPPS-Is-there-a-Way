@@ -47,10 +47,18 @@ func _walk(
 	# is asked is whether the props behind them can be stood in front of at all.
 	for node in _doors(main.get_node(act_node)):
 		node.open = true
-	await tree.physics_frame
-	await tree.physics_frame
 
+	# And every gated control is offered. `available` is progression -- a solved
+	# lock, a permissive the sequence is still holding -- and this case is about
+	# whether a prop is somewhere a player could stand in front of, which is a
+	# fair question about all of them. Put back afterwards.
 	var zones := _find(main.get_node(act_node))
+	var were: Dictionary = {}
+	for zone in zones:
+		were[zone] = zone.available
+		zone.available = true
+	await tree.physics_frame
+	await tree.physics_frame
 	expect.ok(
 		zones.size() >= least,
 		"%s has things to interact with (%d)" % [act_node, zones.size()]
@@ -66,6 +74,8 @@ func _walk(
 		"every one of %s's can be reached from the floor (%s)"
 			% [act_node, "none unreachable" if unreachable.is_empty() else " | ".join(unreachable)]
 	)
+	for zone in were:
+		(zone as Interactable).available = were[zone]
 
 
 func _doors(root: Node) -> Array[DeviceDoor]:
@@ -86,7 +96,7 @@ func _find(root: Node) -> Array[Interactable]:
 	while not stack.is_empty():
 		var node: Node = stack.pop_back()
 		var zone := node as Interactable
-		if zone != null and zone.available:
+		if zone != null:
 			found.append(zone)
 		for child in node.get_children():
 			stack.append(child)

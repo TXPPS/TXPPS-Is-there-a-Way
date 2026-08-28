@@ -442,6 +442,24 @@ document is picked up and held, and the HUD locks to it. Without that
 distinction every breaker in the building would take two taps and take the
 sticks away in between.
 
+### One thing that is true of the run
+
+`RunState` holds exactly one flag — whether the final observation has been
+performed — and it holds it because nothing else can. Act stashes are per-act by
+design, so that walking through a door does not teleport the player to wherever
+they last stood in that building; this is a fact about the *player*, and it is
+written in the annex and read in the control house, which are two different
+scenes in two different acts.
+
+There is one flag in it and there should stay one. The moment it becomes a bag
+of globals it stops being explicable.
+
+It is also what makes Ending A reachable at all. For a while it was not: the
+ending existed, had a card, had a test, and nothing in the game ever called it —
+`case_act4` reached it by calling a private method. Standing at the lamp and
+letting the seam close over you now concludes the run, because the entity does
+not attack, it *arrives*, and arriving is the whole event.
+
 ### The entity
 
 `Observer` is a procedure, not a monster. Protocol 4.2 — *the observer stands at

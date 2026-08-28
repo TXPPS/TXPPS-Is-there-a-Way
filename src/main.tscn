@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://src/world/act1/powerhouse.tscn" id="2_room"]
@@ -16,6 +16,7 @@
 [ext_resource type="Resource" path="res://src/audio/score_tuning.tres" id="14_scoretune"]
 [ext_resource type="PackedScene" path="res://src/ui/reader.tscn" id="15_reader"]
 [ext_resource type="Script" path="res://src/core/journal.gd" id="16_journal"]
+[ext_resource type="Script" path="res://src/core/run_state.gd" id="20_run"]
 [ext_resource type="Resource" path="res://assets/documents/index.tres" id="19_docs"]
 [ext_resource type="Script" path="res://src/world/act_runner.gd" id="17_runner"]
 [ext_resource type="PackedScene" path="res://src/world/act2/shelter.tscn" id="18_shelter"]
@@ -74,6 +75,12 @@ script = ExtResource("12_shots")
 lit_from = 11
 act2_from = 14
 act1_again_from = 29
+
+; Protocol 4.4, and the only thing in the game that is true of the run rather
+; than of an act. Concluded in the annex, read in the control house, which are
+; two different scenes.
+[node name="Run" type="Node" parent="." groups=["saveable", "run_state"]]
+script = ExtResource("20_run")
 
 [node name="Journal" type="Node" parent="." groups=["saveable"]]
 script = ExtResource("16_journal")
