@@ -152,7 +152,12 @@ had been green in CI the whole time:
 7. **Three acts with no reverb.** Act 1 got two zones when the system was
    written; nothing built afterwards got any, so twelve rooms were played dry in
    a game whose sound design is about knowing where you are without looking.
-8. **Three doors half underground.** A `DeviceDoor`'s leaf is centred on its own
+8. **Most of the documents were tables.** `STORY.md` has said since Act 1 that
+   no document may depend on column alignment — one proportional font, no
+   licensed monospace — and then the panel schedule P2.3 turns on, the log P3.2
+   turns on, the index P3.4 turns on and six others were written as columns
+   anyway. So were two Act 1 documents that predate the rule.
+9. **Three doors half underground.** A `DeviceDoor`'s leaf is centred on its own
    node; all three in the shelter sat at floor level, shut enough to stop a body
    and not a ray, and visibly sunk into the concrete.
 
@@ -191,7 +196,7 @@ bench unit first, then the piers.
 
 | | Status |
 |---|---|
-| Build | **green.** Export, budgets (download, texture size, shipped audio), the import-settings check, a **616-check headless suite**, 55-check gameplay smoke, 28-check update-path smoke. |
+| Build | **green.** Export, budgets (download, texture size, shipped audio), the import-settings check, a **620-check headless suite**, 55-check gameplay smoke, 28-check update-path smoke. |
 | Last verified | `v0.1.0 9d249df`, serving from GitHub Pages with every payload file answering 200 and the wasm as `application/wasm`. |
 | Publish | **automatic.** Every push to `main` deploys, and so does a manual **Run workflow** on `main` — both proven, runs #15 and #16. |
 | Verified | the `verify` job fetches the live URL after every deploy and fails the build unless it serves *this* commit with every payload file answering 200 and the wasm as `application/wasm`. |

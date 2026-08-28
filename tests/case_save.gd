@@ -28,6 +28,7 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	await _migration(tree, saves, player, expect)
 	await _an_act_you_leave(tree, main, saves, expect)
 	await _coming_back_to_it(tree, main, saves, expect)
+	await _the_code_stays_pasteable(tree, main, saves, expect)
 	await _degrades(tree, saves, expect)
 	await _slots(tree, saves, expect)
 
@@ -272,3 +273,44 @@ func _slots(tree: SceneTree, saves: SaveService, expect: RefCounted) -> void:
 	expect.ok(not saves.load_from(SaveService.MANUAL), "loading an empty slot fails cleanly")
 	expect.ok(saves.has(SaveService.AUTO), "the autosave is untouched by that")
 	await tree.physics_frame
+
+
+## A save code has to be something a person can actually send.
+##
+## It exists because Safari evicts storage for a site nobody has installed after
+## about a week idle, so a code the player can paste back is the only save they
+## really own -- and a code they cannot paste is not one. Two acts of state now
+## ride along in it, which is exactly the kind of thing that grows quietly.
+##
+## Eight hundred and thirty-odd characters at a full game: fourteen lines in a
+## message. The cap is generous and the point is that it cannot double without
+## somebody deciding it should.
+const CODE_LIMIT := 2000
+
+
+func _the_code_stays_pasteable(
+	tree: SceneTree, main: Node, saves: SaveService, expect: RefCounted
+) -> void:
+	var runner: ActRunner = main.get_node("Acts")
+	# Both acts visited, so both stashes are full: the worst case a player can
+	# actually produce.
+	runner.load_act(1)
+	await tree.physics_frame
+	runner.load_act(0)
+	await tree.physics_frame
+
+	var data := saves.collect()
+	var code := SaveGame.to_code(data)
+	expect.ok(
+		code.length() <= CODE_LIMIT,
+		"a whole game fits in a code you can paste (%d chars of %d)"
+			% [code.length(), CODE_LIMIT]
+	)
+	expect.ok(
+		not SaveGame.from_code(code).is_empty(),
+		"and it comes back out again"
+	)
+	expect.ok(
+		(SaveGame.from_code(code).get("acts", {}) as Dictionary).size() >= 2,
+		"with both acts' state still in it"
+	)
