@@ -32,6 +32,7 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 		runner.load_act(int(act["index"]))
 		await tree.physics_frame
 		await _walk(tree, main, String(act["node"]), int(act["least"]), expect)
+		await _every_room_holds_you_up(tree, main, String(act["node"]), expect)
 	runner.load_act(0)
 	await tree.physics_frame
 
@@ -144,3 +145,49 @@ func _floor_under(player: Player, spot: Vector3, from_y: float) -> float:
 	)
 	var hit := space.intersect_ray(query)
 	return NAN if hit.is_empty() else (hit["position"] as Vector3).y
+
+
+## Every room has a floor, and you can stand in the middle of it.
+##
+## The gate pier shipped without one: `RoomBox` can only take a floor away
+## whole, so a deck built over an open stair shaft had no floor *anywhere* and
+## the player dropped straight through onto the steps. Nothing caught it -- the
+## reach test walks to props and the pier's only prop was against a wall -- and
+## what found it in the end was looking at a screenshot aimed somewhere else.
+##
+## A room the player cannot stand in the middle of is a room they will fall
+## through the first time they try to cross it.
+func _every_room_holds_you_up(
+	tree: SceneTree, main: Node, act_node: String, expect: RefCounted
+) -> void:
+	var player: Player = main.get_node("Player")
+	var rooms := _rooms(main.get_node(act_node))
+	expect.ok(rooms.size() >= 5, "%s is built out of rooms (%d)" % [act_node, rooms.size()])
+
+	var holes := PackedStringArray()
+	for room in rooms:
+		# A hand's breadth above the floor, in the middle, where nothing is.
+		var at: Vector3 = room.global_position + Vector3(0.0, 0.35, 0.0)
+		player.global_position = at
+		player.velocity = Vector3.ZERO
+		for frame in 12:
+			await tree.physics_frame
+		if player.global_position.y < room.global_position.y - 0.6:
+			holes.append("%s (fell to %.1f from %.1f)"
+				% [room.name, player.global_position.y, room.global_position.y])
+	expect.ok(
+		holes.is_empty(),
+		"and you can stand in the middle of every one (%s)" % " | ".join(holes)
+	)
+
+
+func _rooms(root: Node) -> Array[RoomBox]:
+	var found: Array[RoomBox] = []
+	var stack: Array[Node] = [root]
+	while not stack.is_empty():
+		var node: Node = stack.pop_back()
+		if node is RoomBox:
+			found.append(node)
+		for child in node.get_children():
+			stack.append(child)
+	return found
