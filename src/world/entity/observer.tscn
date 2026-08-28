@@ -1,0 +1,12 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/world/entity/observer.gd" id="1_observer"]
+
+; The entity. One mesh, no collider, no sound of its own, and no way for the
+; player to touch it -- everything it does, it does by being between them and a
+; lamp. The body is built in code rather than here because its size is a tuning
+; number and a tuning number in two places is a tuning number that disagrees.
+[node name="Observer" type="Node3D"]
+script = ExtResource("1_observer")
+
+[node name="Body" type="MeshInstance3D" parent="."]
