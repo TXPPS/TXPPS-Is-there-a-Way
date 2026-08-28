@@ -56,6 +56,7 @@ func _ready() -> void:
 	if is_instance_valid(_acts):
 		_acts.act_changed.connect(_on_act_changed)
 	_settings.apply_all()
+	_resume_if_any()
 	_state.enter(GameState.State.FREE)
 	print("Is There a Way? — build %s" % BuildInfo.describe())
 
@@ -89,6 +90,24 @@ func _on_paused() -> void:
 func _on_resumed() -> void:
 	_hud.set_input_enabled(true)
 	_state.close_menu()
+
+
+## Pick the game back up where it was left.
+##
+## The autosave is written at every checkpoint and again when the browser says
+## the tab is going away, and for a long time **nothing ever read it** — the
+## save system was complete, tested, and decorative, because closing the tab
+## threw the game away and reopening it started at the panel in the dark.
+##
+## Silent, and on purpose: this is a phone, the tab goes away for reasons that
+## have nothing to do with the player, and a game that asked "continue?" every
+## time they took a call would be asking about its own plumbing. *Return to
+## Title* is how a player says they want to start again, and it erases this.
+func _resume_if_any() -> void:
+	if not _saves.has(SaveService.AUTO):
+		return
+	if _saves.load_from(SaveService.AUTO):
+		print("resumed from the autosave")
 
 
 ## The act's own progression. Checkpoints are the only thing that writes an

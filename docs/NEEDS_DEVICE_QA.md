@@ -5,7 +5,7 @@
 > feels right, sounds right, or looks right, and neither is an iPhone.
 >
 > Numbered so it can be run in one sitting. Report anything that fails by its
-> number. A hundred and sixteen items; the Act 4 section (107 onward) is the newest and the
+> number. A hundred and eighteen items; the Act 4 section (107 onward) is the newest and the
 > least examined.
 
 ---
@@ -362,6 +362,15 @@ gallery. `tests/case_act4.gd` walks it both ways.
     document in the game quoted in full. The silence in the middle of it is a
     man keeping a rule, not the tape failing. **Does that read?**
 
+**Coming back**
+116. Play a few minutes in, then **close the tab entirely** and open the URL
+    again. It should pick up where you were, with no prompt. This was broken
+    until the last hour of the run — the autosave was written and never read —
+    so it is the newest thing here and the least exercised.
+117. Open the pause menu and use **Return to Title**. It discards the autosave,
+    so the reload gives you a new game. A save you made yourself, from the Saves
+    panel, must survive it.
+
 **Errors**
-116. If anything at all goes wrong, a toast should say what. If something goes
+118. If anything at all goes wrong, a toast should say what. If something goes
     wrong **silently**, that is itself the bug worth reporting.

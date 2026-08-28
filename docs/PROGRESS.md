@@ -36,7 +36,7 @@ than anything else that could be built on top of this.**
 |---|---|
 | **Live** | <https://txpps.github.io/TXPPS-Is-there-a-Way/> |
 | **Stamp to expect** | `v0.1.0 83c2f38` (or later — every push deploys) |
-| **First thing to do** | `docs/NEEDS_DEVICE_QA.md`, all 116 items, in order. Section "Controls" first: if that fails, stop, because everything else stands on it. |
+| **First thing to do** | `docs/NEEDS_DEVICE_QA.md`, all 118 items, in order. Section "Controls" first: if that fails, stop, because everything else stands on it. |
 | **Blocked on a human** | Everything unverifiable. Nothing is blocked on a decision. |
 | **If you only do one thing** | Play it, once, on the phone, to an ending. Every number in this file is a number I checked; not one of them is an opinion about whether it is any good. |
 | **Frozen** | The input layer. No change to touch semantics, layout or the router without a failing test to justify it. |
@@ -64,8 +64,11 @@ than anything else that could be built on top of this.**
   `docs/shots/` is a committed gallery of what it looks like.
 - **Everything the game hears is generated** by a committed script, and the
   score follows one fear number.
-- **Saves persist**, survive a tab being discarded, and can be exported as a
-  text code — which on this platform is the only save the player really owns.
+- **Saves persist, and are read.** The autosave survives a tab being discarded
+  and is picked up on the next boot, which for most of this project it was not:
+  the whole system was complete, tested and decorative until an audit noticed
+  nothing ever loaded it. It can also be exported as a text code, which on this
+  platform is the only save the player really owns.
 
 ### Act 2, as built
 
@@ -148,7 +151,7 @@ bench unit first, then the piers.
 
 | | Status |
 |---|---|
-| Build | **green.** Export, budgets (download, texture size, shipped audio), the import-settings check, a **578-check headless suite**, 55-check gameplay smoke, 28-check update-path smoke. |
+| Build | **green.** Export, budgets (download, texture size, shipped audio), the import-settings check, a **584-check headless suite**, 55-check gameplay smoke, 28-check update-path smoke. |
 | Last verified | `v0.1.0 83c2f38`, serving from GitHub Pages with every payload file answering 200 and the wasm as `application/wasm`. |
 | Publish | **automatic.** Every push to `main` deploys, and so does a manual **Run workflow** on `main` — both proven, runs #15 and #16. |
 | Verified | the `verify` job fetches the live URL after every deploy and fails the build unless it serves *this* commit with every payload file answering 200 and the wasm as `application/wasm`. |

@@ -22,6 +22,7 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	await _codes(tree, saves, player, expect)
 	await _migration(tree, saves, player, expect)
 	await _an_act_you_leave(tree, main, saves, expect)
+	await _coming_back_to_it(tree, main, saves, expect)
 	await _degrades(tree, saves, expect)
 	await _slots(tree, saves, expect)
 
@@ -74,6 +75,59 @@ func _codes(
 		player.global_position.x, HERE.x, 0.01,
 		"and a refused code leaves the world exactly as it was"
 	)
+
+
+## The autosave is *read*, and Return to Title means it.
+##
+## This is here because for a long time nothing read it. The save system was
+## complete, tested and decorative: every checkpoint wrote, the tab going away
+## wrote, and reopening the tab started at the panel in the dark with the whole
+## thing still sitting in IndexedDB. A save nobody loads is not a save.
+func _coming_back_to_it(
+	tree: SceneTree, main: Node, saves: SaveService, expect: RefCounted
+) -> void:
+	var runner: ActRunner = main.get_node("Acts")
+	var menu: PauseMenu = main.get_node("PauseMenu")
+	runner.restart(0)
+	await tree.physics_frame
+
+	var breaker: DeviceToggle = main.get_node("Powerhouse/Panel/Main")
+	expect.ok(not breaker.on, "a game nobody has played")
+	breaker.on = true
+	expect.ok(saves.save_to(SaveService.AUTO), "which autosaves at a checkpoint")
+
+	# Everything thrown away, the way closing the tab throws it away.
+	runner.restart(0)
+	await tree.physics_frame
+	expect.ok(
+		not (main.get_node("Powerhouse/Panel/Main") as DeviceToggle).on,
+		"and then the tab goes away and the building is new again"
+	)
+
+	main.call("_resume_if_any")
+	await tree.physics_frame
+	expect.ok(
+		(main.get_node("Powerhouse/Panel/Main") as DeviceToggle).on,
+		"coming back picks it up where it was left"
+	)
+
+	# And Return to Title has to mean start again, or the button does nothing a
+	# player can see: the reload it triggers would resume from this same save.
+	menu.discard_autosave()
+	expect.ok(not saves.has(SaveService.AUTO), "Return to Title discards the autosave")
+	runner.restart(0)
+	await tree.physics_frame
+	main.call("_resume_if_any")
+	await tree.physics_frame
+	expect.ok(
+		not (main.get_node("Powerhouse/Panel/Main") as DeviceToggle).on,
+		"so the next boot is a new game"
+	)
+
+	# Leave an autosave behind: `_slots` checks that emptying the manual slot
+	# does not touch it, and a case that consumes what its neighbours rely on is
+	# a case that breaks them instead of itself.
+	saves.save_to(SaveService.AUTO)
 
 
 ## An act you walk out of is as you left it when you come back.

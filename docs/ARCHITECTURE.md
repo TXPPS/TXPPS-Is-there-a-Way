@@ -618,6 +618,20 @@ reloads — the disturbance never happened, so the restore has nothing to fix.
 `case_act1` and `case_act2` assert the contract directly, and it was found by
 breaking a device on purpose and watching a green suite stay green.
 
+**When it reads.** Once, at boot, from the autosave — and this was missing for a
+long time. The save system was complete, versioned, migrated, tested and
+**decorative**: every checkpoint wrote, the tab going away wrote, and reopening
+the tab started at the panel in the dark with the whole thing still sitting in
+IndexedDB. A save nobody loads is not a save.
+
+It resumes silently and on purpose. This is a phone, the tab goes away for
+reasons that have nothing to do with the player, and a game that asked
+"continue?" every time they took a call would be asking about its own plumbing.
+*Return to Title* is how a player says they want to start again, and it discards
+the autosave so that the reload it triggers does not put them straight back
+where they were — the manual slot is untouched, because they made that one on
+purpose.
+
 **When it writes.** On a checkpoint — a door closing, a puzzle solved — and
 whenever the browser says the tab is going away. `SaveService` registers
 `window.__itaw_onSuspend` with the shell, which calls it on `freeze`, `pagehide`

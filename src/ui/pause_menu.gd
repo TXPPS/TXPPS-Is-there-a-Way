@@ -230,7 +230,23 @@ func _cancel_confirm() -> void:
 	_title.visible = true
 
 
+## The half of Return to Title that is this game's business. The other half is
+## reloading the page, which is the shell's, and is why they are separate: a
+## test can check that starting again starts again without the process exiting
+## underneath it.
+func discard_autosave() -> void:
+	if _saves != null:
+		_saves.erase(SaveService.AUTO)
+
+
+## Return to Title is how a player says "start again", and it has to mean it.
+##
+## The game resumes from the autosave on boot, so a reload that left the
+## autosave in place would put them straight back where they were and the button
+## would do nothing they could see. The manual slot is untouched: that is the
+## player's, and they saved it on purpose.
 func _confirm_title() -> void:
+	discard_autosave()
 	return_to_title.emit()
 	if OS.has_feature("web"):
 		JavaScriptBridge.eval(TITLE_CALL, true)
