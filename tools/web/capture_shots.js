@@ -20,6 +20,12 @@ const { serve, openBrowser } = require('./harness');
 const BUILD = path.resolve(process.argv[2] || 'build');
 const OUT = path.resolve(process.argv[3] || 'docs/shots');
 const PORT = 8097;
+// docs/BUDGETS.md. Kept here as well as in smoke_web.js on purpose: the two
+// measure different things, one room versus every room, and a shared constant
+// would make it look like one check.
+const MAX_DRAW_CALLS = 120;
+const MAX_PRIMITIVES = 150000;
+
 const BOOT_MS = 180000;
 const SHOT_MS = 30000;
 
@@ -42,6 +48,7 @@ const SHOT_MS = 30000;
 	console.log(`shots: ${total} poses`);
 
 	const taken = [];
+	let worst = { draws: 0, where: '' };
 	for (let i = 0; i < total; i++) {
 		await page.waitForFunction(
 			(want) => window.__itaw_shot && window.__itaw_shot.ready && window.__itaw_shot.index === want,
@@ -58,8 +65,25 @@ const SHOT_MS = 30000;
 		// this small means the post stack ate the scene, which is a failure
 		// worth stopping for rather than committing a gallery of black.
 		if (bytes < 4000) { problems.push(`${shot.name} is ${bytes} bytes: the frame is empty`); }
+
+		// docs/BUDGETS.md, measured where it has never been measured before.
+		// smoke_web.js asserts these too, standing in one room of four acts;
+		// this run already stands in every space in the game, so it is the only
+		// thing that can tell you the annex corridor with three chambers off it
+		// costs more than the generator hall.
+		if (shot.draw_calls > MAX_DRAW_CALLS) {
+			problems.push(`${shot.name}: ${shot.draw_calls} draw calls, over ${MAX_DRAW_CALLS}`);
+		}
+		if (shot.primitives > MAX_PRIMITIVES) {
+			problems.push(`${shot.name}: ${shot.primitives} primitives, over ${MAX_PRIMITIVES}`);
+		}
+		if (shot.draw_calls > worst.draws) { worst = { draws: shot.draw_calls, where: shot.name }; }
+
 		taken.push(`${shot.name} (${(bytes / 1024).toFixed(0)} kB)`);
-		console.log(`  ${shot.name}  ${(bytes / 1024).toFixed(0)} kB`);
+		console.log(
+			`  ${shot.name}  ${(bytes / 1024).toFixed(0)} kB` +
+			`  ${shot.draw_calls} draws  ${shot.primitives} prims`
+		);
 		await page.evaluate(() => window.__itaw_shotNext());
 	}
 
@@ -71,6 +95,9 @@ const SHOT_MS = 30000;
 		process.exit(1);
 	}
 	console.log(`\ncapture: ${taken.length} shots into ${path.relative(process.cwd(), OUT)}`);
+	console.log(
+		`capture: worst frame ${worst.draws} draw calls of ${MAX_DRAW_CALLS}, at ${worst.where}`
+	);
 })().catch((err) => {
 	console.error('capture: crashed', err);
 	process.exit(2);

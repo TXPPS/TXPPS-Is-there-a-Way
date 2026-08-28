@@ -401,6 +401,23 @@ hook P3 needs. Nothing else in `src/core/` is inert any more.
 
 Report anything **not** on this list.
 
+- **THE DRAW-CALL BUDGET IS BLOWN, BADLY, IN THREE ACTS.** `docs/BUDGETS.md`
+  caps visible draw calls at 120. Act 1's generator hall is 37 — and that is the
+  only place it was ever measured, because `smoke_web.js` asserts the budget
+  once, standing where the game starts. A new per-shot check across all four
+  acts reports **up to 4086** in the tape library, 1779 in the tank room, 1686
+  at the observer station, 884 on the pier stair.
+
+  The cause is structural rather than a mistake: `RoomBox` emits one mesh per
+  wall segment and every dressing prop is its own `Slab`, twenty rooms of them,
+  and nothing occludes anything — so from any long sight line the whole level
+  draws. `RoomBox`'s own comment named the fix before the problem existed:
+  *"if a level ever gets close, the answer is merging the static geometry per
+  room, not fewer rooms."*
+
+  This is being fixed now. Until the line below says otherwise, assume the game
+  is unplayably slow on a phone anywhere past Act 1.
+
 - **The runner still warns about Node 20**, and it cannot be silenced yet: the
   five actions it originally named are on their Node 24 majors, but
   `upload-artifact@v5` targets Node 20 itself, `upload-pages-artifact@v3` pins

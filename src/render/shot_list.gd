@@ -188,4 +188,10 @@ func _publish(ready: bool) -> void:
 		"ready": ready,
 		"done": _index >= SHOTS.size(),
 		"total": SHOTS.size(),
+		# What this frame cost. The shot run already stands in every space in
+		# the game, so it is the only thing that visits all of them with a real
+		# renderer behind it -- and `docs/BUDGETS.md`'s draw-call cap was being
+		# asserted in exactly one room of four acts until it reported these.
+		"draw_calls": int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)),
+		"primitives": int(Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME)),
 	}), true)
