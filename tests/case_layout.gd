@@ -13,6 +13,7 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	var safe: SafeArea = hud.get_node("SafeArea")
 	var layout: HudLayout = hud.layout
 	await tree.process_frame
+	await _the_longest_line_fits(tree, main, expect)
 
 	var live: Dictionary = rects.rects()
 	expect.ok(live.size() >= 4, "the sticks, the pause button and the action arc are all reserved")
@@ -107,3 +108,46 @@ func _drawn_inside_safe(
 
 func _around(centre: Vector2, radius: float) -> Rect2:
 	return Rect2(centre - Vector2(radius, radius), Vector2(radius, radius) * 2.0)
+
+
+## Emil's longest sentence, at the largest subtitle size the settings offer.
+##
+## The band is a fixed rectangle and the text is a `Label` inside it. Nothing
+## stops a long line at 32 px wrapping to more rows than the box has, and the
+## overflow does not error -- it just goes missing off the bottom, which for the
+## one piece of speech in the game is the worst possible way to fail.
+func _the_longest_line_fits(tree: SceneTree, main: Node, expect: RefCounted) -> void:
+	var hud: Hud = main.get_node("Hud")
+	var subtitles: Subtitles = hud.subtitles()
+	var runner: ActRunner = main.get_node("Acts")
+
+	runner.load_act(1)
+	await tree.physics_frame
+	var intercom: DeviceIntercom = main.get_node("Shelter/Intercom")
+	var longest := ""
+	for line in intercom.lines:
+		if String(line).length() > longest.length():
+			longest = String(line)
+	expect.ok(longest.length() > 20, "there is a line to measure (%d chars)" % longest.length())
+
+	var over := PackedStringArray()
+	for choice in Subtitles.SIZES.size():
+		subtitles.on_setting(&"subtitle_size", float(choice))
+		subtitles.say([longest])
+		await tree.process_frame
+		await tree.process_frame
+		var needed := subtitles.get_theme_font(&"font").get_multiline_string_size(
+			longest, HORIZONTAL_ALIGNMENT_CENTER, subtitles.size.x,
+			Subtitles.SIZES[choice], -1, TextServer.BREAK_WORD_BOUND | TextServer.BREAK_MANDATORY
+		)
+		if needed.y > subtitles.size.y:
+			over.append("size %d needs %.0f of %.0f" % [
+				Subtitles.SIZES[choice], needed.y, subtitles.size.y])
+	subtitles.clear()
+	subtitles.on_setting(&"subtitle_size", 1.0)
+	expect.ok(
+		over.is_empty(),
+		"the longest thing anybody says fits the band at every size (%s)" % " | ".join(over)
+	)
+	runner.load_act(0)
+	await tree.physics_frame
