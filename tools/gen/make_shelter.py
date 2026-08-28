@@ -18,8 +18,8 @@ Two things this file exists to get right, both of which have bitten before:
     coplanar surfaces that fight, so the room whose doorway it is keeps it and
     the other omits that side.
 """
-import math
 import pathlib
+import sys
 
 OUT = pathlib.Path(__file__).resolve().parents[2] / "src/world/act2/shelter.tscn"
 
@@ -28,76 +28,8 @@ OUT = pathlib.Path(__file__).resolve().parents[2] / "src/world/act2/shelter.tscn
 # direction rather than an angle.
 EAST, WEST, NORTH, SOUTH = "east", "west", "north", "south"
 
-_DIR = {EAST: (1.0, 0.0), WEST: (-1.0, 0.0), NORTH: (0.0, -1.0), SOUTH: (0.0, 1.0)}
-
-
-def fmt(v):
-    if not isinstance(v, float):
-        return str(v)
-    v = round(v, 5) + 0.0   # +0.0 turns -0.0 into 0.0, which keeps diffs quiet
-    return "%g" % v
-
-
-def facing(direction, local_forward="+z"):
-    """The three basis axes that point `local_forward` along `direction`.
-
-    Returns the axes themselves -- x, y, z as world vectors. Turning them into
-    the twelve numbers a .tscn wants is `t3`'s job, and the two are separate
-    because that serialisation is the thing this file has got wrong before.
-    """
-    dx, dz = _DIR[direction]
-    if local_forward == "+z":
-        z = (dx, 0.0, dz)
-        x = (dz, 0.0, -dx)   # right-handed: y cross z
-    elif local_forward == "+x":
-        x = (dx, 0.0, dz)
-        z = (-dz, 0.0, dx)   # right-handed: x cross y
-    else:
-        raise ValueError(local_forward)
-    return x, (0.0, 1.0, 0.0), z
-
-
-def t3(axes, pos):
-    """A Transform3D literal, from three basis axes and an origin.
-
-    **A .tscn stores the basis by rows, not by axis.** `Basis` keeps its rows,
-    and the axes are its *columns*, so writing the axes out in order gives the
-    transpose -- which for a rotation is its inverse, and mounts everything
-    facing backwards. That bug shipped once already (every prop in Act 1 was
-    hung facing into its wall) and it is invisible in a screenshot, because a
-    flat panel on a wall looks the same from the front whichever way its normal
-    points. tests/case_reach.gd is what catches it; this is what avoids it.
-    """
-    x, y, z = axes
-    rows = (x[0], y[0], z[0],
-            x[1], y[1], z[1],
-            x[2], y[2], z[2])
-    return "Transform3D(%s, %s)" % (
-        ", ".join(fmt(v) for v in rows),
-        ", ".join(fmt(v) for v in pos),
-    )
-
-
-def upright(pos):
-    return t3(((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)), pos)
-
-
-# --- the plan ---------------------------------------------------------------
-#
-# A spine corridor running north-south, rooms hung off it. Floor level is y=0
-# for the whole act: RoomBox puts the floor's top surface at its own origin, so
-# rooms at the same y share a floor. Interior clear dimensions, 0.5 m grid.
-#
-#   Vestibule      arrive here from Act 1's blast door, at the south end
-#   Corridor       the spine, with panel DP-2 on its east side
-#   PlantRoom      the set, the day tank, the transfer switch      (west)
-#   Mess           the intercom, the table Emil reads at           (west)
-#   BunkRoom       two bunks, one made and one stripped            (east)
-#   StoreRoom      rations, rotated, dated this month              (east)
-#   StairHead      the way down to the annex, under water until the sump runs
-#
-# Wall ownership: the corridor keeps every wall it has a doorway in, and the
-# rooms omit the side they share with it.
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from tscn import WALLS, box, facing, fmt, t3, upright  # noqa: E402
 
 THICK = 0.4
 CORRIDOR = dict(interior=(2.5, 2.6, 20.0), at=(0.0, 0.0, 0.0))
@@ -331,21 +263,6 @@ def ext_id(path_fragment):
         if path_fragment in path:
             return ident
     raise KeyError(path_fragment)
-
-
-def box(name, size, at, material, parent=".", solid=True):
-    return [
-        '[node name="%s" type="Node3D" parent="%s"]' % (name, parent),
-        "transform = %s" % upright(at),
-        'script = ExtResource("3_slab")',
-        "size = Vector3(%s)" % ", ".join(fmt(float(v)) for v in size),
-        'material = ExtResource("%s")' % material,
-        "solid = %s" % ("true" if solid else "false"),
-        "",
-    ]
-
-
-WALLS = ["NORTH", "SOUTH", "WEST", "EAST"]
 
 
 def _doorways():
@@ -757,6 +674,11 @@ def _ways_out():
     out.append('script = ExtResource("19_end")')
     out.append('card = ExtResource("20_card")')
     out.append("return_to = Vector3(0, 0.1, -11.0)")
+    # Act 3 hands back to Act 1. The way out is up the pier stair from the
+    # gallery, which the player walked in the dark in Act 1 and did not look at.
+    out.append("next_act = 0")
+    out.append("arrive_at = Vector3(9.9, -3.8, 16)")
+    out.append("arrive_facing = -90.0")
     out.append("")
     out.append('[node name="Shape" type="CollisionShape3D" parent="ActEnd"]')
     out.append('shape = SubResource("BoxShape3D_end")')

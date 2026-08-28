@@ -1,10 +1,7 @@
 [gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
 
-; The edge of what is built. The one piece of text in this game that addresses
-; the player, and it is allowed to because it is not in the world: everything
-; the fiction says is said by somebody who was not talking to you.
-;
-; Shown when Reel 9-C is in hand, which is where Act Three ends.
+; A chapter break. Act Three ends with the reel in hand and Act Four is the way
+; out, so this says so and gets out of the way.
 
 [ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
 
@@ -12,25 +9,11 @@
 script = ExtResource("1_doc")
 id = &"built_end_card"
 title = "End of Act Three"
-byline = "This is the edge of what is built, not the end of the story."
+byline = "Reel 9-C is in your jacket."
 hand = 0
-body = "The reel in your hand is Run 9, box C. The last
-thing anybody recorded in this building.
+body = "Act Four — The Gate
 
-Act Four is the gate piers and the control
-house, up inside the dam, and it is not made
-yet. There is a way out of here and you have
-not found it.
+The way out is up, and you have walked it once
+already in the dark.
 
-What you have just played is three acts: the
-powerhouse, the shelter, and the annex.
-Twelve puzzles, twenty-two documents, and one
-man who has been keeping the log since 1994,
-rotating the rations, and standing at the lamp.
-
-If you read everything, you know his name, you
-know what the programme was for, and you know
-what Protocol 4.2 means. You do not yet know
-what he says on the tape.
-
-Put this down to go back."
+Put this down to go on."

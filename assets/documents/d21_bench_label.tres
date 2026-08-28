@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+; The recognition. Same hand as D-05, four hours and one whole game earlier --
+; WATCH THE THIRD STEP, which the player read as somebody's kindness and did not
+; think about again. This is the moment the building stops being the antagonist.
+;
+; It is nine words and it does not explain itself, because he was not writing it
+; for anybody. He was labelling a box so he would know what it was.
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"d21_bench_label"
+title = "Label, on a homemade box"
+byline = "engineer's capitals, marker on masking tape"
+hand = 1
+body = "STAGE XMTR SUBSTITUTE
+
+FEEDS PANEL REPEATER
+FLOAT LEAD DISCONNECTED AT WELL
+
+SET 30.5 FT
+DO NOT DISTURB WHILE RUN IN PROGRESS
+
+                              E.O."

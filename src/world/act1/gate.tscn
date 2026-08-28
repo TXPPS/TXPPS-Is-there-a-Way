@@ -1,0 +1,257 @@
+[gd_scene load_steps=26 format=3]
+
+[ext_resource type="Script" path="res://src/world/kit/room_box.gd" id="1_room"]
+[ext_resource type="Script" path="res://src/world/kit/opening.gd" id="2_open"]
+[ext_resource type="Script" path="res://src/world/kit/slab.gd" id="3_slab"]
+[ext_resource type="Script" path="res://src/world/kit/stair_run.gd" id="4_stair"]
+[ext_resource type="Material" path="res://assets/materials/graybox_concrete.tres" id="5_concrete"]
+[ext_resource type="Material" path="res://assets/materials/graybox_steel.tres" id="6_steel"]
+[ext_resource type="Material" path="res://assets/materials/graybox_paint.tres" id="7_paint"]
+[ext_resource type="PackedScene" path="res://src/world/kit/bulkhead_lamp.tscn" id="8_lamp"]
+[ext_resource type="Script" path="res://src/world/surface_tag.gd" id="9_tag"]
+[ext_resource type="Resource" path="res://assets/surfaces/concrete.tres" id="10_surface"]
+[ext_resource type="Resource" path="res://assets/surfaces/grating.tres" id="11_grating"]
+[ext_resource type="PackedScene" path="res://src/world/readable.tscn" id="12_page"]
+[ext_resource type="PackedScene" path="res://src/world/devices/device_toggle.tscn" id="13_toggle"]
+[ext_resource type="PackedScene" path="res://src/world/devices/device_push.tscn" id="14_push"]
+[ext_resource type="PackedScene" path="res://src/world/devices/device_door.tscn" id="15_door"]
+[ext_resource type="PackedScene" path="res://src/world/devices/device_gauge.tscn" id="16_gauge"]
+[ext_resource type="PackedScene" path="res://src/world/devices/device_interlock.tscn" id="17_interlock"]
+[ext_resource type="Script" path="res://src/world/act1/gate_logic.gd" id="18_logic"]
+[ext_resource type="Script" path="res://src/world/act1/act_end.gd" id="19_end"]
+[ext_resource type="Resource" path="res://assets/documents/d21_bench_label.tres" id="doc_d21"]
+[ext_resource type="Resource" path="res://assets/documents/d22_stage_record.tres" id="doc_d22"]
+[ext_resource type="Resource" path="res://assets/documents/d24_reel_9c.tres" id="doc_d24"]
+[ext_resource type="Resource" path="res://assets/documents/ending_a_card.tres" id="doc_end_a"]
+[ext_resource type="Resource" path="res://assets/documents/ending_b_card.tres" id="doc_end_b"]
+[sub_resource type="Resource" id="Opening_1"]
+script = ExtResource("2_open")
+wall = 1
+offset = 0
+width = 1.1
+height = 2.1
+sill = 0.0
+[node name="Gate" type="Node3D"]
+
+[node name="PierStair" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.3, -3.9, 13)
+script = ExtResource("1_room")
+interior = Vector3(3, 4.5, 8)
+thickness = 0.4
+omit_walls = Array[int]([2])
+wall_material = ExtResource("5_concrete")
+floor_material = ExtResource("5_concrete")
+roofed = false
+
+[node name="Surface" type="Node" parent="PierStair"]
+script = ExtResource("9_tag")
+surface = ExtResource("10_surface")
+
+[node name="PierDeck" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.3, 0.6, 13)
+script = ExtResource("1_room")
+interior = Vector3(3, 3, 8)
+thickness = 0.4
+openings = Array[ExtResource("2_open")]([SubResource("Opening_1")])
+wall_material = ExtResource("5_concrete")
+floor_material = ExtResource("5_concrete")
+floored = false
+
+[node name="Surface" type="Node" parent="PierDeck"]
+script = ExtResource("9_tag")
+surface = ExtResource("10_surface")
+
+[node name="ControlHouse" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.3, 0.6, 19.65)
+script = ExtResource("1_room")
+interior = Vector3(4.5, 2.8, 4.5)
+thickness = 0.4
+omit_walls = Array[int]([0])
+wall_material = ExtResource("5_concrete")
+floor_material = ExtResource("5_concrete")
+
+[node name="Surface" type="Node" parent="ControlHouse"]
+script = ExtResource("9_tag")
+surface = ExtResource("10_surface")
+
+[node name="StairRun" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.3, 0.6, 9.6)
+script = ExtResource("4_stair")
+steps = 15
+rise = 0.3
+tread = 0.315
+width = 1.4
+material = ExtResource("6_steel")
+
+[node name="Surface" type="Node" parent="StairRun"]
+script = ExtResource("9_tag")
+surface = ExtResource("11_grating")
+
+[node name="Gallery" type="Node3D" parent="."]
+
+[node name="RelayPanel" type="Node3D" parent="Gallery"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.34, -2.6, 13.6)
+script = ExtResource("3_slab")
+size = Vector3(0.1, 1.2, 1.4)
+material = ExtResource("7_paint")
+solid = true
+
+[node name="StageGauge" parent="Gallery" instance=ExtResource("16_gauge")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.28, -2.3, 13.9)
+save_key = &"stage_gauge"
+units = "FT"
+maximum = 40.0
+
+[node name="SeqHeld" parent="Gallery" instance=ExtResource("13_toggle")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.28, -2.3, 13.2)
+save_key = &"seq_held"
+label = "SEQ HELD"
+on = true
+available = false
+
+[node name="BenchShelf" type="Node3D" parent="Gallery"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.08, -2.6, 15)
+script = ExtResource("3_slab")
+size = Vector3(0.42, 0.05, 0.9)
+material = ExtResource("6_steel")
+solid = true
+
+[node name="BenchUnit" type="Node3D" parent="Gallery"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.06, -2.44, 15)
+script = ExtResource("3_slab")
+size = Vector3(0.3, 0.24, 0.5)
+material = ExtResource("7_paint")
+solid = true
+
+[node name="BenchLead" parent="Gallery" instance=ExtResource("13_toggle")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.28, -2.3, 15.8)
+save_key = &"bench_lead"
+label = "XMTR SUBSTITUTE"
+on = true
+prompt_when_on = "Pull the lead"
+prompt_when_off = "Put the lead back"
+
+[node name="Pier" type="Node3D" parent="."]
+
+[node name="HpuSkid" type="Node3D" parent="Pier"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.3, 1.05, 10.4)
+script = ExtResource("3_slab")
+size = Vector3(1.6, 0.9, 1)
+material = ExtResource("6_steel")
+solid = true
+
+[node name="HpuMotor" type="Node3D" parent="Pier"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.9, 1.75, 10.4)
+script = ExtResource("3_slab")
+size = Vector3(0.5, 0.5, 0.5)
+material = ExtResource("7_paint")
+solid = true
+
+[node name="HandPump" parent="Pier" instance=ExtResource("13_toggle")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.75, 1.6, 10.95)
+save_key = &"hand_pump"
+label = "GATE PERMISSIVE — LOCAL"
+on = true
+prompt_when_on = "Take the gate off its permissive"
+prompt_when_off = "Put the permissive back"
+
+[node name="House" type="Node3D" parent="."]
+
+[node name="Desk" type="Node3D" parent="House"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.3, 1.46, 19)
+script = ExtResource("3_slab")
+size = Vector3(2.6, 0.08, 0.7)
+material = ExtResource("7_paint")
+solid = true
+
+[node name="DeskLeg1" type="Node3D" parent="House"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.1, 1.03, 19)
+script = ExtResource("3_slab")
+size = Vector3(0.06, 0.86, 0.6)
+material = ExtResource("6_steel")
+solid = true
+
+[node name="DeskLeg2" type="Node3D" parent="House"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 1.03, 19)
+script = ExtResource("3_slab")
+size = Vector3(0.06, 0.86, 0.6)
+material = ExtResource("6_steel")
+solid = true
+
+[node name="Cabinet" type="Node3D" parent="House"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.6, 1.55, 21.5)
+script = ExtResource("3_slab")
+size = Vector3(1.1, 1.9, 0.4)
+material = ExtResource("7_paint")
+solid = true
+
+[node name="Interlock" parent="House" instance=ExtResource("17_interlock")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 13.3, 1.55, 21.6)
+save_key = &"house_interlock"
+channels = Array[StringName]([&"RUN"])
+
+[node name="LatchReset" parent="House" instance=ExtResource("14_push")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 12.6, 1.5, 21.75)
+label = "SEQ RESET"
+prompt = "Reset the sequence"
+
+[node name="Lamps" type="Node3D" parent="."]
+
+[node name="PierStair" parent="Lamps" instance=ExtResource("8_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.93, -1.4, 15.6)
+circuit = &"LT-4"
+lit = false
+
+[node name="PierDeck" parent="Lamps" instance=ExtResource("8_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.93, 2.6, 11)
+circuit = &"LT-4"
+lit = false
+
+[node name="ControlHouse" parent="Lamps" instance=ExtResource("8_lamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.18, 2.2, 19.65)
+circuit = &"LT-4"
+lit = false
+
+[node name="Gallery" parent="Lamps" instance=ExtResource("8_lamp")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 11.28, -2, 14.4)
+circuit = &"LT-4"
+lit = false
+
+[node name="Readables" type="Node3D" parent="."]
+
+[node name="BenchLabel" parent="Readables" instance=ExtResource("12_page")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 10.77, -2.44, 15)
+document = ExtResource("doc_d21")
+
+[node name="StageRecord" parent="Readables" instance=ExtResource("12_page")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.28, -2, 12.2)
+document = ExtResource("doc_d22")
+
+[node name="FinalTape" parent="Readables" instance=ExtResource("12_page")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 12, 1.55, 20.9)
+document = ExtResource("doc_d24")
+
+[node name="Logic" type="Node" parent="." groups=["saveable"]]
+script = ExtResource("18_logic")
+save_key = &"act4"
+
+[node name="EndingA" type="Area3D" parent="." groups=["act_end"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.3, -40, 0)
+collision_layer = 0
+collision_mask = 0
+monitoring = false
+script = ExtResource("19_end")
+card = ExtResource("doc_end_a")
+fade_seconds = 3.4
+return_to = Vector3(13.3, 0.7, 11)
+
+[node name="EndingB" type="Area3D" parent="." groups=["act_end"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.3, -40, 0)
+collision_layer = 0
+collision_mask = 0
+monitoring = false
+script = ExtResource("19_end")
+card = ExtResource("doc_end_b")
+fade_seconds = 3.4
+return_to = Vector3(13.3, 0.7, 11)
+

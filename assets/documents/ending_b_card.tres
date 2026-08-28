@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+; Ending B. The same register. Neither ending is the right one and the game
+; never says which it prefers -- the difference is what the player was willing
+; to spend, and both bills are itemised.
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"ending_b_card"
+title = "Open the gate"
+byline = "The gate is designed to be operable when the control house is dead."
+hand = 0
+body = "You took the tainter gate off its permissive by
+hand, which any engineer could do, which is why
+it was built that way in 1954.
+
+The pool comes through the structure at 04:20.
+It takes the drain gallery first, then the
+shelter, then the annex, in the order you
+walked them.
+
+You are on the pier when it goes, and the pier
+is where they find you at eight, wet through
+and lucid and holding nothing.
+
+Gone: the tank room. The recorder bay. Four
+hundred reels including the last one. A made
+bunk, a ration card dated this month, and one
+man who would not leave the lamp.
+
+Kept: your own judgement, and nothing anyone
+will believe.
+
+The certification is signed the following
+Thursday. Demolition proceeds on schedule.
+
+— END —"

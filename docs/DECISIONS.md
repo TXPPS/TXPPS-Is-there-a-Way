@@ -534,3 +534,40 @@ So the annex is rooms. What that changes:
 Cost to reverse: moderate. Splitting them later means moving the annex rooms
 into their own scene and deciding what to do about the loop, which is the same
 problem this decision is answering.
+
+---
+
+## D29 — Act 4 is rooms in Act 1's scene, for the same reason Act 3 is in Act 2's
+
+**Decided:** the pier stair, the gate pier and the control house are built into
+`powerhouse.tscn`, and the player walks back down through the shelter to reach
+them. D28 predicted the opposite and was wrong about why.
+
+D28's last line said Act 4 "can and should be its own act" because the gate
+piers are up inside the dam with no loop back. That is true of the *piers* and
+false of the act. `PUZZLES.md` puts P4.1 at **the 1954 flood-response relay
+panel, in the gallery** and P4.2 at **a homemade selsyn driver on a shelf in the
+gallery** — and the gallery is Act 1's. Two of Act 4's three gates are in Act 1.
+
+They belong there, too. The recognition P4.2 is built on is that the label on
+the box is in the same hand as `WATCH THE THIRD STEP`, which the player read
+four hours earlier, twenty metres away, in the dark, and thought was somebody's
+kindness. Putting that box anywhere else throws the recognition away.
+
+**Alternatives:** duplicate the gallery into an Act 4 scene, or move the panel
+and the box somewhere new.
+
+The first is the same mistake D28 refused for the shelter's panel, and the
+second is worse: it costs the act its best moment to save an architectural
+tidiness nobody can see.
+
+What it needed was **`ActRunner` remembering an act it unmounts**, which is D28's
+own consequence arriving early and is worth having regardless — leaving Act 1
+used to throw Act 1 away, and nothing noticed because nothing ever went back.
+
+`gate.tscn` is generated separately and *instanced* into `powerhouse.tscn`
+rather than appended to it, so regenerating Act 4 cannot damage Act 1: one line
+of Act 1's scene file is all that changes, plus one opening in the gallery's
+east wall.
+
+Cost to reverse: moderate, and the same shape as D28's.

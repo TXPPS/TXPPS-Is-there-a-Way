@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+; The title, and the only document the bible quotes in full, because everything
+; in the game is aimed at it.
+;
+; What makes it land is that the player has read Protocol 4.3 by now -- *the
+; observer shall not speak except on the schedule* -- so the silence in the
+; middle of it is not the tape failing. It is a man keeping a rule.
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"d24_reel_9c"
+title = "Reel 9-C"
+byline = "observer channel, Run 9, day 40 — 14 JUNE 1977"
+hand = 0
+body = "Thirty-one days of hiss, if you let it run.
+
+SUBJECT 9:   How long has it been?
+
+[no answer]
+
+SUBJECT 9:   I'm not asking you to tell me.
+             I know you can't tell me.
+
+[pause. forty seconds. the lamp's ballast
+ is audible and nothing else is.]
+
+SUBJECT 9:   Is there a way?
+
+OSTRANDER:   There is —
+
+[the recording ends here. the reel ran out.
+ the schedule luminaire is still audible at
+ the cut, so the run had not concluded.]
+
+There is no reel 9-D. The block was allocated
+to 0840 and 0840 is this one.
+
+Whatever he said next, he said it to somebody
+in a dark room, off the schedule, breaking the
+only rule he had kept for thirteen years.
+
+He has been down here ever since."

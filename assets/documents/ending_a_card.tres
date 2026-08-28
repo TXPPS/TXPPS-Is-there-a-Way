@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+; Ending A. Not a victory screen: an account of what the player just did, in the
+; plainest language available, with no adjective doing any work.
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"ending_a_card"
+title = "Conclude the run"
+byline = "Protocol 4.4 — a run is not concluded until the observer leaves the lamp."
+hand = 0
+body = "You stood at the lamp and let the seam close
+over you, and the cabinet read the channel as
+concluded, and gave up the key.
+
+The sequence resets at 04:12. The bulkheads
+run in sequence for eleven minutes and stop
+open. Outside it is not yet light.
+
+You performed the programme's final
+observation on yourself, and it worked, which
+is the part that will not leave you.
+
+Reel 9-C is in your jacket and it is dry.
+
+Emil Ostrander is somewhere below you and the
+lamp is still on the schedule. He does not
+know the run concluded. Nobody told him,
+because the observer is not told the schedule.
+
+You have a survey to file. You will not file
+it.
+
+— END —"

@@ -1,0 +1,66 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://src/world/devices/device_gauge.gd" id="1_gauge"]
+[ext_resource type="Script" path="res://src/world/interactable.gd" id="2_zone"]
+[ext_resource type="Material" path="res://assets/materials/graybox_paint.tres" id="3_paint"]
+[ext_resource type="Material" path="res://assets/materials/graybox_steel.tres" id="4_steel"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_dial"]
+top_radius = 0.11
+bottom_radius = 0.11
+height = 0.05
+radial_segments = 24
+rings = 1
+
+[sub_resource type="BoxMesh" id="BoxMesh_needle"]
+size = Vector3(0.09, 0.008, 0.008)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_reach"]
+size = Vector3(0.3, 0.3, 0.2)
+
+; A selsyn receiver in a round case. Faces +Z; the needle swings about Z, and
+; the number is on the face rather than on the HUD because the instrument is
+; the thing the player is looking at.
+; Not saveable, deliberately: a repeater has no state of its own. It shows what
+; its source shows, and the source is somebody else's to save.
+[node name="DeviceGauge" type="Node3D"]
+script = ExtResource("1_gauge")
+units = "FT"
+minimum = 0.0
+maximum = 40.0
+
+[node name="Case" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0.025)
+mesh = SubResource("CylinderMesh_dial")
+surface_material_override/0 = ExtResource("3_paint")
+
+[node name="Needle" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.055)
+
+[node name="Bar" type="MeshInstance3D" parent="Needle"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.04, 0, 0)
+mesh = SubResource("BoxMesh_needle")
+surface_material_override/0 = ExtResource("4_steel")
+
+[node name="Face" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.055, 0.058)
+pixel_size = 0.00055
+billboard = 0
+shaded = false
+double_sided = false
+modulate = Color(0.88, 0.9, 0.92, 1)
+outline_size = 0
+font_size = 64
+text = "-- FT"
+
+[node name="Zone" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.06)
+collision_layer = 4
+collision_mask = 0
+monitoring = false
+script = ExtResource("2_zone")
+prompt = "Read the gauge"
+instant = true
+
+[node name="Shape" type="CollisionShape3D" parent="Zone"]
+shape = SubResource("BoxShape3D_reach")
