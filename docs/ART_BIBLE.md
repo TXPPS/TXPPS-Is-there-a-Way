@@ -31,6 +31,16 @@ and almost none of it should go to texture data.
    tuned for contrast, not coverage.
 5. **Shadows are a spend, not a default.** Positional shadows are enabled per
    light, deliberately, and counted against the draw budget.
+
+   This was written in P0 and then not followed: every fitting shipped with
+   shadows on, and a shadow-casting omni draws the scene once per cubemap face.
+   Fifteen of them took the annex to 4086 draw calls against a budget of 120.
+   Four fittings cast in the whole game now — the generator hall's dominant
+   practical and the three schedule luminaires — and the rest are lights.
+
+   The three that cast are not negotiable: the entity's only expression is the
+   interruption of light, so it stands only at a lamp that casts. That is why
+   C-1, the programme's own fitting, is the one it travels between.
 6. **The dark must be navigable.** Ordered dither plus a floor of ambient keeps
    "unlit" from becoming "unreadable" — especially on a phone in daylight, which
    is the real viewing condition.

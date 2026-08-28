@@ -35,8 +35,8 @@ than anything else that could be built on top of this.**
 | | |
 |---|---|
 | **Live** | <https://txpps.github.io/TXPPS-Is-there-a-Way/> |
-| **Stamp to expect** | `v0.1.0 5e43179` (or later — every push deploys) |
-| **First thing to do** | `docs/NEEDS_DEVICE_QA.md`, all 118 items, in order. Section "Controls" first: if that fails, stop, because everything else stands on it. |
+| **Stamp to expect** | `v0.1.0 aa21101` (or later — every push deploys) |
+| **First thing to do** | `docs/NEEDS_DEVICE_QA.md`, all 120 items, in order. Section "Controls" first: if that fails, stop, because everything else stands on it. |
 | **Blocked on a human** | Everything unverifiable. Nothing is blocked on a decision. |
 | **If you only do one thing** | Play it, once, on the phone, to an ending. Every number in this file is a number I checked; not one of them is an opinion about whether it is any good. |
 | **Frozen** | The input layer. No change to touch semantics, layout or the router without a failing test to justify it. |
@@ -178,7 +178,7 @@ bench unit first, then the piers.
 | | Status |
 |---|---|
 | Build | **green.** Export, budgets (download, texture size, shipped audio), the import-settings check, a **586-check headless suite**, 55-check gameplay smoke, 28-check update-path smoke. |
-| Last verified | `v0.1.0 5e43179`, serving from GitHub Pages with every payload file answering 200 and the wasm as `application/wasm`. |
+| Last verified | `v0.1.0 aa21101`, serving from GitHub Pages with every payload file answering 200 and the wasm as `application/wasm`. |
 | Publish | **automatic.** Every push to `main` deploys, and so does a manual **Run workflow** on `main` — both proven, runs #15 and #16. |
 | Verified | the `verify` job fetches the live URL after every deploy and fails the build unless it serves *this* commit with every payload file answering 200 and the wasm as `application/wasm`. |
 | Cloudflare Pages | still no credentials; that job skips. Optional — it buys `web/_headers` and nothing else. See `DEPLOY.md`. |
@@ -401,22 +401,12 @@ hook P3 needs. Nothing else in `src/core/` is inert any more.
 
 Report anything **not** on this list.
 
-- **THE DRAW-CALL BUDGET IS BLOWN, BADLY, IN THREE ACTS.** `docs/BUDGETS.md`
-  caps visible draw calls at 120. Act 1's generator hall is 37 — and that is the
-  only place it was ever measured, because `smoke_web.js` asserts the budget
-  once, standing where the game starts. A new per-shot check across all four
-  acts reports **up to 4086** in the tape library, 1779 in the tank room, 1686
-  at the observer station, 884 on the pier stair.
-
-  The cause is structural rather than a mistake: `RoomBox` emits one mesh per
-  wall segment and every dressing prop is its own `Slab`, twenty rooms of them,
-  and nothing occludes anything — so from any long sight line the whole level
-  draws. `RoomBox`'s own comment named the fix before the problem existed:
-  *"if a level ever gets close, the answer is merging the static geometry per
-  room, not fewer rooms."*
-
-  This is being fixed now. Until the line below says otherwise, assume the game
-  is unplayably slow on a phone anywhere past Act 1.
+- **Three frames run 6–14% over the draw-call target.** 128, 135 and 137
+  against a target of 120, all of them in the annex's eighteen-metre
+  observation corridor. It was 4086 before the fix (`BUDGETS.md` has the whole
+  story); 120 is a target chosen for a phone without a phone in the room, so
+  whether 137 matters is a question only the device can answer. **QA item: watch
+  the frame rate in the annex corridor.**
 
 - **The runner still warns about Node 20**, and it cannot be silenced yet: the
   five actions it originally named are on their Node 24 majors, but

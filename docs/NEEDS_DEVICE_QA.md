@@ -5,7 +5,7 @@
 > feels right, sounds right, or looks right, and neither is an iPhone.
 >
 > Numbered so it can be run in one sitting. Report anything that fails by its
-> number. A hundred and eighteen items; the Act 4 section (107 onward) is the newest and the
+> number. A hundred and twenty items; the Act 4 section (107 onward) is the newest and the
 > least examined.
 
 ---
@@ -371,6 +371,17 @@ gallery. `tests/case_act4.gd` walks it both ways.
     so the reload gives you a new game. A save you made yourself, from the Saves
     panel, must survive it.
 
+**Frame rate**
+118. **Walk the annex observation corridor and watch for stutter.** It is the
+    three most expensive frames in the game — 137 draw calls against a target
+    of 120 — and that target was chosen for a phone without a phone in the
+    room. Three-finger tap for the overlay; it reads fps and draw calls. If it
+    holds 60, the target was conservative and I will raise it. If it does not,
+    the corridor needs shortening or the chamber luminaire needs to stop
+    casting, and I would rather know which.
+119. For contrast, the generator hall in Act 1 is 33 draw calls. If *that*
+    stutters, something is wrong that has nothing to do with the budget.
+
 **Errors**
-118. If anything at all goes wrong, a toast should say what. If something goes
+120. If anything at all goes wrong, a toast should say what. If something goes
     wrong **silently**, that is itself the bug worth reporting.
