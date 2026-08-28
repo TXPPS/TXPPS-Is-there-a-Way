@@ -123,6 +123,7 @@ EXT = [
     ("PackedScene", "res://src/world/devices/device_interlock.tscn", "17_interlock"),
     ("Script", "res://src/world/act1/gate_logic.gd", "18_logic"),
     ("Script", "res://src/world/act1/act_end.gd", "19_end"),
+    ("AudioStream", "res://assets/audio/mach_gate.wav", "20_gate"),
 ]
 EXT += [("Resource", "res://assets/documents/%s.tres" % f, "doc_%s" % k) for k, f in sorted(DOCS.items())]
 
@@ -260,6 +261,17 @@ def _pier():
     out = ['[node name="Pier" type="Node3D" parent="."]', ""]
     out += box("HpuSkid", (1.6, 0.9, 1.0), (DECK_X, 1.05, 10.4), ext_id("steel"), "Pier")
     out += box("HpuMotor", (0.5, 0.5, 0.5), (DECK_X - 0.4, 1.75, 10.4), ext_id("paint"), "Pier")
+    # The last sound the game makes. Not a crash: a gate this size lets go, and
+    # what matters is the water, which arrives late and does not stop.
+    out.append('[node name="GateRelease" type="AudioStreamPlayer3D" parent="Pier"]')
+    out.append("transform = %s" % upright((DECK_X, 1.4, 11.6)))
+    out.append('stream = ExtResource("20_gate")')
+    out.append("volume_db = -3.0")
+    out.append('bus = &"SFX"')
+    out.append("unit_size = 26.0")
+    out.append("max_db = 0.0")
+    out.append("")
+
     out.append('[node name="HandPump" parent="Pier" instance=ExtResource("13_toggle")]')
     out.append("transform = %s" % t3(facing(SOUTH), (DECK_X + 0.45, 1.6, 10.95)))
     out.append('save_key = &"hand_pump"')

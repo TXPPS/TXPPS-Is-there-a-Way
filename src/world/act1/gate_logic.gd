@@ -39,6 +39,7 @@ const LATCH_FEET := 30.0
 @onready var _interlock: DeviceInterlock = $"../House/Interlock"
 @onready var _reset: DevicePush = $"../House/LatchReset"
 @onready var _permissive: DeviceToggle = $"../Pier/HandPump"
+@onready var _gate_sound: AudioStreamPlayer3D = $"../Pier/GateRelease"
 @onready var _cards := {
 	&"conclude": $"../EndingA" as ActEnd,
 	&"open": $"../EndingB" as ActEnd,
@@ -152,6 +153,8 @@ func _finish(which: StringName) -> void:
 	_ending = which
 	_mark(String(which))
 	_apply()
+	if which == &"open" and _gate_sound != null:
+		_gate_sound.play()
 	ending_reached.emit(which)
 	var card: ActEnd = _cards.get(which)
 	if card != null:

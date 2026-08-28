@@ -233,6 +233,10 @@ func _ending_b(
 	expect.ok(reader.is_open(), "which is shown too")
 	var title: Label = reader.get_node("Safe/Panel/Pad/Body/Title")
 	expect.ok(title.text.contains("Open the gate"), "and is the other card (%s)" % title.text)
+	expect.ok(
+		(gate.get_node("Pier/GateRelease") as AudioStreamPlayer3D).playing,
+		"and the last sound the game makes is the pool coming through it"
+	)
 	reader.close()
 	await tree.process_frame
 

@@ -38,6 +38,7 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	await _the_meter_and_the_lamp(tree, main, annex, expect)
 	await _the_tank_refuses(tree, annex, logic, power, breakers, trips, expect)
 	await _the_tank_drains(tree, annex, logic, power, breakers, expect)
+	_the_annex_is_heard(annex, expect)
 	await _the_observer_is_here(tree, main, annex, breakers, expect)
 	await _the_reel(tree, main, annex, logic, expect)
 
@@ -214,6 +215,23 @@ func _the_tank_drains(
 	expect.ok(
 		not annex.get_node("TubeLibrary").lit,
 		"in a corridor you have just put the lights out in, which is the price"
+	)
+
+
+## The annex sounds like a hole in rock, and somebody left a transport threaded.
+func _the_annex_is_heard(annex: Node3D, expect: RefCounted) -> void:
+	expect.ok(
+		(annex.get_node("Air") as AudioStreamPlayer3D).playing,
+		"the annex has air of its own, deader and lower than the shelter's"
+	)
+	expect.ok(
+		(annex.get_node("TapeDeck") as AudioStreamPlayer3D).playing,
+		"and a tape transport somebody left running"
+	)
+	var detent: AudioStreamPlayer3D = annex.get_node("Timeclock/Detent")
+	expect.ok(
+		detent.stream != null,
+		"the cam drum has a detent, because counting teeth by ear is the puzzle"
 	)
 
 

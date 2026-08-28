@@ -245,6 +245,9 @@ EXT = [
     ("AudioStream", "res://assets/audio/mach_diesel.wav", "23_diesel"),
     ("AudioStream", "res://assets/audio/mach_crank.wav", "24_crank"),
     ("AudioStream", "res://assets/audio/mach_catch.wav", "25_catch"),
+    ("AudioStream", "res://assets/audio/amb_annex.wav", "35_annexair"),
+    ("AudioStream", "res://assets/audio/mach_tape.wav", "36_tape"),
+    ("AudioStream", "res://assets/audio/click_cam.wav", "37_cam"),
     ("Script", "res://src/audio/occluder.gd", "26_occl"),
     ("PackedScene", "res://src/world/devices/device_intercom.tscn", "27_intercom"),
     ("PackedScene", "res://src/world/kit/fluorescent.tscn", "28_tube"),
@@ -370,6 +373,13 @@ def _annex():
     out.append("transform = %s" % t3(facing(SOUTH), (1.0, 1.45, -17.2)))
     out.append('save_key = &"timeclock"')
     out.append("")
+    out.append('[node name="Detent" type="AudioStreamPlayer3D" parent="Annex/Timeclock"]')
+    out.append('stream = ExtResource("37_cam")')
+    out.append("volume_db = -8.0")
+    out.append('bus = &"SFX"')
+    out.append("unit_size = 2.2")
+    out.append("max_db = 0.0")
+    out.append("")
 
     out.append('[node name="Interlock" parent="Annex" instance=ExtResource("30_interlock")]')
     out.append("transform = %s" % t3(facing(SOUTH), (-1.0, 1.45, -17.2)))
@@ -432,6 +442,32 @@ def _annex():
     out.append("")
     out.append('[node name="Shape" type="CollisionShape3D" parent="Annex/GradeThreshold"]')
     out.append('shape = SubResource("BoxShape3D_annex")')
+    out.append("")
+
+    # The annex has its own air: a hole in rock rather than a room in a
+    # building, so it is deader and lower than the shelter's.
+    out.append('[node name="Air" type="AudioStreamPlayer3D" parent="Annex"]')
+    out.append("transform = %s" % upright((0.0, 1.6, -17.0)))
+    out.append('stream = ExtResource("35_annexair")')
+    out.append("volume_db = -17.0")
+    out.append('bus = &"SFX"')
+    out.append("unit_size = 18.0")
+    out.append("max_db = 0.0")
+    out.append("autoplay = true")
+    out.append("")
+
+    # C-8. Four hundred reels, and the one transport somebody left threaded.
+    out.append('[node name="TapeDeck" type="AudioStreamPlayer3D" parent="Annex"]')
+    out.append("transform = %s" % upright((-11.9, 1.4, -21.6)))
+    out.append('stream = ExtResource("36_tape")')
+    out.append("volume_db = -15.0")
+    out.append('bus = &"SFX"')
+    out.append("unit_size = 5.0")
+    out.append("max_db = 0.0")
+    out.append("autoplay = true")
+    out.append("")
+    out.append('[node name="Occluder" type="Node" parent="Annex/TapeDeck"]')
+    out.append('script = ExtResource("26_occl")')
     out.append("")
 
     # The entity, which has a rule and no act until now.

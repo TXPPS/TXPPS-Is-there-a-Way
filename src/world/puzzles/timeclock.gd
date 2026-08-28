@@ -31,6 +31,7 @@ const TEETH := 12
 
 @onready var _zone: Interactable = $Zone
 @onready var _bank: WheelBank = $Wheels
+@onready var _detent: AudioStreamPlayer3D = get_node_or_null("Detent")
 
 
 func _ready() -> void:
@@ -92,5 +93,10 @@ func _on_dragged(_screen: Vector2, delta: Vector2) -> void:
 	_bank.drag(delta)
 
 
+## One tooth, and it is audible. A drum that turned silently would be a drum
+## nobody could count by ear, and counting teeth is the puzzle.
 func _on_turned(_index: int, _digit: int) -> void:
+	if _detent != null:
+		_detent.pitch_scale = randf_range(0.96, 1.05)
+		_detent.play()
 	changed.emit()

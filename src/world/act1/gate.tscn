@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3]
+[gd_scene load_steps=28 format=3]
 
 [ext_resource type="Script" path="res://src/world/kit/room_box.gd" id="1_room"]
 [ext_resource type="Script" path="res://src/world/kit/opening.gd" id="2_open"]
@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" path="res://src/world/devices/device_interlock.tscn" id="17_interlock"]
 [ext_resource type="Script" path="res://src/world/act1/gate_logic.gd" id="18_logic"]
 [ext_resource type="Script" path="res://src/world/act1/act_end.gd" id="19_end"]
+[ext_resource type="AudioStream" path="res://assets/audio/mach_gate.wav" id="20_gate"]
 [ext_resource type="Resource" path="res://assets/documents/d21_bench_label.tres" id="doc_d21"]
 [ext_resource type="Resource" path="res://assets/documents/d22_stage_record.tres" id="doc_d22"]
 [ext_resource type="Resource" path="res://assets/documents/d24_reel_9c.tres" id="doc_d24"]
@@ -154,6 +155,14 @@ script = ExtResource("3_slab")
 size = Vector3(0.5, 0.5, 0.5)
 material = ExtResource("7_paint")
 solid = true
+
+[node name="GateRelease" type="AudioStreamPlayer3D" parent="Pier"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.7, 1.4, 11.6)
+stream = ExtResource("20_gate")
+volume_db = -3.0
+bus = &"SFX"
+unit_size = 26.0
+max_db = 0.0
 
 [node name="HandPump" parent="Pier" instance=ExtResource("13_toggle")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.15, 1.6, 10.95)

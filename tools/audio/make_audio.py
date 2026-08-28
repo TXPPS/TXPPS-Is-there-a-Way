@@ -368,6 +368,107 @@ def click_intercom() -> list[float]:
     return normalise(out, 0.5)
 
 
+
+# --- Acts 3 and 4: the annex, and the gate ----------------------------------
+
+
+def amb_annex() -> list[float]:
+    """The annex, which is a hole in rock rather than a room in a building.
+
+    Deader than the powerhouse and pitched lower: no long reflections to make a
+    tone out of, so what is left is the ventilation moving air through a duct it
+    has been moving it through since 1964, and the rock behaving like rock.
+    """
+    out = silence(LOOP_FRAMES)
+    # A very low duct resonance. The annex is small and its plant is far away.
+    mix(out, sine(LOOP_FRAMES, RATE, snap(31.0)), 0.5)
+    mix(out, sine(LOOP_FRAMES, RATE, snap(62.0)), 0.18)
+
+    air = one_pole_low(noise(LOOP_FRAMES + 4410, Rng(401)), RATE, 240.0)
+    mix(out, fade_loop(air, RATE, 0.3), 0.6)
+
+    # Rock does not ring. What comes back off it is the same air, quieter and
+    # duller, which is a low-passed copy rather than a reverb.
+    dull = one_pole_low(noise(LOOP_FRAMES + 4410, Rng(403)), RATE, 90.0)
+    mix(out, fade_loop(dull, RATE, 0.4), 0.35)
+    return normalise(out, 0.42)
+
+
+def click_cam() -> list[float]:
+    """A cam drum turning one tooth.
+
+    Small, mechanical, and *detented* -- the sound of something that has exactly
+    twelve positions and no others. A dial that clicked smoothly would be a dial
+    the player could not count by ear, and counting teeth is the puzzle.
+    """
+    frames = int(RATE * 0.14)
+    out = silence(frames)
+    detent = modal(frames, RATE, [
+        (1180.0, 0.03, 1.0),
+        (2270.0, 0.018, 0.55),
+        (3610.0, 0.010, 0.22),
+    ])
+    mix(out, detent, 1.0)
+    mix(out, one_pole_low(noise(frames, Rng(409)), RATE, 700.0), 0.28)
+    for i in range(frames):
+        out[i] *= min(1.0, (frames - i) / (RATE * 0.05))
+    return normalise(out, 0.5)
+
+
+def mach_gate() -> list[float]:
+    """The tainter gate coming off its permissive, and what follows.
+
+    Ending B, and the last thing the game makes: a hydraulic release, the gate
+    moving under its own weight, and then the pool. It is not a crash. A gate
+    this size does not slam -- it lets go, and the sound that matters is the
+    water, which arrives late and does not stop.
+    """
+    frames = int(RATE * 6.0)
+    out = silence(frames)
+
+    # The release: a solenoid, and oil moving in a line that has been still.
+    release = modal(int(RATE * 0.5), RATE, [(220.0, 0.14, 1.0), (610.0, 0.09, 0.4)])
+    mix(out, release, 0.7)
+
+    # The gate itself: a low groan sweeping down as it takes up its own weight.
+    phase = 0.0
+    for i in range(int(RATE * 2.4)):
+        through = i / (RATE * 2.4)
+        freq = 54.0 - 22.0 * through
+        phase += 2.0 * math.pi * freq / RATE
+        envelope_at = min(1.0, i / (RATE * 0.4)) * min(1.0, (RATE * 2.4 - i) / (RATE * 0.9))
+        out[int(RATE * 0.25) + i] += (math.sin(phase) + 0.4 * math.sin(phase * 2.0)) \
+            * 0.55 * envelope_at
+
+    # The water, arriving at a second and a half and still going when the sound
+    # ends, which is the point of it.
+    water = one_pole_high(noise(frames, Rng(419)), RATE, 120.0)
+    water = one_pole_low(water, RATE, 4200.0)
+    start = int(RATE * 1.5)
+    for i in range(start, frames):
+        rise = min(1.0, (i - start) / (RATE * 2.2))
+        out[i] += water[i] * 0.85 * rise
+    return normalise(out, 0.86)
+
+
+def mach_tape() -> list[float]:
+    """A reel-to-reel transport. Capstan, and the tape's own hiss.
+
+    The library is four hundred of these and the player takes one. It is the
+    only sound in the game that is a *recording* of something rather than the
+    thing itself, which is what the whole story is about.
+    """
+    out = silence(LOOP_FRAMES)
+    mix(out, sine(LOOP_FRAMES, RATE, snap(24.0)), 0.4)      # capstan
+    mix(out, sine(LOOP_FRAMES, RATE, snap(48.0)), 0.14)
+    flutter = resonator(impulse_train(LOOP_FRAMES + 4410, RATE, 3.75, 0.2, Rng(421)),
+                        RATE, 880.0, 5.0)
+    mix(out, fade_loop(flutter, RATE, 0.2), 0.3)
+    hiss = one_pole_high(noise(LOOP_FRAMES + 4410, Rng(423)), RATE, 2400.0)
+    mix(out, fade_loop(hiss, RATE, 0.25), 0.45)
+    return normalise(out, 0.5)
+
+
 SOUNDS: dict = {
     "score_bed": (score_bed, True),
     "score_room": (score_room, True),
@@ -381,6 +482,10 @@ SOUNDS: dict = {
     "mach_crank": (mach_crank, False),
     "mach_catch": (mach_catch, False),
     "click_intercom": (click_intercom, False),
+    "amb_annex": (amb_annex, True),
+    "mach_tape": (mach_tape, True),
+    "click_cam": (click_cam, False),
+    "mach_gate": (mach_gate, False),
     "metal_door": (metal_door, False),
     "metal_wrench": (metal_wrench, False),
     "click_breaker": (click_breaker, False),

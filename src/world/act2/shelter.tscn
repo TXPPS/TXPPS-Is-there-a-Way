@@ -1,4 +1,4 @@
-[gd_scene load_steps=59 format=3]
+[gd_scene load_steps=62 format=3]
 
 [ext_resource type="Script" path="res://src/world/kit/room_box.gd" id="1_room"]
 [ext_resource type="Script" path="res://src/world/kit/opening.gd" id="2_open"]
@@ -26,6 +26,9 @@
 [ext_resource type="AudioStream" path="res://assets/audio/mach_diesel.wav" id="23_diesel"]
 [ext_resource type="AudioStream" path="res://assets/audio/mach_crank.wav" id="24_crank"]
 [ext_resource type="AudioStream" path="res://assets/audio/mach_catch.wav" id="25_catch"]
+[ext_resource type="AudioStream" path="res://assets/audio/amb_annex.wav" id="35_annexair"]
+[ext_resource type="AudioStream" path="res://assets/audio/mach_tape.wav" id="36_tape"]
+[ext_resource type="AudioStream" path="res://assets/audio/click_cam.wav" id="37_cam"]
 [ext_resource type="Script" path="res://src/audio/occluder.gd" id="26_occl"]
 [ext_resource type="PackedScene" path="res://src/world/devices/device_intercom.tscn" id="27_intercom"]
 [ext_resource type="PackedScene" path="res://src/world/kit/fluorescent.tscn" id="28_tube"]
@@ -469,6 +472,13 @@ solid = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1.45, -17.2)
 save_key = &"timeclock"
 
+[node name="Detent" type="AudioStreamPlayer3D" parent="Annex/Timeclock"]
+stream = ExtResource("37_cam")
+volume_db = -8.0
+bus = &"SFX"
+unit_size = 2.2
+max_db = 0.0
+
 [node name="Interlock" parent="Annex" instance=ExtResource("30_interlock")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.45, -17.2)
 save_key = &"interlock"
@@ -602,6 +612,27 @@ grade = &"annex"
 
 [node name="Shape" type="CollisionShape3D" parent="Annex/GradeThreshold"]
 shape = SubResource("BoxShape3D_annex")
+
+[node name="Air" type="AudioStreamPlayer3D" parent="Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, -17)
+stream = ExtResource("35_annexair")
+volume_db = -17.0
+bus = &"SFX"
+unit_size = 18.0
+max_db = 0.0
+autoplay = true
+
+[node name="TapeDeck" type="AudioStreamPlayer3D" parent="Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.9, 1.4, -21.6)
+stream = ExtResource("36_tape")
+volume_db = -15.0
+bus = &"SFX"
+unit_size = 5.0
+max_db = 0.0
+autoplay = true
+
+[node name="Occluder" type="Node" parent="Annex/TapeDeck"]
+script = ExtResource("26_occl")
 
 [node name="Observer" type="Node3D" parent="Annex" groups=["observer"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -16.05)
