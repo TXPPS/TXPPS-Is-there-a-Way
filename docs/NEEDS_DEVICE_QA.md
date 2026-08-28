@@ -224,10 +224,13 @@ to end every build. What no test can tell me is whether it is *playable*
     last beat and the thing I most need a human on.
 75. Read all seven documents. Any that are hard to read on the device, or whose
     line breaks are wrong, say which.
-76. **Pause mid-act and reload the page.** The autosave fires on checkpoints and
+76. Walk through the shelter door. The world fades and a card says **End of
+    Act One**. That is the edge of what is built, not a bug — putting the card
+    down puts you back in the gallery.
+77. **Pause mid-act and reload the page.** The autosave fires on checkpoints and
     on the tab going away; the breakers, the doors and the wrench must all come
     back as you left them.
 
 **Errors**
-77. If anything at all goes wrong, a toast should say what. If something goes
+78. If anything at all goes wrong, a toast should say what. If something goes
     wrong **silently**, that is itself the bug worth reporting.

@@ -5,24 +5,57 @@
 
 ## Resume here
 
-**Unattended run in progress.** The work order is: **A** finish P1 (save/load),
-**B** write `docs/STORY.md` + `docs/PUZZLES.md`, **C** P2 rendering, **D** P3
-audio, **E** Act 1 vertical slice, **F** later acts only if credits remain. One
-phase at a time; each is complete, tested, deployed and verified live before the
-next begins.
+**Unattended run, finished.** The work order was A finish P1, B write the story
+bible, C P2 rendering, D P3 audio, E Act 1 as a vertical slice, F later acts
+only if credits remained. **A through E are done and live. F was deliberately
+not started** — the work order's own rule was that a polished Act 1 plus a clear
+plan beats four half-dressed acts, and Act 1 has still never been played by a
+human.
 
 | | |
 |---|---|
-| **Done** | A save/load · B `STORY.md` + `PUZZLES.md` · C rendering · D audio · **E Act 1, playable start to finish**. |
-| **Next** | Act 1 polish against device QA, then F — Acts 2–4 — only if the QA in `NEEDS_DEVICE_QA.md` comes back clean. A polished Act 1 plus a clear plan beats four half-dressed acts. |
-| **Blocked on a human** | nothing; everything unverifiable is queued in `NEEDS_DEVICE_QA.md` |
-| **Frozen** | the input layer. No change to touch semantics, layout or the router without a failing test to justify it. It has never run on a real device. |
+| **Live** | <https://txpps.github.io/TXPPS-Is-there-a-Way/> |
+| **Stamp to expect** | `v0.1.0 4d2097d` (or later — every push deploys) |
+| **First thing to do** | `docs/NEEDS_DEVICE_QA.md`, all 78 items, in order. Section "Controls" first: if that fails, stop, because everything else stands on it. |
+| **Blocked on a human** | Everything unverifiable. Nothing is blocked on a decision. |
+| **Frozen** | The input layer. No change to touch semantics, layout or the router without a failing test to justify it. |
+
+### What is true now that was not
+
+- **Act 1 is playable start to finish** and `tests/case_act1.gd` walks it every
+  build — including down the stair, which is the only way to know a ramp under
+  the nosings is right.
+- The **story bible** exists (`STORY.md`), the puzzle set is derived from it
+  (`PUZZLES.md`), and every puzzle device in the game traces to a line in the
+  programme's equipment schedule.
+- **Both P0 render defects are fixed**, the post stack is built, and
+  `docs/shots/` is a committed gallery of what it looks like.
+- **Everything the game hears is generated** by a committed script, and the
+  score follows one fear number.
+- **Saves persist**, survive a tab being discarded, and can be exported as a
+  text code — which on this platform is the only save the player really owns.
+
+### What Act 2 needs, when it starts
+
+`PUZZLES.md` has the design. What is missing is only content and two systems:
+
+1. **The shelter's spaces** — bunk room, mess, latrines, plant room, ration
+   store. The kit builds them; the work is dimensions and dressing.
+2. **A generator that runs** (`P2.1`–`P2.3`). The devices exist; the load-shed
+   panel is arithmetic on nameplates and wants a small `LoadPanel` that sums
+   what is connected and trips when it exceeds the set.
+3. **The intercom** (`P2.4`) — Emil's first four sentences. Needs a voice, and
+   this project generates its audio, so that is a genuine open problem worth
+   deciding before it is built.
+4. **A second LUT** and a fluorescent practical: the palette shift from sodium
+   to sick green-white is what marks leaving the dam and entering the programme.
+5. **The six S1 rooms** from `STORY.md` — the staged rations, the made bunk, the
+   service card. Those are the act's whole job.
+
+Do not start it until the device QA in `NEEDS_DEVICE_QA.md` has come back.
 
 **Engine:** Godot 4.6.3-stable, Compatibility (WebGL2), single-threaded web export.
 **Target:** iPhone 16 Pro Max, Safari, **landscape**.
-
-Read `NEEDS_DEVICE_QA.md` first when you are back: it is everything that is
-built and green and that no human has ever seen run.
 
 ---
 
@@ -32,7 +65,7 @@ built and green and that no human has ever seen run.
 
 | | Status |
 |---|---|
-| Build | **green.** Export, budgets (download, texture size, shipped audio), **232-check headless suite**, 55-check gameplay smoke, 28-check update-path smoke. |
+| Build | **green.** Export, budgets (download, texture size, shipped audio), **248-check headless suite**, 55-check gameplay smoke, 28-check update-path smoke. |
 | Publish | **automatic.** Every push to `main` deploys, and so does a manual **Run workflow** on `main` — both proven, runs #15 and #16. |
 | Verified | the `verify` job fetches the live URL after every deploy and fails the build unless it serves *this* commit with every payload file answering 200 and the wasm as `application/wasm`. |
 | Cloudflare Pages | still no credentials; that job skips. Optional — it buys `web/_headers` and nothing else. See `DEPLOY.md`. |
