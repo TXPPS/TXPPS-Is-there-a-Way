@@ -20,6 +20,7 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	runner.load_act(0)
 	await tree.physics_frame
 
+	await _the_way_up(tree, main, expect)
 	await _the_gauge_is_lying(tree, main, expect)
 	await _pulling_the_lead(tree, main, expect)
 	await _the_latch_is_still_latched(tree, main, expect)
@@ -32,6 +33,62 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 
 func _gate(main: Node) -> Node3D:
 	return main.get_node("Powerhouse/Gate")
+
+
+## The route, walked rather than teleported.
+##
+## Act 1's stair tower taught this: a stair built as boxes is a wall with a nice
+## pattern on it, because CharacterBody3D does not step up geometry. The only
+## way to know a ramp under the nosings is right is to put a player on it and
+## see where they end up. This one climbs 4.5 m out of the gallery, and the deck
+## it arrives at is *beside* the shaft rather than above it -- a deck over an
+## open shaft has no floor anywhere, and the player falls through it.
+func _the_way_up(tree: SceneTree, main: Node, expect: RefCounted) -> void:
+	var player: Player = main.get_node("Player")
+	var move: VirtualStick = (main.get_node("Hud") as Hud).get_node("Controls/MoveStick")
+
+	# In the gallery, at the doorway the pier stair is behind.
+	player.global_position = Vector3(10.6, -3.8, 16.0)
+	player.velocity = Vector3.ZERO
+	for frame in 10:
+		await tree.physics_frame
+	expect.ok(
+		player.global_position.y > -4.2,
+		"there is floor at the gallery end of it (y %.2f)" % player.global_position.y
+	)
+
+	# At the foot of the stair, and then walked up it.
+	player.global_position = Vector3(13.3, -3.8, 15.6)
+	player.velocity = Vector3.ZERO
+	for frame in 10:
+		await tree.physics_frame
+	var foot := player.global_position.y
+	expect.ok(foot > -4.2 and foot < -3.5, "and floor at the foot of the stair (y %.2f)" % foot)
+
+	# North is -Z, and the stair descends along +Z from its top nosing, so
+	# walking north climbs it. Through the stick, like a player.
+	player.face(0.0, 0.0)
+	await tree.physics_frame
+	move.press(41, move.position)
+	move.drag(41, move.position + Vector2(0.0, -140.0))
+	for frame in 460:
+		await tree.physics_frame
+	move.release(41)
+	await tree.physics_frame
+	expect.ok(
+		player.global_position.y > -0.2,
+		"walking north up it climbs (y %.2f)" % player.global_position.y
+	)
+
+	# And the deck, which is a floor and not a hole.
+	player.global_position = Vector3(16.7, 0.7, 12.0)
+	player.velocity = Vector3.ZERO
+	for frame in 20:
+		await tree.physics_frame
+	expect.ok(
+		player.global_position.y > 0.3,
+		"the pier deck holds you up (y %.2f)" % player.global_position.y
+	)
 
 
 ## P4.1. Nothing to do: read the panel, and notice that the number is impossible.

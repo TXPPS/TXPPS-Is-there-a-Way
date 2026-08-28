@@ -46,15 +46,27 @@ STAIR_TOP_Z = 9.6
 # stair's foot -- a doorway under a flight of stairs is a doorway into a ceiling.
 GALLERY_DOOR_Z = 16.0
 
+# The deck is *beside* the shaft, not above it. Above was the obvious
+# arrangement and it is wrong: RoomBox can only take a floor away whole, so a
+# deck over an open shaft has no floor anywhere and the player falls through it.
+# The shaft therefore runs past deck level and opens onto it through a doorway
+# partway up its own wall -- which is what `Opening.sill` exists for, and what
+# made two floors possible in the first place.
+DECK_X = SHAFT_X + 1.5 + THICK + 1.5
+HOUSE_X = DECK_X
+SHAFT_HEIGHT = (DECK_Y - GALLERY_FLOOR) + 2.1     # deck level, plus a doorway
+
 ROOMS = [
-    # name,          interior,           at,                            omit,      floored, roofed
-    ("PierStair",    (3.0, 4.5, 8.0),    (SHAFT_X, GALLERY_FLOOR, SHAFT_Z), ["WEST"], True,  False),
-    ("PierDeck",     (3.0, 3.0, 8.0),    (SHAFT_X, DECK_Y, SHAFT_Z),    [],        False, True),
-    ("ControlHouse", (4.5, 2.8, 4.5),    (SHAFT_X, DECK_Y, 19.65),      ["NORTH"], True,  True),
+    # name,          interior,                      at,                                omit,      floored, roofed
+    ("PierStair",    (3.0, SHAFT_HEIGHT, 8.0),      (SHAFT_X, GALLERY_FLOOR, SHAFT_Z), ["WEST"],  True,  True),
+    ("PierDeck",     (3.0, 3.0, 8.0),               (DECK_X, DECK_Y, SHAFT_Z),         ["WEST"],  True,  True),
+    ("ControlHouse", (4.5, 2.8, 4.5),               (HOUSE_X, DECK_Y, 19.65),          ["NORTH"], True,  True),
 ]
 
 DOORS = [
-    ("PierDeck", "SOUTH", 0.0, 1.1, 2.1),     # out to the control house
+    # Partway up the shaft's east wall: its sill is the deck's floor.
+    ("PierStair", "EAST", 0.0, 1.1, 2.1, DECK_Y - GALLERY_FLOOR),
+    ("PierDeck", "SOUTH", 0.0, 1.1, 2.1, 0.0),   # out to the control house
 ]
 
 # Act 1's gallery needs one more hole in its east wall. Offsets on an east wall
@@ -71,8 +83,8 @@ BENCH_Z = 15.0
 
 LAMPS = [
     ("PierStair", (11.93, -1.4, 15.6), EAST, "LT-4"),
-    ("PierDeck",  (11.93, 2.6, 11.0),  EAST, "LT-4"),
-    ("ControlHouse", (11.18, 2.2, 19.65), EAST, "LT-4"),
+    ("PierDeck",  (15.33, 2.6, 11.0),  EAST, "LT-4"),
+    ("ControlHouse", (14.58, 2.2, 19.65), EAST, "LT-4"),
     ("Gallery",   (11.28, -2.0, 14.4), WEST, "LT-4"),
 ]
 
@@ -80,7 +92,7 @@ READABLES = [
     # On the box itself, not on the wall: he labelled the thing, not the room.
     ("BenchLabel",   "d21", (GALLERY_WALL_X - 0.51, -2.44, BENCH_Z), WEST),
     ("StageRecord",  "d22", (GALLERY_WALL_X, -2.0, 12.2),     WEST),
-    ("FinalTape",    "d24", (SHAFT_X - 1.3, 1.55, 20.9),      EAST),
+    ("FinalTape",    "d24", (HOUSE_X - 2.13, 1.55, 20.4),      EAST),
 ]
 
 DOCS = {
@@ -221,22 +233,22 @@ def _gallery():
 def _control_house():
     """The 1954 desk, and the third channel Emil retrofitted in 1966."""
     out = ['[node name="House" type="Node3D" parent="."]', ""]
-    out += box("Desk", (2.6, 0.08, 0.7), (SHAFT_X, 0.6 + 0.86, 19.0), ext_id("paint"), "House")
+    out += box("Desk", (2.6, 0.08, 0.7), (HOUSE_X, 0.6 + 0.86, 19.0), ext_id("paint"), "House")
     for i, dx in enumerate([-1.2, 1.2]):
         out += box("DeskLeg%d" % (i + 1), (0.06, 0.86, 0.6),
-                   (SHAFT_X + dx, 0.6 + 0.43, 19.0), ext_id("steel"), "House")
-    out += box("Cabinet", (1.1, 1.9, 0.4), (SHAFT_X + 1.3, 0.6 + 0.95, 21.5),
+                   (HOUSE_X + dx, 0.6 + 0.43, 19.0), ext_id("steel"), "House")
+    out += box("Cabinet", (1.1, 1.9, 0.4), (HOUSE_X + 1.3, 0.6 + 0.95, 21.5),
                ext_id("paint"), "House")
 
     # P4.3. The latch resets with a key, and the key is captive.
     out.append('[node name="Interlock" parent="House" instance=ExtResource("17_interlock")]')
-    out.append("transform = %s" % t3(facing(NORTH), (SHAFT_X, 1.55, 21.6)))
+    out.append("transform = %s" % t3(facing(NORTH), (HOUSE_X, 1.55, 21.6)))
     out.append('save_key = &"house_interlock"')
     out.append('channels = Array[StringName]([&"RUN"])')
     out.append("")
 
     out.append('[node name="LatchReset" parent="House" instance=ExtResource("14_push")]')
-    out.append("transform = %s" % t3(facing(NORTH), (SHAFT_X - 0.7, 1.5, 21.75)))
+    out.append("transform = %s" % t3(facing(NORTH), (HOUSE_X - 0.7, 1.5, 21.75)))
     out.append('label = "SEQ RESET"')
     out.append('prompt = "Reset the sequence"')
     out.append("")
@@ -246,10 +258,10 @@ def _control_house():
 def _pier():
     """Ending B: the hydraulic power unit, which works when nothing else does."""
     out = ['[node name="Pier" type="Node3D" parent="."]', ""]
-    out += box("HpuSkid", (1.6, 0.9, 1.0), (SHAFT_X, 1.05, 10.4), ext_id("steel"), "Pier")
-    out += box("HpuMotor", (0.5, 0.5, 0.5), (SHAFT_X - 0.4, 1.75, 10.4), ext_id("paint"), "Pier")
+    out += box("HpuSkid", (1.6, 0.9, 1.0), (DECK_X, 1.05, 10.4), ext_id("steel"), "Pier")
+    out += box("HpuMotor", (0.5, 0.5, 0.5), (DECK_X - 0.4, 1.75, 10.4), ext_id("paint"), "Pier")
     out.append('[node name="HandPump" parent="Pier" instance=ExtResource("13_toggle")]')
-    out.append("transform = %s" % t3(facing(SOUTH), (SHAFT_X + 0.45, 1.6, 10.95)))
+    out.append("transform = %s" % t3(facing(SOUTH), (DECK_X + 0.45, 1.6, 10.95)))
     out.append('save_key = &"hand_pump"')
     out.append('label = "GATE PERMISSIVE — LOCAL"')
     out.append("on = true")
@@ -294,7 +306,7 @@ def _logic():
         out.append('script = ExtResource("19_end")')
         out.append('card = ExtResource("doc_%s")' % doc)
         out.append("fade_seconds = 3.4")
-        out.append("return_to = Vector3(%s, %s, 11)" % (fmt(SHAFT_X), fmt(DECK_Y + 0.1)))
+        out.append("return_to = Vector3(%s, %s, 13)" % (fmt(DECK_X), fmt(DECK_Y + 0.1)))
         out.append("")
     return out
 
@@ -302,7 +314,7 @@ def _logic():
 def main():
     openings = []
     by_room = {}
-    for index, (room, wall, offset, width, height) in enumerate(DOORS, start=1):
+    for index, (room, wall, offset, width, height, sill) in enumerate(DOORS, start=1):
         name = "Opening_%d" % index
         by_room.setdefault(room, []).append(name)
         openings.append("\n".join([
@@ -312,7 +324,7 @@ def main():
             "offset = %s" % fmt(float(offset)),
             "width = %s" % fmt(float(width)),
             "height = %s" % fmt(float(height)),
-            "sill = 0.0",
+            "sill = %s" % fmt(float(sill)),
             "",
         ]))
 

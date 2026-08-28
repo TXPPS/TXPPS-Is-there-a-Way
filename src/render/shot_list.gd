@@ -34,6 +34,9 @@ const SETTLE_FRAMES := 8
 ## cannot be played at once: only one is ever in the tree.
 @export_range(0, 40, 1) var act2_from: int = 99
 
+## And back again for Act 4, which is rooms in Act 1's building (D29).
+@export_range(0, 40, 1) var act1_again_from: int = 99
+
 ## name, position, yaw degrees, pitch degrees.
 ## name, position (y is floor level; the eye is 1.62 above it), yaw and pitch in
 ## degrees, and optionally a Document to hold up. Computed from the room's own
@@ -81,7 +84,16 @@ const SHOTS: Array = [
 	["27-tape-library", Vector3(-11.90, 0.00, -19.60), -180.0, -6.0],
 	["28-page-protocol", Vector3(0.00, 0.00, -15.30), 0.0, 0.0,
 		"res://assets/documents/d13_protocol_4.tres"],
+	# Act 4, back in Act 1's building and up the pier stair.
+	["29-relay-panel", Vector3(9.20, -3.90, 13.60), -90.0, -6.0],
+	["30-bench-unit", Vector3(9.40, -3.90, 15.00), -78.0, -8.0],
+	["31-pier-stair", Vector3(13.30, -3.90, 15.60), 0.0, 22.0],
+	["32-gate-pier", Vector3(16.70, 0.60, 13.60), 0.0, -4.0],
+	["33-control-house", Vector3(16.70, 0.60, 18.40), 180.0, -3.0],
+	["34-page-tape", Vector3(16.70, 0.60, 18.40), 180.0, 0.0,
+		"res://assets/documents/d24_reel_9c.tres"],
 ]
+
 
 var _player: Player
 var _hud: CanvasLayer
@@ -159,7 +171,11 @@ func _mount_for(index: int) -> void:
 	var runner := get_tree().get_first_node_in_group(&"act_runner") as ActRunner
 	if runner == null:
 		return
-	var want := 1 if index >= act2_from else 0
+	var want := 0
+	if index >= act2_from:
+		want = 1
+	if index >= act1_again_from:
+		want = 0
 	if runner.current() != want:
 		runner.load_act(want)
 

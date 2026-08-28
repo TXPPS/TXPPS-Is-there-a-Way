@@ -72,6 +72,7 @@ script = ExtResource("11_fear")
 script = ExtResource("12_shots")
 lit_from = 11
 act2_from = 14
+act1_again_from = 29
 
 [node name="Journal" type="Node" parent="." groups=["saveable"]]
 script = ExtResource("16_journal")

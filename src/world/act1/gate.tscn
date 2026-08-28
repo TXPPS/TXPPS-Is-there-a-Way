@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3]
+[gd_scene load_steps=27 format=3]
 
 [ext_resource type="Script" path="res://src/world/kit/room_box.gd" id="1_room"]
 [ext_resource type="Script" path="res://src/world/kit/opening.gd" id="2_open"]
@@ -26,43 +26,51 @@
 [ext_resource type="Resource" path="res://assets/documents/ending_b_card.tres" id="doc_end_b"]
 [sub_resource type="Resource" id="Opening_1"]
 script = ExtResource("2_open")
+wall = 3
+offset = 0
+width = 1.1
+height = 2.1
+sill = 4.5
+
+[sub_resource type="Resource" id="Opening_2"]
+script = ExtResource("2_open")
 wall = 1
 offset = 0
 width = 1.1
 height = 2.1
-sill = 0.0
+sill = 0
 [node name="Gate" type="Node3D"]
 
 [node name="PierStair" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.3, -3.9, 13)
 script = ExtResource("1_room")
-interior = Vector3(3, 4.5, 8)
+interior = Vector3(3, 6.6, 8)
 thickness = 0.4
+openings = Array[ExtResource("2_open")]([SubResource("Opening_1")])
 omit_walls = Array[int]([2])
 wall_material = ExtResource("5_concrete")
 floor_material = ExtResource("5_concrete")
-roofed = false
 
 [node name="Surface" type="Node" parent="PierStair"]
 script = ExtResource("9_tag")
 surface = ExtResource("10_surface")
 
 [node name="PierDeck" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.3, 0.6, 13)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.7, 0.6, 13)
 script = ExtResource("1_room")
 interior = Vector3(3, 3, 8)
 thickness = 0.4
-openings = Array[ExtResource("2_open")]([SubResource("Opening_1")])
+openings = Array[ExtResource("2_open")]([SubResource("Opening_2")])
+omit_walls = Array[int]([2])
 wall_material = ExtResource("5_concrete")
 floor_material = ExtResource("5_concrete")
-floored = false
 
 [node name="Surface" type="Node" parent="PierDeck"]
 script = ExtResource("9_tag")
 surface = ExtResource("10_surface")
 
 [node name="ControlHouse" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.3, 0.6, 19.65)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.7, 0.6, 19.65)
 script = ExtResource("1_room")
 interior = Vector3(4.5, 2.8, 4.5)
 thickness = 0.4
@@ -134,21 +142,21 @@ prompt_when_off = "Put the lead back"
 [node name="Pier" type="Node3D" parent="."]
 
 [node name="HpuSkid" type="Node3D" parent="Pier"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.3, 1.05, 10.4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.7, 1.05, 10.4)
 script = ExtResource("3_slab")
 size = Vector3(1.6, 0.9, 1)
 material = ExtResource("6_steel")
 solid = true
 
 [node name="HpuMotor" type="Node3D" parent="Pier"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.9, 1.75, 10.4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.3, 1.75, 10.4)
 script = ExtResource("3_slab")
 size = Vector3(0.5, 0.5, 0.5)
 material = ExtResource("7_paint")
 solid = true
 
 [node name="HandPump" parent="Pier" instance=ExtResource("13_toggle")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.75, 1.6, 10.95)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.15, 1.6, 10.95)
 save_key = &"hand_pump"
 label = "GATE PERMISSIVE — LOCAL"
 on = true
@@ -158,40 +166,40 @@ prompt_when_off = "Put the permissive back"
 [node name="House" type="Node3D" parent="."]
 
 [node name="Desk" type="Node3D" parent="House"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.3, 1.46, 19)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.7, 1.46, 19)
 script = ExtResource("3_slab")
 size = Vector3(2.6, 0.08, 0.7)
 material = ExtResource("7_paint")
 solid = true
 
 [node name="DeskLeg1" type="Node3D" parent="House"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.1, 1.03, 19)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.5, 1.03, 19)
 script = ExtResource("3_slab")
 size = Vector3(0.06, 0.86, 0.6)
 material = ExtResource("6_steel")
 solid = true
 
 [node name="DeskLeg2" type="Node3D" parent="House"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 1.03, 19)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.9, 1.03, 19)
 script = ExtResource("3_slab")
 size = Vector3(0.06, 0.86, 0.6)
 material = ExtResource("6_steel")
 solid = true
 
 [node name="Cabinet" type="Node3D" parent="House"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.6, 1.55, 21.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 1.55, 21.5)
 script = ExtResource("3_slab")
 size = Vector3(1.1, 1.9, 0.4)
 material = ExtResource("7_paint")
 solid = true
 
 [node name="Interlock" parent="House" instance=ExtResource("17_interlock")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 13.3, 1.55, 21.6)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 16.7, 1.55, 21.6)
 save_key = &"house_interlock"
 channels = Array[StringName]([&"RUN"])
 
 [node name="LatchReset" parent="House" instance=ExtResource("14_push")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 12.6, 1.5, 21.75)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 16, 1.5, 21.75)
 label = "SEQ RESET"
 prompt = "Reset the sequence"
 
@@ -203,12 +211,12 @@ circuit = &"LT-4"
 lit = false
 
 [node name="PierDeck" parent="Lamps" instance=ExtResource("8_lamp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.93, 2.6, 11)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.33, 2.6, 11)
 circuit = &"LT-4"
 lit = false
 
 [node name="ControlHouse" parent="Lamps" instance=ExtResource("8_lamp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.18, 2.2, 19.65)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.58, 2.2, 19.65)
 circuit = &"LT-4"
 lit = false
 
@@ -228,7 +236,7 @@ transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.28, -2, 12.2)
 document = ExtResource("doc_d22")
 
 [node name="FinalTape" parent="Readables" instance=ExtResource("12_page")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 12, 1.55, 20.9)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 14.57, 1.55, 20.4)
 document = ExtResource("doc_d24")
 
 [node name="Logic" type="Node" parent="." groups=["saveable"]]
@@ -243,7 +251,7 @@ monitoring = false
 script = ExtResource("19_end")
 card = ExtResource("doc_end_a")
 fade_seconds = 3.4
-return_to = Vector3(13.3, 0.7, 11)
+return_to = Vector3(16.7, 0.7, 13)
 
 [node name="EndingB" type="Area3D" parent="." groups=["act_end"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.3, -40, 0)
@@ -253,5 +261,5 @@ monitoring = false
 script = ExtResource("19_end")
 card = ExtResource("doc_end_b")
 fade_seconds = 3.4
-return_to = Vector3(13.3, 0.7, 11)
+return_to = Vector3(16.7, 0.7, 13)
 
