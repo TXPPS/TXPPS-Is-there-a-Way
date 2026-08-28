@@ -13,6 +13,10 @@ extends Node3D
 ## looking that way misses it entirely, and that is allowed. Making it
 ## unmissable would make it a jump scare, which `ART_BIBLE.md` rules out.
 
+## Whether it has already happened is worth saving: a player who reloads should
+## not be shown the once-only thing a second time.
+@export var save_key: StringName = &"seam"
+
 ## How long the whole thing lasts, in and out.
 @export_range(0.4, 8.0, 0.1) var seconds: float = 2.6
 

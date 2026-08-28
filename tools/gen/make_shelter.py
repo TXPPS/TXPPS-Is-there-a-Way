@@ -31,38 +31,55 @@ EAST, WEST, NORTH, SOUTH = "east", "west", "north", "south"
 _DIR = {EAST: (1.0, 0.0), WEST: (-1.0, 0.0), NORTH: (0.0, -1.0), SOUTH: (0.0, 1.0)}
 
 
-def facing(direction, local_forward="+z"):
-    """The nine basis numbers that point `local_forward` along `direction`.
+def fmt(v):
+    if not isinstance(v, float):
+        return str(v)
+    v = round(v, 5) + 0.0   # +0.0 turns -0.0 into 0.0, which keeps diffs quiet
+    return "%g" % v
 
-    Written as the three basis vectors in the order a .tscn stores them --
-    x_axis, y_axis, z_axis -- because writing the transpose is exactly the bug
-    that mounted every prop in Act 1 facing into its wall.
+
+def facing(direction, local_forward="+z"):
+    """The three basis axes that point `local_forward` along `direction`.
+
+    Returns the axes themselves -- x, y, z as world vectors. Turning them into
+    the twelve numbers a .tscn wants is `t3`'s job, and the two are separate
+    because that serialisation is the thing this file has got wrong before.
     """
-    fx, fz = _DIR[direction]
+    dx, dz = _DIR[direction]
     if local_forward == "+z":
-        z = (fx, 0.0, fz)
-        x = (fz, 0.0, -fx)  # right-handed: x = y cross z
+        z = (dx, 0.0, dz)
+        x = (dz, 0.0, -dx)   # right-handed: y cross z
     elif local_forward == "+x":
-        x = (fx, 0.0, fz)
-        z = (-fz, 0.0, fx)
+        x = (dx, 0.0, dz)
+        z = (-dz, 0.0, dx)   # right-handed: x cross y
     else:
         raise ValueError(local_forward)
-    return (*x, 0.0, 1.0, 0.0, *z)
+    return x, (0.0, 1.0, 0.0), z
 
 
-def t3(basis, pos):
+def t3(axes, pos):
+    """A Transform3D literal, from three basis axes and an origin.
+
+    **A .tscn stores the basis by rows, not by axis.** `Basis` keeps its rows,
+    and the axes are its *columns*, so writing the axes out in order gives the
+    transpose -- which for a rotation is its inverse, and mounts everything
+    facing backwards. That bug shipped once already (every prop in Act 1 was
+    hung facing into its wall) and it is invisible in a screenshot, because a
+    flat panel on a wall looks the same from the front whichever way its normal
+    points. tests/case_reach.gd is what catches it; this is what avoids it.
+    """
+    x, y, z = axes
+    rows = (x[0], y[0], z[0],
+            x[1], y[1], z[1],
+            x[2], y[2], z[2])
     return "Transform3D(%s, %s)" % (
-        ", ".join(fmt(v) for v in basis),
+        ", ".join(fmt(v) for v in rows),
         ", ".join(fmt(v) for v in pos),
     )
 
 
-def fmt(v):
-    return ("%g" % round(v, 5)) if isinstance(v, float) else str(v)
-
-
 def upright(pos):
-    return t3((1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0), pos)
+    return t3(((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)), pos)
 
 
 # --- the plan ---------------------------------------------------------------
@@ -165,12 +182,12 @@ LAMPS = [
 READABLES = [
     ("StockingManifest", "d07", (-1.88, 1.55, 11.4), EAST),   # vestibule, west wall
     ("OccupancyNotice",  "d11", (1.88, 1.55, 12.3),  WEST),   # taped over the capacity sign
-    ("RationCard",       "d08", (3.15, 1.5, -4.88),  SOUTH),  # store room, on the door
+    ("RationCard",       "d08", (4.53, 1.5, -2.2),   WEST),   # store room, clear of the drums
     ("ServiceCard",      "d09", (-8.53, 1.5, -3.0),  EAST),   # plant room, wire frame
     ("OperatingCard",    "d09a", (-4.4, 1.78, -7.38), SOUTH), # inside the cabinet door
     ("PanelSchedule",    "d09b", (1.10, 1.95, -6.5),  WEST),  # in the panel door
     ("Postcard",         "d10", (5.6, 0.92, 3.4),    WEST),   # bunk room, on the shelf
-    ("WorkUnitCover",    "d12", (-4.65, 0.78, 5.5),  SOUTH),  # mess table
+    ("WorkUnitCover",    "d12", (-7.53, 1.45, 5.5),  EAST),   # mess, on the board over the table
 ]
 
 
@@ -299,7 +316,9 @@ def _plant():
     out += box("Exhaust", (0.24, 1.9, 0.24), (-7.3, 1.9, -6.5), ext_id("steel"), "Plant")
     out += box("DayTank", (0.9, 0.9, 0.7), (-8.1, 1.85, -2.6), ext_id("steel"), "Plant")
     out += box("Cabinet", (1.1, 0.9, 0.16), (-4.4, 1.5, -7.42), ext_id("paint"), "Plant")
-    out += box("SetBoard", (1.4, 0.7, 0.14), (-6.5, 1.4, -7.43), ext_id("paint"), "Plant")
+    # On the west wall rather than behind the set: the machine was standing in
+    # front of its own controls, which case_reach found by trying to stand there.
+    out += box("SetBoard", (0.14, 0.7, 1.4), (-8.58, 1.4, -4.6), ext_id("paint"), "Plant")
 
     out.append('[node name="DayTankValve" parent="Plant" instance=ExtResource("16_valve")]')
     out.append("transform = %s" % t3(facing(EAST), (-8.5, 1.25, -2.6)))
@@ -309,13 +328,13 @@ def _plant():
     out.append("")
 
     out.append('[node name="Starter" parent="Plant" instance=ExtResource("14_push")]')
-    out.append("transform = %s" % t3(facing(SOUTH), (-6.95, 1.5, -7.36)))
+    out.append("transform = %s" % t3(facing(EAST), (-8.5, 1.55, -4.25)))
     out.append('label = "START"')
     out.append('prompt = "Press start"')
     out.append("")
 
     out.append('[node name="SetMain" parent="Plant" instance=ExtResource("13_toggle")]')
-    out.append("transform = %s" % t3(facing(SOUTH), (-6.05, 1.5, -7.36)))
+    out.append("transform = %s" % t3(facing(EAST), (-8.5, 1.55, -4.95)))
     out.append('save_key = &"set_main"')
     out.append('label = "SET MAIN"')
     out.append("on = false")

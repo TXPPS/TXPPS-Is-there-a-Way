@@ -179,47 +179,47 @@ surface = ExtResource("10_surface")
 [node name="Lamps" type="Node3D" parent="."]
 
 [node name="CorridorSouth" parent="Lamps" instance=ExtResource("8_lamp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -1.13, 2.2, 7)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.13, 2.2, 7)
 circuit = &"SHLT"
 lit = false
 
 [node name="CorridorMid" parent="Lamps" instance=ExtResource("8_lamp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -1.13, 2.2, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.13, 2.2, 0)
 circuit = &"SHLT"
 lit = false
 
 [node name="CorridorNorth" parent="Lamps" instance=ExtResource("8_lamp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -1.13, 2.2, -7)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.13, 2.2, -7)
 circuit = &"SHLT"
 lit = false
 
 [node name="Plant" parent="Lamps" instance=ExtResource("8_lamp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -8.53, 2.5, -4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.53, 2.5, -4)
 circuit = &"SHLT"
 lit = false
 
 [node name="Mess" parent="Lamps" instance=ExtResource("8_lamp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -7.53, 2.2, 5.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.53, 2.2, 5.5)
 circuit = &"SHLT"
 lit = false
 
 [node name="Bunk" parent="Lamps" instance=ExtResource("8_lamp")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, 7.53, 2.2, 5)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 7.53, 2.2, 5)
 circuit = &"SHLT"
 lit = false
 
 [node name="Store" parent="Lamps" instance=ExtResource("8_lamp")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, -0, 0, -1, 4.53, 2.2, -3)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 4.53, 2.2, -3)
 circuit = &"SHLT"
 lit = false
 
 [node name="Vestibule" parent="Lamps" instance=ExtResource("8_lamp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -1.88, 2.2, 11.9)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.88, 2.2, 11.9)
 circuit = &"SHLT"
 lit = false
 
 [node name="StairHead" parent="Lamps" instance=ExtResource("8_lamp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -1.38, 2.2, -12.4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.38, 2.2, -12.4)
 circuit = &"SHLT"
 lit = false
 
@@ -261,25 +261,25 @@ material = ExtResource("6_paint")
 solid = true
 
 [node name="SetBoard" type="Node3D" parent="Plant"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 1.4, -7.43)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.58, 1.4, -4.6)
 script = ExtResource("3_slab")
-size = Vector3(1.4, 0.7, 0.14)
+size = Vector3(0.14, 0.7, 1.4)
 material = ExtResource("6_paint")
 solid = true
 
 [node name="DayTankValve" parent="Plant" instance=ExtResource("16_valve")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -8.5, 1.25, -2.6)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -8.5, 1.25, -2.6)
 save_key = &"day_tank"
 label = "DAY TANK ISOL"
 turns_to_open = 3
 
 [node name="Starter" parent="Plant" instance=ExtResource("14_push")]
-transform = Transform3D(1, 0, -0, 0, 1, 0, 0, 0, 1, -6.95, 1.5, -7.36)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -8.5, 1.55, -4.25)
 label = "START"
 prompt = "Press start"
 
 [node name="SetMain" parent="Plant" instance=ExtResource("13_toggle")]
-transform = Transform3D(1, 0, -0, 0, 1, 0, 0, 0, 1, -6.05, 1.5, -7.36)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -8.5, 1.55, -4.95)
 save_key = &"set_main"
 label = "SET MAIN"
 on = false
@@ -287,7 +287,7 @@ prompt_when_on = "Open the set main"
 prompt_when_off = "Close the set main"
 
 [node name="TransferSwitch" parent="Plant" instance=ExtResource("17_selector")]
-transform = Transform3D(1, 0, -0, 0, 1, 0, 0, 0, 1, -4.4, 1.4, -7.34)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.4, 1.4, -7.34)
 save_key = &"transfer"
 index = 1
 
@@ -303,7 +303,7 @@ solid = true
 [node name="Breakers" type="Node3D" parent="Panel"]
 
 [node name="Sump" parent="Panel/Breakers" instance=ExtResource("13_toggle")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.13, 1.85, -6.75)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 1.13, 1.85, -6.75)
 save_key = &"Sump"
 label = "1  SUMP PUMP 7.5 HP"
 on = true
@@ -313,7 +313,7 @@ prompt_when_on = "Open the breaker"
 prompt_when_off = "Close the breaker"
 
 [node name="AnnexLighting" parent="Panel/Breakers" instance=ExtResource("13_toggle")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.13, 1.65, -6.75)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 1.13, 1.65, -6.75)
 save_key = &"AnnexLighting"
 label = "3  ANNEX LIGHTING"
 on = true
@@ -322,7 +322,7 @@ prompt_when_on = "Open the breaker"
 prompt_when_off = "Close the breaker"
 
 [node name="ShelterLighting" parent="Panel/Breakers" instance=ExtResource("13_toggle")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.13, 1.45, -6.75)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 1.13, 1.45, -6.75)
 save_key = &"ShelterLighting"
 label = "5  SHELTER LIGHTING"
 on = true
@@ -331,7 +331,7 @@ prompt_when_on = "Open the breaker"
 prompt_when_off = "Close the breaker"
 
 [node name="Mess" parent="Panel/Breakers" instance=ExtResource("13_toggle")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.13, 1.25, -6.75)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 1.13, 1.25, -6.75)
 save_key = &"Mess"
 label = "7  MESS & GALLEY"
 on = true
@@ -340,7 +340,7 @@ prompt_when_on = "Open the breaker"
 prompt_when_off = "Close the breaker"
 
 [node name="Vent" parent="Panel/Breakers" instance=ExtResource("13_toggle")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.13, 1.05, -6.75)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 1.13, 1.05, -6.75)
 save_key = &"Vent"
 label = "9  VENT FAN 3 HP"
 on = true
@@ -350,7 +350,7 @@ prompt_when_on = "Open the breaker"
 prompt_when_off = "Close the breaker"
 
 [node name="Chambers" parent="Panel/Breakers" instance=ExtResource("13_toggle")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.13, 1.85, -6.25)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 1.13, 1.85, -6.25)
 save_key = &"Chambers"
 label = "11 CHAMBER LUMINAIRES"
 on = true
@@ -359,7 +359,7 @@ prompt_when_on = "Open the breaker"
 prompt_when_off = "Close the breaker"
 
 [node name="Recorders" parent="Panel/Breakers" instance=ExtResource("13_toggle")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.13, 1.65, -6.25)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 1.13, 1.65, -6.25)
 save_key = &"Recorders"
 label = "13 RECORDER BAY"
 on = true
@@ -368,7 +368,7 @@ prompt_when_on = "Open the breaker"
 prompt_when_off = "Close the breaker"
 
 [node name="Well" parent="Panel/Breakers" instance=ExtResource("13_toggle")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.13, 1.45, -6.25)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 1.13, 1.45, -6.25)
 save_key = &"Well"
 label = "15 WELL PUMP 2 HP"
 on = true
@@ -378,7 +378,7 @@ prompt_when_on = "Open the breaker"
 prompt_when_off = "Close the breaker"
 
 [node name="Heater" parent="Panel/Breakers" instance=ExtResource("13_toggle")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.13, 1.25, -6.25)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 1.13, 1.25, -6.25)
 save_key = &"Heater"
 label = "17 UNIT HEATER"
 on = true
@@ -545,46 +545,46 @@ solid = true
 [node name="Readables" type="Node3D" parent="."]
 
 [node name="StockingManifest" parent="Readables" instance=ExtResource("12_page")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -1.88, 1.55, 11.4)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.88, 1.55, 11.4)
 document = ExtResource("doc_d07")
 
 [node name="OccupancyNotice" parent="Readables" instance=ExtResource("12_page")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.88, 1.55, 12.3)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 1.88, 1.55, 12.3)
 document = ExtResource("doc_d11")
 
 [node name="RationCard" parent="Readables" instance=ExtResource("12_page")]
-transform = Transform3D(1, 0, -0, 0, 1, 0, 0, 0, 1, 3.15, 1.5, -4.88)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 4.53, 1.5, -2.2)
 document = ExtResource("doc_d08")
 
 [node name="ServiceCard" parent="Readables" instance=ExtResource("12_page")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -8.53, 1.5, -3)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -8.53, 1.5, -3)
 document = ExtResource("doc_d09")
 
 [node name="OperatingCard" parent="Readables" instance=ExtResource("12_page")]
-transform = Transform3D(1, 0, -0, 0, 1, 0, 0, 0, 1, -4.4, 1.78, -7.38)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.4, 1.78, -7.38)
 document = ExtResource("doc_d09a")
 
 [node name="PanelSchedule" parent="Readables" instance=ExtResource("12_page")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.1, 1.95, -6.5)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 1.1, 1.95, -6.5)
 document = ExtResource("doc_d09b")
 
 [node name="Postcard" parent="Readables" instance=ExtResource("12_page")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 5.6, 0.92, 3.4)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 5.6, 0.92, 3.4)
 document = ExtResource("doc_d10")
 
 [node name="WorkUnitCover" parent="Readables" instance=ExtResource("12_page")]
-transform = Transform3D(1, 0, -0, 0, 1, 0, 0, 0, 1, -4.65, 0.78, 5.5)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.53, 1.45, 5.5)
 document = ExtResource("doc_d12")
 
 [node name="ShelterDoor" parent="." instance=ExtResource("15_door")]
-transform = Transform3D(-1, 0, -0, 0, 1, 0, 0, 0, -1, 0, 0, 13.6)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 13.6)
 save_key = &"shelter_door"
 open = false
 prompt = "It will not move from this side"
 available = false
 
 [node name="AnnexDoor" parent="." instance=ExtResource("15_door")]
-transform = Transform3D(1, 0, -0, 0, 1, 0, 0, 0, 1, 0, 0, -14.4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -14.4)
 save_key = &"annex_door"
 open = false
 available = false

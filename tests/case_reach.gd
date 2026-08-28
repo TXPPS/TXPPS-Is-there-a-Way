@@ -18,11 +18,34 @@ const STAND_BACK := 1.15
 const EYE := 1.62
 
 
+## Every act, not just the first. An act nobody walks is an act whose props are
+## wherever the generator put them.
+const ACTS := [
+	{"index": 0, "node": "Powerhouse", "least": 12},
+	{"index": 1, "node": "Shelter", "least": 18},
+]
+
+
 func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
+	var runner: ActRunner = main.get_node("Acts")
+	for act in ACTS:
+		runner.load_act(int(act["index"]))
+		await tree.physics_frame
+		await _walk(tree, main, String(act["node"]), int(act["least"]), expect)
+	runner.load_act(0)
+	await tree.physics_frame
+
+
+func _walk(
+	tree: SceneTree, main: Node, act_node: String, least: int, expect: RefCounted
+) -> void:
 	var player: Player = main.get_node("Player")
 	var interactor: Interactor = player.get_node("Head/Camera/Interactor")
-	var zones := _find(main.get_node("Powerhouse"))
-	expect.ok(zones.size() >= 12, "the act has things to interact with (%d)" % zones.size())
+	var zones := _find(main.get_node(act_node))
+	expect.ok(
+		zones.size() >= least,
+		"%s has things to interact with (%d)" % [act_node, zones.size()]
+	)
 
 	var unreachable := PackedStringArray()
 	for zone in zones:
@@ -31,8 +54,8 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 			unreachable.append("%s: %s" % [zone.get_parent().name, why])
 	expect.ok(
 		unreachable.is_empty(),
-		"every one of them can be reached from the floor (%s)"
-			% ("none unreachable" if unreachable.is_empty() else " | ".join(unreachable))
+		"every one of %s's can be reached from the floor (%s)"
+			% [act_node, "none unreachable" if unreachable.is_empty() else " | ".join(unreachable)]
 	)
 
 
