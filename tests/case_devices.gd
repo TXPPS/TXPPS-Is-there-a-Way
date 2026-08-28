@@ -11,12 +11,133 @@ extends RefCounted
 const VALVE := preload("res://src/world/devices/device_valve.tscn")
 const SELECTOR := preload("res://src/world/devices/device_selector.tscn")
 
+## Act 2's distribution panel, as nameplates: running kW, then starting kW.
+## These are the numbers on the props, and the puzzle is only as good as they
+## are -- so they are asserted here rather than trusted to a scene file.
+const PANEL := {
+	"Sump": [6.9, 26.0],
+	"AnnexLighting": [4.4, 0.0],
+	"ShelterLighting": [2.6, 0.0],
+	"Mess": [5.2, 0.0],
+	"Vent": [2.8, 8.4],
+	"Chambers": [2.5, 0.0],
+	"Recorders": [3.1, 0.0],
+	"Well": [1.9, 7.6],
+	"Heater": [9.0, 0.0],
+}
+
 
 func run(tree: SceneTree, _main: Node, expect: RefCounted) -> void:
 	await _valve_takes_several_turns(tree, expect)
 	await _valve_closes_the_way_it_opened(tree, expect)
 	await _selector_walks_its_plate(tree, expect)
 	await _selector_survives_a_bad_save(tree, expect)
+	_the_load_budget(expect)
+
+
+# --- P2.3, as arithmetic ----------------------------------------------------
+
+## The whole of Act 2's central puzzle, with no level and no player in it.
+##
+## What is being protected here is the *shape* of the puzzle rather than any one
+## answer: that shedding nothing fails on the continuous rating, that shedding
+## the single biggest load -- which is what anyone tries first -- holds and then
+## dies when the sump starts, and that there is a wide budget rather than one
+## combination. Change a nameplate on a prop and this is what notices.
+func _the_load_budget(expect: RefCounted) -> void:
+	expect.near(ShelterLoad.CAPACITY_KW, 30.0, 0.001, "the set is the 30 kW on its plate")
+	expect.near(ShelterLoad.PEAK_KW, 45.0, 0.001, "and rides 150% of it for a moment")
+
+	var all_on := _panel([])
+	expect.near(ShelterLoad.running(all_on), 38.4, 0.05, "everything at once is 38.4 kW")
+	expect.ok(not ShelterLoad.carries(all_on), "which the set will not carry")
+	expect.near(ShelterLoad.overload_kw(all_on), 8.4, 0.05, "and it says how much is too much")
+
+	# The obvious first move: shed the one big load. It works, right up until
+	# the float calls for the sump.
+	var heater_off := _panel(["Heater"])
+	expect.near(ShelterLoad.running(heater_off), 29.4, 0.05, "shedding the heater gets under the rating")
+	expect.ok(ShelterLoad.carries(heater_off), "so the bus picks up and holds")
+	expect.near(
+		ShelterLoad.inrush(heater_off, _breaker_named(heater_off, "Sump")), 48.5, 0.05,
+		"but the sump starting asks for 48.5 kW"
+	)
+	expect.ok(
+		not ShelterLoad.survives_start(heater_off, _breaker_named(heater_off, "Sump")),
+		"which drops it -- an allocation that boots is not one that holds"
+	)
+
+	var enough := _panel(["Heater", "Mess"])
+	expect.ok(ShelterLoad.carries(enough), "shedding the galley as well carries")
+	expect.ok(
+		ShelterLoad.survives_start(enough, _breaker_named(enough, "Sump")),
+		"and survives the start"
+	)
+
+	# A sump that is switched out cannot surge, so the start is a non-event.
+	var no_sump := _panel(["Sump"])
+	expect.near(
+		ShelterLoad.inrush(no_sump, _breaker_named(no_sump, "Sump")),
+		ShelterLoad.running(no_sump), 0.001,
+		"a breaker that is open contributes no inrush"
+	)
+
+	var ways := _winning_allocations()
+	expect.ok(
+		ways >= 40,
+		"there is a budget to spend rather than one right answer (%d ways)" % ways
+	)
+
+	for panel in [all_on, heater_off, enough, no_sump]:
+		_discard(panel)
+
+
+## Every allocation that keeps the sump and the annex lit -- the two the act
+## needs -- and survives. Counted rather than asserted one by one, because the
+## design's claim is about how many there are.
+func _winning_allocations() -> int:
+	var optional := ["ShelterLighting", "Mess", "Vent", "Chambers", "Recorders", "Well", "Heater"]
+	var wins := 0
+	for mask in range(1 << optional.size()):
+		var shed: Array[String] = []
+		for bit in optional.size():
+			if (mask & (1 << bit)) != 0:
+				shed.append(optional[bit])
+		var panel := _panel(shed)
+		if ShelterLoad.carries(panel) and ShelterLoad.survives_start(panel, _breaker_named(panel, "Sump")):
+			wins += 1
+		_discard(panel)
+	return wins
+
+
+## A throwaway panel of breakers, with the named ones switched out. Real
+## DeviceToggles rather than a stub, so the arithmetic is exercised through the
+## same property the scene sets.
+func _panel(shed: Array) -> Array:
+	var made: Array = []
+	for key in PANEL:
+		var breaker := DeviceToggle.new()
+		breaker.name = key
+		breaker.save_key = StringName(key)
+		breaker.load_kw = PANEL[key][0]
+		breaker.surge_kw = PANEL[key][1]
+		breaker.on = not shed.has(key)
+		made.append(breaker)
+	return made
+
+
+## Breakers made with `new()` are Nodes that never entered the tree, so nothing
+## else will ever free them. 128 panels of nine is not a rounding error.
+func _discard(panel: Array) -> void:
+	for node in panel:
+		(node as Node).free()
+
+
+func _breaker_named(panel: Array, key: String) -> DeviceToggle:
+	for node in panel:
+		if (node as DeviceToggle).name == key:
+			return node
+	return null
 
 
 func _valve_takes_several_turns(tree: SceneTree, expect: RefCounted) -> void:
