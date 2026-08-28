@@ -27,6 +27,10 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	await _occlusion(tree, player, hum, expect)
 	await _reverb(tree, expect)
 	await _footsteps(tree, player, expect)
+	# Last, and deliberately: it swaps acts, which frees every node the checks
+	# above are holding. A case that changes the world does it once the rest of
+	# the case has finished with the old one.
+	await _every_space_sounds_like_somewhere(tree, main, expect)
 
 
 ## Godot's WAV importer numbers loop modes 0 = Detect From WAV, 1 = Disabled,
@@ -42,7 +46,6 @@ const LOOPING := [
 	"amb_powerhouse", "amb_water", "mach_ballast", "mach_gallery",
 ]
 const ONE_SHOT := ["metal_door", "metal_wrench", "click_breaker", "step_concrete_1"]
-
 
 func _loops(expect: RefCounted) -> void:
 	for name in LOOPING:
@@ -211,3 +214,34 @@ func _footsteps(tree: SceneTree, player: Player, expect: RefCounted) -> void:
 	feet.advance(0.1)
 	expect.ok(heard.is_empty(), "and standing still makes none")
 	feet.stepped.disconnect(listener)
+
+
+## Every act has rooms the ear can tell apart.
+##
+## Three of the four had none: Act 1 got a hall and a gallery when the reverb
+## was written, and nothing after it did, so the shelter, the annex and the gate
+## were all played dry. The tell was an `ext_resource` for `reverb_zone.gd`
+## declared in `shelter.tscn` and never used — which nothing was looking at.
+func _every_space_sounds_like_somewhere(
+	tree: SceneTree, main: Node, expect: RefCounted
+) -> void:
+	var runner: ActRunner = main.get_node("Acts")
+	var least := {0: 5, 1: 9}
+	for index in least:
+		runner.load_act(index)
+		await tree.physics_frame
+		var zones := 0
+		var stack: Array[Node] = [runner.root()]
+		while not stack.is_empty():
+			var node: Node = stack.pop_back()
+			if node is ReverbZone:
+				zones += 1
+			for child in node.get_children():
+				stack.append(child)
+		expect.ok(
+			zones >= least[index],
+			"act %d has %d rooms the ear can tell apart (wanted %d)"
+				% [index, zones, least[index]]
+		)
+	runner.load_act(0)
+	await tree.physics_frame

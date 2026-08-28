@@ -118,11 +118,11 @@ EXT = [
     ("PackedScene", "res://src/world/readable.tscn", "12_page"),
     ("PackedScene", "res://src/world/devices/device_toggle.tscn", "13_toggle"),
     ("PackedScene", "res://src/world/devices/device_push.tscn", "14_push"),
-    ("PackedScene", "res://src/world/devices/device_door.tscn", "15_door"),
     ("PackedScene", "res://src/world/devices/device_gauge.tscn", "16_gauge"),
     ("PackedScene", "res://src/world/devices/device_interlock.tscn", "17_interlock"),
     ("Script", "res://src/world/act1/gate_logic.gd", "18_logic"),
     ("Script", "res://src/world/act1/act_end.gd", "19_end"),
+    ("Script", "res://src/audio/reverb_zone.gd", "21_verb"),
     ("AudioStream", "res://assets/audio/mach_gate.wav", "20_gate"),
 ]
 EXT += [("Resource", "res://assets/documents/%s.tres" % f, "doc_%s" % k) for k, f in sorted(DOCS.items())]
@@ -301,6 +301,35 @@ def _lamps_and_pages():
     return out
 
 
+# A stair shaft is the longest reverb in the game and a control house is the
+# shortest: one is a chimney of wet concrete, the other is a small room with a
+# desk in it and forty years of dust on everything soft.
+REVERB = [
+    ("PierStair",  (SHAFT_X, 0.0, SHAFT_Z), (1.5, 3.3, 4.0), 0.86, 0.26, 0.44, 52.0),
+    ("PierDeck",   (DECK_X, DECK_Y + 1.5, SHAFT_Z), (1.5, 1.5, 4.0), 0.52, 0.48, 0.24, 20.0),
+    ("ControlHouse", (HOUSE_X, DECK_Y + 1.4, 19.65), (2.25, 1.4, 2.25), 0.28, 0.78, 0.15, 6.0),
+]
+
+
+def _reverb():
+    out = ['[node name="Reverb" type="Node3D" parent="."]', ""]
+    for name, at, half, size, damp, wet, predelay in REVERB:
+        out.append('[node name="%s" type="Area3D" parent="Reverb"]' % name)
+        out.append("transform = %s" % upright(at))
+        out.append("collision_layer = 0")
+        out.append("collision_mask = 2")
+        out.append('script = ExtResource("21_verb")')
+        out.append("room_size = %s" % fmt(size))
+        out.append("damping = %s" % fmt(damp))
+        out.append("wet = %s" % fmt(wet))
+        out.append("predelay_msec = %s" % fmt(predelay))
+        out.append("")
+        out.append('[node name="Shape" type="CollisionShape3D" parent="Reverb/%s"]' % name)
+        out.append('shape = SubResource("BoxShape3D_verb_%s")' % name)
+        out.append("")
+    return out
+
+
 def _logic():
     out = ['[node name="Logic" type="Node" parent="." groups=["saveable"]]']
     out.append('script = ExtResource("18_logic")')
@@ -346,9 +375,16 @@ def main():
     body += _gallery()
     body += _pier()
     body += _control_house()
+    body += _reverb()
     body += _lamps_and_pages()
     body += _logic()
 
+    for name, _at, half, _s, _d, _w, _p in REVERB:
+        openings.append("\n".join([
+            '[sub_resource type="BoxShape3D" id="BoxShape3D_verb_%s"]' % name,
+            "size = Vector3(%s)" % ", ".join(fmt(v * 2.0) for v in half),
+            "",
+        ]))
     text = "\n".join(_head(openings)) + "\n".join(openings) + "\n".join(body) + "\n"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(text)

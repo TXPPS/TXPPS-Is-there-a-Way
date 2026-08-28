@@ -172,6 +172,27 @@ SCHEDULE_LAMPS = [
     ("ChamberC", (5.0, 2.2, -20.58),  NORTH, "CHAM_C"),
 ]
 
+# How each space sounds, which is not decoration: the shelter is a municipal
+# concrete box and the annex is a hole cut in rock, and the ear knows the
+# difference before the eye does. One reverb on the SFX bus, driven by whichever
+# zone the listener is in.
+#
+#   name,            centre,               half-extent,          size, damp, wet, predelay
+REVERB = [
+    ("Corridor",     (0.0, 1.3, 0.0),      (1.25, 1.3, 10.0),    0.58, 0.44, 0.34, 14.0),
+    ("Plant",        (-5.15, 1.5, -4.0),   (3.5, 1.5, 3.5),      0.74, 0.34, 0.30, 30.0),
+    ("Mess",         (-4.65, 1.3, 5.5),    (3.0, 1.3, 3.0),      0.46, 0.58, 0.22, 12.0),
+    ("Vestibule",    (0.0, 1.3, 11.9),     (2.0, 1.3, 1.5),      0.34, 0.66, 0.18, 8.0),
+    # Rock does not ring. Small, dead, and almost no predelay -- the walls are
+    # where they sound like they are, which is very close.
+    ("ObsCorridor",  (0.0, 1.3, OBS_Z),    (9.0, 1.3, 1.25),     0.40, 0.74, 0.20, 7.0),
+    ("Chambers",     (0.0, 1.3, CHAMBER_Z), (7.0, 1.3, 1.5),     0.26, 0.80, 0.14, 5.0),
+    # Except the tank room, which has a steel tank and standing water in it.
+    ("TankRoom",     (TANK[0], 1.4, TANK[1]), (2.5, 1.4, 2.5),   0.62, 0.30, 0.42, 18.0),
+    ("RecorderBay",  (11.9, 1.3, OBS_Z),   (2.5, 1.3, 2.5),      0.38, 0.70, 0.18, 9.0),
+    ("TapeLibrary",  (TANK[0], 1.3, LIBRARY_Z), (2.0, 1.3, 2.0), 0.30, 0.82, 0.16, 6.0),
+]
+
 # Pages, in the rooms the people who wrote them would have left them.
 READABLES = [
     ("StockingManifest", "d07", (-1.88, 1.55, 11.4), EAST),   # vestibule, west wall
@@ -337,6 +358,7 @@ def build():
     body += _panel()
     body += _dressing()
     body += _intercom()
+    body += _reverb()
     body += _pages()
     body += _ways_out()
     return lines, openings, body
@@ -656,6 +678,25 @@ def _intercom():
     return out
 
 
+def _reverb():
+    out = ['[node name="Reverb" type="Node3D" parent="."]', ""]
+    for name, at, half, size, damp, wet, predelay in REVERB:
+        out.append('[node name="%s" type="Area3D" parent="Reverb"]' % name)
+        out.append("transform = %s" % upright(at))
+        out.append("collision_layer = 0")
+        out.append("collision_mask = 2")
+        out.append('script = ExtResource("11_verb")')
+        out.append("room_size = %s" % fmt(size))
+        out.append("damping = %s" % fmt(damp))
+        out.append("wet = %s" % fmt(wet))
+        out.append("predelay_msec = %s" % fmt(predelay))
+        out.append("")
+        out.append('[node name="Shape" type="CollisionShape3D" parent="Reverb/%s"]' % name)
+        out.append('shape = SubResource("BoxShape3D_verb_%s")' % name)
+        out.append("")
+    return out
+
+
 def _pages():
     out = ['[node name="Readables" type="Node3D" parent="."]', ""]
     for node, key, at, direction in READABLES:
@@ -750,6 +791,10 @@ def _head():
     out.append("")
     # Wide and deep enough to cover the whole annex, so the palette belongs to
     # the building rather than to a doorway the player might sidestep.
+    for name, _at, half, _s, _d, _w, _p in REVERB:
+        out.append('[sub_resource type="BoxShape3D" id="BoxShape3D_verb_%s"]' % name)
+        out.append("size = Vector3(%s)" % ", ".join(fmt(v * 2.0) for v in half))
+        out.append("")
     out.append('[sub_resource type="BoxShape3D" id="BoxShape3D_annex"]')
     out.append("size = Vector3(30.0, 3.4, 10.0)")
     out.append("")

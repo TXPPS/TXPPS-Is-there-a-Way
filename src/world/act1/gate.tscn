@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=3]
+[gd_scene load_steps=31 format=3]
 
 [ext_resource type="Script" path="res://src/world/kit/room_box.gd" id="1_room"]
 [ext_resource type="Script" path="res://src/world/kit/opening.gd" id="2_open"]
@@ -14,11 +14,11 @@
 [ext_resource type="PackedScene" path="res://src/world/readable.tscn" id="12_page"]
 [ext_resource type="PackedScene" path="res://src/world/devices/device_toggle.tscn" id="13_toggle"]
 [ext_resource type="PackedScene" path="res://src/world/devices/device_push.tscn" id="14_push"]
-[ext_resource type="PackedScene" path="res://src/world/devices/device_door.tscn" id="15_door"]
 [ext_resource type="PackedScene" path="res://src/world/devices/device_gauge.tscn" id="16_gauge"]
 [ext_resource type="PackedScene" path="res://src/world/devices/device_interlock.tscn" id="17_interlock"]
 [ext_resource type="Script" path="res://src/world/act1/gate_logic.gd" id="18_logic"]
 [ext_resource type="Script" path="res://src/world/act1/act_end.gd" id="19_end"]
+[ext_resource type="Script" path="res://src/audio/reverb_zone.gd" id="21_verb"]
 [ext_resource type="AudioStream" path="res://assets/audio/mach_gate.wav" id="20_gate"]
 [ext_resource type="Resource" path="res://assets/documents/d21_bench_label.tres" id="doc_d21"]
 [ext_resource type="Resource" path="res://assets/documents/d22_stage_record.tres" id="doc_d22"]
@@ -40,6 +40,15 @@ offset = 0
 width = 1.1
 height = 2.1
 sill = 0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_verb_PierStair"]
+size = Vector3(3, 6.6, 8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_verb_PierDeck"]
+size = Vector3(3, 3, 8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_verb_ControlHouse"]
+size = Vector3(4.5, 2.8, 4.5)
 [node name="Gate" type="Node3D"]
 
 [node name="PierStair" type="Node3D" parent="."]
@@ -211,6 +220,47 @@ channels = Array[StringName]([&"RUN"])
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 16, 1.5, 21.75)
 label = "SEQ RESET"
 prompt = "Reset the sequence"
+
+[node name="Reverb" type="Node3D" parent="."]
+
+[node name="PierStair" type="Area3D" parent="Reverb"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.3, 0, 13)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("21_verb")
+room_size = 0.86
+damping = 0.26
+wet = 0.44
+predelay_msec = 52
+
+[node name="Shape" type="CollisionShape3D" parent="Reverb/PierStair"]
+shape = SubResource("BoxShape3D_verb_PierStair")
+
+[node name="PierDeck" type="Area3D" parent="Reverb"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.7, 2.1, 13)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("21_verb")
+room_size = 0.52
+damping = 0.48
+wet = 0.24
+predelay_msec = 20
+
+[node name="Shape" type="CollisionShape3D" parent="Reverb/PierDeck"]
+shape = SubResource("BoxShape3D_verb_PierDeck")
+
+[node name="ControlHouse" type="Area3D" parent="Reverb"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.7, 2, 19.65)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("21_verb")
+room_size = 0.28
+damping = 0.78
+wet = 0.15
+predelay_msec = 6
+
+[node name="Shape" type="CollisionShape3D" parent="Reverb/ControlHouse"]
+shape = SubResource("BoxShape3D_verb_ControlHouse")
 
 [node name="Lamps" type="Node3D" parent="."]
 
