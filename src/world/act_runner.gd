@@ -114,6 +114,23 @@ func restore_stashes(saved: Dictionary) -> void:
 		_stashes[int(key)] = saved[key] as Dictionary
 
 
+## A new game: forget every act and build one from its scene.
+##
+## `load_act` on the act already mounted is deliberately a no-op — walking
+## through a door you are already behind should not rebuild the building — so
+## there has to be a way to say "no, actually, from the start", and clearing the
+## stashes is not enough on its own. Clear them and mount, in that order: the
+## other order restores the stash on the way out and then saves it again.
+func restart(index: int = 0) -> Node:
+	_stashes.clear()
+	var host := get_node_or_null(mount)
+	if host != null and _root != null:
+		host.remove_child(_root)
+		_root.free()
+		_root = null
+	return load_act(index)
+
+
 ## Whatever act is already mounted, adopted at startup.
 func _mounted_act() -> Node:
 	var host := get_node_or_null(mount)

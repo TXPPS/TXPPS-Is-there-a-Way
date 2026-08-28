@@ -45,6 +45,7 @@ tests/case_act3.gd     the annex, and the price of getting through it
 tests/case_act4.gd     the gate, and both ways out of it
 tests/case_tools.gd    carrying something, and what the meter reads
 tests/case_observer.gd the entity's rule, row by row from the bible
+tests/case_playthrough.gd the whole game, once, by the doors
 tests/case_reach.gd    can a player actually stand somewhere and touch each thing
 ```
 
@@ -130,6 +131,7 @@ mix untestable until the wire comes off for the duration.
 | observer | every row of STORY.md's rule table, because the player is meant to *learn* those rows and a rule that is true four times in five is not a rule |
 | act3 | **does one building hold two logics.** The annex is rooms in Act 2's scene, so this case walks across the seam between `ShelterLogic` and `AnnexLogic` — and it is the only case that watches the entity run in a level rather than in a fixture |
 | act4 | **does it end.** The first thing in this project that branches, so the only case that walks the same act twice and expects two different answers. It reloads between runs rather than undoing an ending: a test that could take one back would be testing something the player cannot do |
+| playthrough | **do the acts join up.** Every other act case sets its own preconditions, which is the right trade and leaves exactly one thing uncovered. This one never calls `load_act`: it walks through the shelter door, takes the reel, and comes out in the gallery, and it is the only check that the act runner, the stashes and the two handovers work in the order a player meets them |
 | reach | **is it touchable.** For every interactable in the act it works out where a player would have to stand, checks there is floor there, aims from eye height, and asks the interactor what it sees. It is the only case that can fail with "line of sight blocked by StaticBody3D", and it is the case that found the most: see below. |
 
 A case that leaves the world somewhere runs before one that assumes where it is.
@@ -472,3 +474,27 @@ one process in order, so a case that finishes in the wrong act, or leaves a prop
 in somebody else's level, breaks its *neighbours* rather than itself — which is
 the worst way to find out. `case_tools` borrows the mounted act to put a
 photometer in, and asserts that it took it out again.
+
+---
+
+## Setting state, and pressing things
+
+`DeviceToggle.on` moves the handle and does **not** emit `toggled`. That is
+right — restoring a save should put a hundred handles where they belong without
+a hundred acts reassessing themselves — and it means assigning `on` in a test
+changes what the panel *looks* like and tells the act nothing.
+
+So: assign when you are standing in for progress the player already made, and
+`Zone.engage()` when you are standing in for the player. `case_playthrough`
+failed three checks on exactly this, in a way that read as the shelter's power
+being broken.
+
+The same distinction bit twice more:
+
+- `DeviceSelector.select()` and `Timeclock.load_state()` are restores, not
+  turns, and neither announces itself.
+- `ActRunner.load_act()` on the act already mounted is a no-op, deliberately —
+  walking through a door you are already behind should not rebuild the
+  building. A case that wants a *new game* wants `restart()`, which clears the
+  stashes and rebuilds, in that order. The other order restores the stash on
+  the way out and saves it straight back.

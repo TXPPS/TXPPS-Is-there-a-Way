@@ -27,8 +27,15 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	await _ending_a(tree, main, runner, expect)
 	await _ending_b(tree, main, runner, expect)
 
-	runner.load_act(0)
+	# This case ends the game, twice. A case that changes the world puts it back
+	# -- and putting *this* back means rebuilding the act, because `load_act`
+	# on the act already mounted is deliberately a no-op.
+	runner.restart(0)
 	await tree.physics_frame
+	expect.eq(
+		String((_gate(main).get_node("Logic") as GateLogic).ending()), "",
+		"and leaves a building nobody has finished, for whatever runs next"
+	)
 
 
 func _gate(main: Node) -> Node3D:
@@ -205,10 +212,7 @@ func _ending_b(
 ) -> void:
 	# A fresh act: an ending is the end, and a test that could take one back
 	# would be testing something the player cannot do.
-	runner.load_act(1)
-	await tree.physics_frame
-	runner.restore_stashes({})
-	runner.load_act(0)
+	runner.restart(0)
 	await tree.physics_frame
 
 	var gate := _gate(main)
