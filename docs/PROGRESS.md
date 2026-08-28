@@ -20,7 +20,7 @@ particular has a failure mode (item 88 in the QA list) that I cannot evaluate.
 | | |
 |---|---|
 | **Live** | <https://txpps.github.io/TXPPS-Is-there-a-Way/> |
-| **Stamp to expect** | see "Deploy state" below (or later — every push deploys) |
+| **Stamp to expect** | `v0.1.0 a48ab44` (or later — every push deploys) |
 | **First thing to do** | `docs/NEEDS_DEVICE_QA.md`, all 95 items, in order. Section "Controls" first: if that fails, stop, because everything else stands on it. |
 | **Blocked on a human** | Everything unverifiable. Nothing is blocked on a decision. |
 | **Frozen** | The input layer. No change to touch semantics, layout or the router without a failing test to justify it. |
@@ -80,10 +80,16 @@ things that do not exist yet:
 Everything else Act 3 needs is content: the annex spaces, the chambers, the
 tank room, the recorder bay, and D-13 through D-19.
 
-**Do not start it until the device QA in `NEEDS_DEVICE_QA.md` has come back.**
-Two acts are built and neither has been played by a person. A third would only
-add to what is unverified, and Act 2's central puzzle has a failure mode
-(QA item 88) that decides whether the whole design works.
+**Build the three systems; hold the content.** Two acts exist and neither has
+been played by a person, so pouring a third act's rooms on top only grows the
+pile of unverified work. The three things above are different: each is a system
+with its own tests, each is needed by every remaining act, and none of them
+depends on a decision the QA round might overturn. The entity in particular is
+the largest missing piece in the whole game and the one most worth having proven
+before an act is designed around it.
+
+So: the fluorescent palette, the entity's rule, and a carried tool get built and
+tested. Act 3's rooms wait for a human to have played Act 2.
 
 **Engine:** Godot 4.6.3-stable, Compatibility (WebGL2), single-threaded web export.
 **Target:** iPhone 16 Pro Max, Safari, **landscape**.
@@ -97,6 +103,7 @@ add to what is unverified, and Act 2's central puzzle has a failure mode
 | | Status |
 |---|---|
 | Build | **green.** Export, budgets (download, texture size, shipped audio), the loop-mode check, a **352-check headless suite**, 55-check gameplay smoke, 28-check update-path smoke. |
+| Last verified | `v0.1.0 a48ab44`, serving from GitHub Pages with every payload file answering 200 and the wasm as `application/wasm`. |
 | Publish | **automatic.** Every push to `main` deploys, and so does a manual **Run workflow** on `main` — both proven, runs #15 and #16. |
 | Verified | the `verify` job fetches the live URL after every deploy and fails the build unless it serves *this* commit with every payload file answering 200 and the wasm as `application/wasm`. |
 | Cloudflare Pages | still no credentials; that job skips. Optional — it buys `web/_headers` and nothing else. See `DEPLOY.md`. |
