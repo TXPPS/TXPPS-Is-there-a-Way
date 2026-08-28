@@ -240,6 +240,134 @@ def step(seed: int, kind: str) -> list[float]:
 # --- manifest ---------------------------------------------------------------
 # name -> (builder, loops)
 
+
+# --- Act 2: the standby set -------------------------------------------------
+#
+# A 30 kW four-pole set makes 60 Hz at 1800 rpm, and that one fact fixes every
+# frequency in these three sounds. The crankshaft turns at 30 Hz. A four-stroke
+# four-cylinder fires twice per revolution, so the firing frequency is 60 Hz and
+# the half-order at 30 Hz is the component that makes a diesel sound like a
+# diesel rather than a generator hum. Nothing here is chosen by ear.
+
+DIESEL_CRANK_HZ = 30.0     # 1800 rpm
+DIESEL_FIRE_HZ = 60.0      # four cylinders, four-stroke: two firings a turn
+CRANK_RPM = 150.0          # what a starter motor turns a cold diesel at
+
+
+def mach_diesel() -> list[float]:
+    """The set, running under load.
+
+    Exhaust at the firing frequency, the half-order that says four-stroke, and
+    mechanical clatter from the injectors and valve gear -- an impulse train at
+    firing rate through a resonator, which is what a rocker box is.
+    """
+    out = silence(LOOP_FRAMES)
+    mix(out, sine(LOOP_FRAMES, RATE, snap(DIESEL_CRANK_HZ)), 0.62)
+    mix(out, sine(LOOP_FRAMES, RATE, snap(DIESEL_FIRE_HZ)), 1.0)
+    mix(out, sine(LOOP_FRAMES, RATE, snap(DIESEL_FIRE_HZ * 2)), 0.42)
+    mix(out, sine(LOOP_FRAMES, RATE, snap(DIESEL_FIRE_HZ * 3)), 0.2)
+    mix(out, sine(LOOP_FRAMES, RATE, snap(DIESEL_FIRE_HZ * 5)), 0.08)
+
+    clatter = impulse_train(LOOP_FRAMES + 4410, RATE, DIESEL_FIRE_HZ, 0.05, Rng(311))
+    clatter = resonator(clatter, RATE, 1850.0, 9.0)
+    mix(out, fade_loop(clatter, RATE, 0.18), 0.34)
+
+    # The alternator's own whine: 60 Hz line, and the slot harmonics above it.
+    mix(out, sine(LOOP_FRAMES, RATE, snap(120.0)), 0.16)
+    mix(out, sine(LOOP_FRAMES, RATE, snap(720.0)), 0.05)
+
+    breath = one_pole_low(noise(LOOP_FRAMES + 4410, Rng(313)), RATE, 420.0)
+    mix(out, fade_loop(breath, RATE, 0.25), 0.3)
+    return normalise(out, 0.72)
+
+
+def _cranking(frames: int, rng: Rng) -> list[float]:
+    """A starter motor turning a cold engine: gear whine, and compression.
+
+    The whine is the reduction gear; the thumps are cylinders coming up on
+    compression and being pushed over, at 150 rpm, which is why a diesel that
+    will not start sounds slow and unwilling rather than fast and frantic.
+    """
+    out = silence(frames)
+    whine = resonator(noise(frames, rng), RATE, 1420.0, 26.0)
+    mix(out, whine, 0.5)
+    mix(out, sine(frames, RATE, 236.0), 0.12)
+
+    compressions = impulse_train(frames, RATE, CRANK_RPM / 60.0 * 2.0, 0.11, rng)
+    mix(out, one_pole_low(compressions, RATE, 190.0), 1.0)
+    grind = one_pole_low(noise(frames, rng), RATE, 300.0)
+    mix(out, grind, 0.28)
+    return out
+
+
+def mach_crank() -> list[float]:
+    """It cranks and it does not catch, because the day tank is isolated.
+
+    The whole of puzzle P2.1 is audible here: the engine turns over perfectly
+    well and never fires, which is what no fuel sounds like. A refusal would
+    have been easier and would have told the player nothing.
+    """
+    frames = int(RATE * 2.4)
+    out = _cranking(frames, Rng(317))
+    for i in range(frames):
+        # In fast, and let go at the end rather than stopping dead.
+        rise = min(1.0, i / (RATE * 0.12))
+        fall = min(1.0, (frames - i) / (RATE * 0.5))
+        out[i] *= rise * fall
+    return normalise(out, 0.66)
+
+
+def mach_catch() -> list[float]:
+    """It cranks, it fires, and it comes up to speed.
+
+    The run-up is the firing frequency sweeping from the cranking rate to 60 Hz
+    over three quarters of a second, which is about what a small set takes. The
+    starter is let go the moment it fires, so the whine stops before the engine
+    settles -- that gap is the sound of it having started.
+    """
+    crank_frames = int(RATE * 1.5)
+    total = int(RATE * 3.2)
+    out = silence(total)
+    starter = _cranking(crank_frames, Rng(331))
+    for i in range(crank_frames):
+        starter[i] *= min(1.0, i / (RATE * 0.1)) * min(1.0, (crank_frames - i) / (RATE * 0.12))
+    mix(out, starter, 0.9)
+
+    # From the cranking firing rate up to 1800 rpm, integrating the frequency so
+    # the phase stays continuous -- a sweep written as sin(2*pi*f(t)*t) slides
+    # its own phase around and warbles.
+    phase = 0.0
+    fire_low = CRANK_RPM / 60.0 * 2.0
+    run_up = RATE * 0.75
+    for i in range(total - crank_frames):
+        through = min(1.0, i / run_up)
+        freq = fire_low + (DIESEL_FIRE_HZ - fire_low) * (through ** 0.55)
+        phase += 2.0 * math.pi * freq / RATE
+        settle = min(1.0, i / (RATE * 0.08))
+        tail = min(1.0, (total - crank_frames - i) / (RATE * 0.25))
+        body = math.sin(phase) + 0.5 * math.sin(phase * 2.0) + 0.55 * math.sin(phase * 0.5)
+        out[crank_frames + i] += body * 0.5 * settle * tail
+    return normalise(out, 0.78)
+
+
+def click_intercom() -> list[float]:
+    """The intercom relay picking up: a contact, and the channel opening.
+
+    Two sounds in one: the relay, which is mechanical and over immediately, and
+    the carrier hiss behind it, which is the thing that tells the player the
+    line is live and somebody could speak on it.
+    """
+    frames = int(RATE * 0.9)
+    out = silence(frames)
+    contact = modal(int(RATE * 0.05), RATE, [(2900.0, 0.012, 1.0), (4100.0, 0.008, 0.4)])
+    mix(out, contact, 0.9)
+    hiss = one_pole_high(one_pole_low(noise(frames, Rng(337)), RATE, 3200.0), RATE, 480.0)
+    for i in range(frames):
+        hiss[i] *= min(1.0, i / (RATE * 0.02)) * min(1.0, (frames - i) / (RATE * 0.3))
+    mix(out, hiss, 0.34)
+    return normalise(out, 0.5)
+
+
 SOUNDS: dict = {
     "score_bed": (score_bed, True),
     "score_room": (score_room, True),
@@ -249,6 +377,10 @@ SOUNDS: dict = {
     "amb_water": (amb_water, True),
     "mach_ballast": (mach_ballast, True),
     "mach_gallery": (mach_gallery, True),
+    "mach_diesel": (mach_diesel, True),
+    "mach_crank": (mach_crank, False),
+    "mach_catch": (mach_catch, False),
+    "click_intercom": (click_intercom, False),
     "metal_door": (metal_door, False),
     "metal_wrench": (metal_wrench, False),
     "click_breaker": (click_breaker, False),

@@ -40,6 +40,7 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	await _the_obvious_answer_fails(tree, logic, plant, breakers, trips, expect)
 	await _shedding_enough(tree, logic, plant, breakers, expect)
 	await _the_way_on(tree, shelter, logic, expect)
+	_the_set_is_heard(shelter, expect)
 
 	expect.ok(
 		seen == ["generator", "bus", "sump", "annex"],
@@ -180,6 +181,28 @@ func _the_way_on(
 	expect.ok(not shelter.get_node("StairWater").visible, "and the water is gone from it")
 	expect.ok(shelter.get_node("AnnexDoor").open, "the annex door is found already open")
 	expect.ok((shelter.get_node("Seam") as LightSeam).was_shown(), "and the seam happens, once")
+
+
+## The set has a voice, and the voice is running because the set is.
+##
+## Checked on the playback head rather than a bus meter: an AudioStreamPlayer
+## with no stream is silent, an AudioStreamPlayer that finished is silent, and
+## a bus peak of zero in a headless run means nothing at all. `playing` is the
+## only one of the three that is a fact about this act.
+func _the_set_is_heard(shelter: Node3D, expect: RefCounted) -> void:
+	var diesel: AudioStreamPlayer3D = shelter.get_node("Plant/Diesel")
+	expect.ok(diesel.stream != null, "the set has a sound")
+	expect.ok(diesel.playing, "and it is running, because the set is")
+	expect.ok(
+		(diesel.stream as AudioStreamWAV).loop_mode == AudioStreamWAV.LOOP_FORWARD,
+		"and it loops, rather than playing once and leaving the room silent"
+	)
+	var crank: AudioStreamPlayer3D = shelter.get_node("Plant/Crank")
+	var caught: AudioStreamPlayer3D = shelter.get_node("Plant/Catch")
+	expect.ok(
+		crank.stream != null and caught.stream != null and crank.stream != caught.stream,
+		"and cranking without fuel is a different sound from catching"
+	)
 
 
 ## The act's own state, not its devices'. Same sweep as Act 1: every saveable

@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3]
+[gd_scene load_steps=43 format=3]
 
 [ext_resource type="Script" path="res://src/world/kit/room_box.gd" id="1_room"]
 [ext_resource type="Script" path="res://src/world/kit/opening.gd" id="2_open"]
@@ -23,6 +23,10 @@
 [ext_resource type="Resource" path="res://assets/documents/act_end_card.tres" id="20_card"]
 [ext_resource type="Script" path="res://src/world/act2/light_seam.gd" id="21_seam"]
 [ext_resource type="AudioStream" path="res://assets/audio/amb_powerhouse.wav" id="22_tone"]
+[ext_resource type="AudioStream" path="res://assets/audio/mach_diesel.wav" id="23_diesel"]
+[ext_resource type="AudioStream" path="res://assets/audio/mach_crank.wav" id="24_crank"]
+[ext_resource type="AudioStream" path="res://assets/audio/mach_catch.wav" id="25_catch"]
+[ext_resource type="Script" path="res://src/audio/occluder.gd" id="26_occl"]
 [ext_resource type="Resource" path="res://assets/documents/d07_stocking_manifest.tres" id="doc_d07"]
 [ext_resource type="Resource" path="res://assets/documents/d08_ration_card.tres" id="doc_d08"]
 [ext_resource type="Resource" path="res://assets/documents/d09_generator_card.tres" id="doc_d09"]
@@ -285,6 +289,39 @@ label = "SET MAIN"
 on = false
 prompt_when_on = "Open the set main"
 prompt_when_off = "Close the set main"
+
+[node name="Diesel" type="AudioStreamPlayer3D" parent="Plant"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.2, 1.2, -5.9)
+stream = ExtResource("23_diesel")
+volume_db = -6
+bus = &"SFX"
+unit_size = 7.0
+max_db = 0.0
+
+[node name="Occluder" type="Node" parent="Plant/Diesel"]
+script = ExtResource("26_occl")
+
+[node name="Crank" type="AudioStreamPlayer3D" parent="Plant"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.2, 1.2, -5.9)
+stream = ExtResource("24_crank")
+volume_db = -9
+bus = &"SFX"
+unit_size = 7.0
+max_db = 0.0
+
+[node name="Occluder" type="Node" parent="Plant/Crank"]
+script = ExtResource("26_occl")
+
+[node name="Catch" type="AudioStreamPlayer3D" parent="Plant"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.2, 1.2, -5.9)
+stream = ExtResource("25_catch")
+volume_db = -8
+bus = &"SFX"
+unit_size = 7.0
+max_db = 0.0
+
+[node name="Occluder" type="Node" parent="Plant/Catch"]
+script = ExtResource("26_occl")
 
 [node name="TransferSwitch" parent="Plant" instance=ExtResource("17_selector")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.4, 1.4, -7.34)

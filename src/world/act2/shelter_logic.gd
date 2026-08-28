@@ -48,6 +48,9 @@ const PUMP_SECONDS := 6.0
 @onready var _annex_door: DeviceDoor = $"../AnnexDoor"
 @onready var _stair_water: Node3D = $"../StairWater"
 @onready var _seam: LightSeam = $"../Seam"
+@onready var _crank: AudioStreamPlayer3D = $"../Plant/Crank"
+@onready var _catch: AudioStreamPlayer3D = $"../Plant/Catch"
+@onready var _diesel: AudioStreamPlayer3D = $"../Plant/Diesel"
 
 var _running := false
 var _live := false
@@ -105,6 +108,13 @@ func save_state() -> Dictionary:
 
 func load_state(state: Dictionary) -> void:
 	_running = bool(state.get("running", false))
+	# A save made with the set running comes back with it running, so the loop
+	# has to be started here as well as when it fires. Nothing else restarts it.
+	if _diesel != null:
+		if _running and not _diesel.playing:
+			_diesel.play()
+		elif not _running:
+			_diesel.stop()
 	_live = bool(state.get("live", false))
 	_sump_has_run = bool(state.get("sump", false))
 	_reached.clear()
@@ -142,6 +152,13 @@ func _on_starter_pushed() -> void:
 	if _running or _cranking >= 0.0:
 		return
 	_cranking = CRANK_SECONDS
+	# Which sound plays is decided now, at the press, because the fuel cannot
+	# change while the starter is turning -- and a sound that started as a
+	# failure and ended as a start would need crossfading to hide the join.
+	if _valve.open:
+		_catch.play()
+	else:
+		_crank.play()
 
 
 ## It cranks either way. What the fuel decides is whether it catches -- which is
@@ -150,6 +167,7 @@ func _on_crank_finished() -> void:
 	if not _valve.open:
 		return
 	_running = true
+	_diesel.play()
 	_mark("generator")
 	set_running.emit()
 	_apply()

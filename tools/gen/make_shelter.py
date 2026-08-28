@@ -224,6 +224,10 @@ EXT = [
     ("Resource", "res://assets/documents/act_end_card.tres", "20_card"),
     ("Script", "res://src/world/act2/light_seam.gd", "21_seam"),
     ("AudioStream", "res://assets/audio/amb_powerhouse.wav", "22_tone"),
+    ("AudioStream", "res://assets/audio/mach_diesel.wav", "23_diesel"),
+    ("AudioStream", "res://assets/audio/mach_crank.wav", "24_crank"),
+    ("AudioStream", "res://assets/audio/mach_catch.wav", "25_catch"),
+    ("Script", "res://src/audio/occluder.gd", "26_occl"),
 ]
 EXT += [("Resource", "res://assets/documents/%s.tres" % f, "doc_%s" % k) for k, f in sorted(DOCS.items())]
 
@@ -341,6 +345,28 @@ def _plant():
     out.append('prompt_when_on = "Open the set main"')
     out.append('prompt_when_off = "Close the set main"')
     out.append("")
+
+    # The set's own voice, at the set. Three players rather than one because a
+    # loop and two one-shots want different settings, and because the running
+    # loop has to be able to start while a one-shot is still finishing.
+    for node, stream, loud, autoplay in [
+        ("Diesel", "23_diesel", -6.0, False),
+        ("Crank", "24_crank", -9.0, False),
+        ("Catch", "25_catch", -8.0, False),
+    ]:
+        out.append('[node name="%s" type="AudioStreamPlayer3D" parent="Plant"]' % node)
+        out.append("transform = %s" % upright((-6.2, 1.2, -5.9)))
+        out.append('stream = ExtResource("%s")' % stream)
+        out.append("volume_db = %s" % fmt(loud))
+        out.append('bus = &"SFX"')
+        out.append("unit_size = 7.0")
+        out.append("max_db = 0.0")
+        if autoplay:
+            out.append("autoplay = true")
+        out.append("")
+        out.append('[node name="Occluder" type="Node" parent="Plant/%s"]' % node)
+        out.append('script = ExtResource("26_occl")')
+        out.append("")
 
     out.append('[node name="TransferSwitch" parent="Plant" instance=ExtResource("17_selector")]')
     out.append("transform = %s" % t3(facing(SOUTH), (-4.4, 1.4, -7.34)))
