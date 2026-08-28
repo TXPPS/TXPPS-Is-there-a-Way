@@ -6,10 +6,10 @@
 [ext_resource type="Material" path="res://assets/materials/graybox_paint.tres" id="4_paint"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_case"]
-size = Vector3(0.62, 0.34, 0.14)
+size = Vector3(0.72, 0.42, 0.14)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_reach"]
-size = Vector3(0.8, 0.5, 0.3)
+size = Vector3(0.9, 0.58, 0.3)
 
 ; C-2. A wall-mounted cam timeclock: a case, an hour drum and two cam wheels
 ; behind a window. Faces +Z.
@@ -22,10 +22,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.07)
 mesh = SubResource("BoxMesh_case")
 surface_material_override/0 = ExtResource("4_paint")
 
+; The wheels are the dial lock's, and the dial lock's are sized for a wheel a
+; player leans into. On a wall clock they are enormous, so the bank is scaled
+; to its own instrument rather than the digits being re-authored.
 [node name="Wheels" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.15)
+transform = Transform3D(0.55, 0, 0, 0, 0.55, 0, 0, 0, 0.55, 0, 0.02, 0.15)
 script = ExtResource("2_bank")
-spacing = 0.2
+spacing = 0.34
 units_per_step = 46.0
 
 [node name="Zone" type="Area3D" parent="."]

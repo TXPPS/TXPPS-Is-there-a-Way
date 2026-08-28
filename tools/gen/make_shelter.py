@@ -119,6 +119,26 @@ def north_of_corridor(depth):
     return -(CORRIDOR["interior"][2] / 2 + THICK) - depth / 2
 
 
+# --- the annex ---------------------------------------------------------------
+#
+# Cut into the rock behind the shelter in 1964, for the programme. It is rooms
+# in this scene rather than an act of its own (DECISIONS.md D28): P3.3 sends the
+# player back to the shelter's panel to take a load off, and that only means
+# anything if it is the same panel and a real walk.
+#
+# The corridor runs east-west, across the shelter's north-south spine, so the
+# two read as different buildings the moment you are in one -- which they are.
+
+def north_of(z, depth, thickness=None):
+    """Centre of a room whose south face abuts something ending at `z`."""
+    return z - (thickness or THICK) - depth / 2
+
+
+OBS_Z = north_of(-14.4, 2.5)          # the observation corridor
+CHAMBER_Z = north_of(OBS_Z - 1.25, 3.0)
+TANK = (-11.9, -16.05)
+LIBRARY_Z = north_of(TANK[1] - 2.5, 4.0)
+
 ROOMS = [
     # name,        interior,             at,                                    omit,     roofed
     ("Corridor",   (2.5, 2.6, 20.0),     (0.0, 0.0, 0.0),                       [],        True),
@@ -128,6 +148,27 @@ ROOMS = [
     ("BunkRoom",   (6.0, 2.6, 5.0),      (east_of_corridor(6.0), 0.0, 5.0),     ["WEST"],  True),
     ("StoreRoom",  (3.0, 2.6, 4.0),      (east_of_corridor(3.0), 0.0, -3.0),    ["WEST"],  True),
     ("StairHead",  (3.0, 2.6, 4.0),      (0.0, 0.0, north_of_corridor(4.0)),    ["SOUTH"], True),
+
+    # The annex.
+    ("ObsCorridor", (18.0, 2.6, 2.5),    (0.0, 0.0, OBS_Z),                     [],        True),
+    ("ChamberA",   (3.0, 2.6, 3.0),      (-5.0, 0.0, CHAMBER_Z),                ["SOUTH"], True),
+    ("ChamberB",   (3.0, 2.6, 3.0),      (0.0, 0.0, CHAMBER_Z),                 ["SOUTH"], True),
+    ("ChamberC",   (3.0, 2.6, 3.0),      (5.0, 0.0, CHAMBER_Z),                 ["SOUTH"], True),
+    ("TankRoom",   (5.0, 2.8, 5.0),      (TANK[0], 0.0, TANK[1]),               ["EAST"],  True),
+    ("RecorderBay", (5.0, 2.6, 5.0),     (11.9, 0.0, OBS_Z),                    ["WEST"],  True),
+    ("TapeLibrary", (4.0, 2.6, 4.0),     (TANK[0], 0.0, LIBRARY_Z),             ["SOUTH"], True),
+]
+
+# Doorways in the annex corridor's own walls, and the one in the tank room that
+# leads on to the library.
+ANNEX_DOORS = [
+    ("ObsCorridor", "SOUTH", 0.0, 1.2, 2.1),   # back to the shelter stair head
+    ("ObsCorridor", "NORTH", -5.0, 1.0, 2.1),  # chamber A
+    ("ObsCorridor", "NORTH", 0.0, 1.0, 2.1),   # chamber B
+    ("ObsCorridor", "NORTH", 5.0, 1.0, 2.1),   # chamber C
+    ("ObsCorridor", "WEST", 0.0, 1.2, 2.1),    # tank room
+    ("ObsCorridor", "EAST", 0.0, 1.2, 2.1),    # recorder bay
+    ("TankRoom", "NORTH", 0.0, 1.0, 2.1),      # on to the tape library
 ]
 
 # Doorways, all in the corridor's own walls. offset runs along the wall: on a
@@ -178,6 +219,27 @@ LAMPS = [
     ("StairHead",     (-1.38, 2.2, -12.4),   EAST),
 ]
 
+# The annex runs on fluorescent, which is the palette shift, and the three
+# chamber luminaires are C-1 -- the imposed signal itself, and the lamps the
+# entity travels between. They are on their own circuits because the timeclock
+# drives them one at a time.
+TUBES = [
+    ("ObsWest",   (-6.5, 2.3, -14.93),  SOUTH, "ANNEX"),
+    ("ObsMid",    (0.0, 2.3, -14.93),   SOUTH, "ANNEX"),
+    ("ObsEast",   (6.5, 2.3, -14.93),   SOUTH, "ANNEX"),
+    ("Tank",      (-14.28, 2.4, -16.05), EAST,  "ANNEX"),
+    ("Recorder",  (9.53, 2.2, -16.05),  WEST,  "ANNEX"),
+    ("Library",   (-13.78, 2.2, -20.95), EAST,  "ANNEX"),
+]
+
+# C-1. One per chamber, on the schedule, dimmer-driven. Not fluorescent: these
+# are the programme's own fittings and they are the oldest thing in the annex.
+SCHEDULE_LAMPS = [
+    ("ChamberA", (-5.0, 2.2, -20.58), NORTH, "CHAM_A"),
+    ("ChamberB", (0.0, 2.2, -20.58),  NORTH, "CHAM_B"),
+    ("ChamberC", (5.0, 2.2, -20.58),  NORTH, "CHAM_C"),
+]
+
 # Pages, in the rooms the people who wrote them would have left them.
 READABLES = [
     ("StockingManifest", "d07", (-1.88, 1.55, 11.4), EAST),   # vestibule, west wall
@@ -188,12 +250,36 @@ READABLES = [
     ("PanelSchedule",    "d09b", (1.10, 1.95, -6.5),  WEST),  # in the panel door
     ("Postcard",         "d10", (5.6, 1.02, 3.4),    WEST),   # propped on the bunk shelf
     ("WorkUnitCover",    "d12", (-7.53, 1.45, 5.5),  EAST),   # mess, on the board over the table
+    # The annex.
+    ("Protocol4",        "d13", (-2.2, 1.5, -17.18),  SOUTH),  # framed at the observer station
+    ("CamNotes",         "d16", (2.2, 1.5, -17.18),   SOUTH),  # beside the clock, in his hand
+    ("AppendixC",        "d14", (14.28, 1.5, -15.2),  WEST),   # recorder bay
+    ("QuarterlyReport",  "d15", (14.28, 1.5, -16.9),  WEST),   # recorder bay, her paperwork
+    ("ChartTrace",       "d17", (11.9, 1.34, -14.52), NORTH),  # on the drum, where it stopped
+    ("PhotometerLog",    "d18", (-1.38, 1.45, -19.2), EAST),   # chamber B, with the meter
+    ("ReelIndex",        "d19", (-9.78, 1.5, -20.95), WEST),   # tape library
+    ("AdmissionSheet",   "d20", (-11.9, 1.62, -22.83), SOUTH),  # filed above the shelf
+]
+
+# P3.4. Four hundred reels; the shelf shows the end of Run 9's block. The index
+# gives the block, the admission sheet's amendment gives the day, and the boxing
+# rule gives the name -- RF-0840 is the last of box C, which is "9-C".
+REELS = [
+    ("RF-0836", -1.35),
+    ("RF-0837", -0.81),
+    ("RF-0838", -0.27),
+    ("RF-0839", 0.27),
+    ("RF-0840", 0.81),
+    ("RF-0841", 1.35),
 ]
 
 
 # --- writing the scene ------------------------------------------------------
 
 DOCS = {
+    "d13": "d13_protocol_4", "d14": "d14_appendix_c", "d15": "d15_quarterly_report",
+    "d16": "d16_cam_notes", "d17": "d17_chart_trace", "d18": "d18_photometer_log",
+    "d19": "d19_reel_index", "d20": "d20_admission_sheet",
     "d07": "d07_stocking_manifest", "d08": "d08_ration_card",
     "d09": "d09_generator_card", "d09a": "operating_card",
     "d09b": "shelter_panel_schedule", "d10": "d10_postcard",
@@ -221,7 +307,7 @@ EXT = [
     ("PackedScene", "res://src/world/devices/device_selector.tscn", "17_selector"),
     ("Script", "res://src/world/act2/shelter_logic.gd", "18_logic"),
     ("Script", "res://src/world/act1/act_end.gd", "19_end"),
-    ("Resource", "res://assets/documents/act_end_card.tres", "20_card"),
+    ("Resource", "res://assets/documents/built_end_card.tres", "20_card"),
     ("Script", "res://src/world/act2/light_seam.gd", "21_seam"),
     ("AudioStream", "res://assets/audio/amb_powerhouse.wav", "22_tone"),
     ("AudioStream", "res://assets/audio/mach_diesel.wav", "23_diesel"),
@@ -229,6 +315,13 @@ EXT = [
     ("AudioStream", "res://assets/audio/mach_catch.wav", "25_catch"),
     ("Script", "res://src/audio/occluder.gd", "26_occl"),
     ("PackedScene", "res://src/world/devices/device_intercom.tscn", "27_intercom"),
+    ("PackedScene", "res://src/world/kit/fluorescent.tscn", "28_tube"),
+    ("PackedScene", "res://src/world/puzzles/timeclock.tscn", "29_clock"),
+    ("PackedScene", "res://src/world/devices/device_interlock.tscn", "30_interlock"),
+    ("PackedScene", "res://src/world/tools/photometer.tscn", "31_meter"),
+    ("Script", "res://src/render/grade_zone.gd", "32_grade"),
+    ("Script", "res://src/world/act2/annex_logic.gd", "33_annex"),
+    ("Script", "res://src/world/entity/observer.gd", "34_observer"),
 ]
 EXT += [("Resource", "res://assets/documents/%s.tres" % f, "doc_%s" % k) for k, f in sorted(DOCS.items())]
 
@@ -252,20 +345,37 @@ def box(name, size, at, material, parent=".", solid=True):
     ]
 
 
-def build():
-    lines = []
-    openings = []          # sub-resources for the corridor's doorways
-    for i, (wall, offset, width, height) in enumerate(DOORS, start=1):
-        openings.append([
-            '[sub_resource type="Resource" id="Opening_%d"]' % i,
+WALLS = ["NORTH", "SOUTH", "WEST", "EAST"]
+
+
+def _doorways():
+    """Every opening in the level, as sub-resources, grouped by the room that
+    keeps the wall. A room omits the wall it shares; the room whose doorway it
+    is builds it, which is the rule that stops coplanar surfaces fighting."""
+    by_room = {}
+    blocks = []
+    index = 0
+    everything = [("Corridor",) + door for door in DOORS] + list(ANNEX_DOORS)
+    for room, wall, offset, width, height in everything:
+        index += 1
+        name = "Opening_%d" % index
+        by_room.setdefault(room, []).append(name)
+        blocks.append([
+            '[sub_resource type="Resource" id="%s"]' % name,
             'script = ExtResource("2_open")',
-            "wall = %d" % ["NORTH", "SOUTH", "WEST", "EAST"].index(wall),
+            "wall = %d" % WALLS.index(wall),
             "offset = %s" % fmt(float(offset)),
             "width = %s" % fmt(float(width)),
             "height = %s" % fmt(float(height)),
             "sill = 0.0",
             "",
         ])
+    return by_room, blocks
+
+
+def build():
+    lines = []
+    doors_by_room, openings = _doorways()
 
     body = []
     body += ['[node name="Shelter" type="Node3D" groups=["act"]]', ""]
@@ -277,11 +387,11 @@ def build():
         body.append('script = ExtResource("1_room")')
         body.append("interior = Vector3(%s)" % ", ".join(fmt(float(v)) for v in interior))
         body.append("thickness = %s" % fmt(THICK))
-        if name == "Corridor":
-            ids = ", ".join('SubResource("Opening_%d")' % i for i in range(1, len(DOORS) + 1))
+        if name in doors_by_room:
+            ids = ", ".join('SubResource("%s")' % o for o in doors_by_room[name])
             body.append('openings = Array[ExtResource("2_open")]([%s])' % ids)
         if omit:
-            walls = ", ".join(str(["NORTH", "SOUTH", "WEST", "EAST"].index(w)) for w in omit)
+            walls = ", ".join(str(WALLS.index(w)) for w in omit)
             body.append("omit_walls = Array[int]([%s])" % walls)
         body.append('wall_material = ExtResource("4_concrete")')
         body.append('floor_material = ExtResource("4_concrete")')
@@ -302,6 +412,7 @@ def build():
         body.append("lit = false")
         body.append("")
 
+    body += _annex()
     body += _plant()
     body += _panel()
     body += _dressing()
@@ -309,6 +420,116 @@ def build():
     body += _pages()
     body += _ways_out()
     return lines, openings, body
+
+
+def _annex():
+    """The programme's rooms: fittings, the observer station, and the tank."""
+    out = ['[node name="Annex" type="Node3D" parent="."]', ""]
+
+    for name, at, direction, circuit in TUBES:
+        out.append('[node name="Tube%s" parent="Annex" instance=ExtResource("28_tube")]' % name)
+        out.append("transform = %s" % t3(facing(direction, "+x"), at))
+        out.append('circuit = &"%s"' % circuit)
+        out.append("lit = false")
+        out.append("")
+
+    for name, at, direction, circuit in SCHEDULE_LAMPS:
+        out.append('[node name="Lamp%s" parent="Annex" instance=ExtResource("8_lamp")]' % name)
+        out.append("transform = %s" % t3(facing(direction, "+x"), at))
+        out.append('circuit = &"%s"' % circuit)
+        out.append("lit = false")
+        out.append("energy = 2.6")
+        out.append("")
+
+    # The observer station. The bench is against the *south* wall, opposite the
+    # equipment: on the north wall it stood squarely in chamber B's doorway,
+    # which is where the run everybody cares about happened.
+    out += box("ObsBench", (2.2, 0.06, 0.5), (0.0, 0.86, -15.05), ext_id("paint"), "Annex")
+    for i, bx in enumerate([-1.0, 1.0]):
+        out += box("ObsLeg%d" % (i + 1), (0.06, 0.84, 0.4),
+                   (bx, 0.42, -15.05), ext_id("steel"), "Annex")
+
+    out.append('[node name="Timeclock" parent="Annex" instance=ExtResource("29_clock")]')
+    out.append("transform = %s" % t3(facing(SOUTH), (1.0, 1.45, -17.2)))
+    out.append('save_key = &"timeclock"')
+    out.append("")
+
+    out.append('[node name="Interlock" parent="Annex" instance=ExtResource("30_interlock")]')
+    out.append("transform = %s" % t3(facing(SOUTH), (-1.0, 1.45, -17.2)))
+    out.append('save_key = &"interlock"')
+    out.append("")
+
+    # C-6, in chamber B, which is where the last run was.
+    out.append('[node name="Photometer" parent="Annex" instance=ExtResource("31_meter")]')
+    out.append("transform = %s" % t3(facing(SOUTH), (0.7, 0.95, -19.6)))
+    out.append("")
+    out += box("ChamberBench", (1.2, 0.06, 0.5), (0.7, 0.9, -19.6), ext_id("paint"), "Annex")
+    for i, bx in enumerate([-0.5, 0.5]):
+        out += box("ChamberLeg%d" % (i + 1), (0.05, 0.88, 0.4),
+                   (0.7 + bx, 0.44, -19.6), ext_id("steel"), "Annex")
+
+    # C-5, the immersion tank -- 8 ft by 4 ft on the equipment schedule -- which
+    # by 1998 is a reservoir. Set against the room's west side so there is floor
+    # to walk round it on: at 3.4 m in a 5 m room the first capture put the
+    # camera flat against its side with nowhere to stand.
+    out += box("TankShell", (2.4, 1.3, 1.8), (-12.6, 0.65, -16.05), ext_id("steel"), "Annex")
+    out += box("TankLid", (2.5, 0.08, 1.9), (-12.6, 1.34, -16.05), ext_id("paint"), "Annex")
+    out += box("TankStand", (2.5, 0.12, 1.9), (-12.6, 0.06, -16.05), ext_id("concrete"), "Annex")
+    out.append('[node name="TankDrain" parent="Annex" instance=ExtResource("13_toggle")]')
+    out.append("transform = %s" % t3(facing(EAST), (-11.15, 1.2, -16.05)))
+    out.append('save_key = &"tank_drain"')
+    out.append('label = "TANK DRAIN"')
+    out.append("on = false")
+    out.append('prompt_when_on = "Shut the drain"')
+    out.append('prompt_when_off = "Open the drain"')
+    out.append("")
+
+    # And the water that is over the sill until P3.3 takes a load off the set.
+    out += box("TankWater", (4.9, 0.5, 4.9), (-11.9, 0.25, -16.05),
+               ext_id("silt"), "Annex", solid=False)
+
+    # C-4, the chart recorder, with Run 9 day 31 still on the drum.
+    out += box("RecorderRack", (1.6, 1.1, 0.5), (11.9, 0.55, -14.3), ext_id("paint"), "Annex")
+    out += box("RecorderDrum", (1.3, 0.34, 0.34), (11.9, 1.22, -14.3), ext_id("steel"), "Annex")
+
+    # C-8, the tape library. Four hundred reels; six of them are the end of
+    # Run 9's block, and one of those is the last thing anybody recorded here.
+    out += box("ReelShelf", (3.6, 0.06, 0.4), (-11.9, 1.3, -22.4), ext_id("steel"), "Annex")
+    out += box("ReelShelfLower", (3.6, 0.06, 0.4), (-11.9, 0.9, -22.4), ext_id("steel"), "Annex")
+    out += ['[node name="Reels" type="Node3D" parent="Annex"]', ""]
+    for accession, offset in REELS:
+        out.append('[node name="%s" parent="Annex/Reels" instance=ExtResource("14_push")]'
+                   % accession.replace("-", ""))
+        out.append("transform = %s" % t3(facing(SOUTH), (-11.9 + offset, 1.44, -22.3)))
+        out.append('label = "%s"' % accession)
+        out.append('prompt = "Take reel %s"' % accession)
+        out.append("")
+
+    # Where the sodium stops and the programme begins.
+    out.append('[node name="GradeThreshold" type="Area3D" parent="Annex"]')
+    out.append("transform = %s" % upright((0.0, 1.3, -18.0)))
+    out.append("collision_layer = 0")
+    out.append("collision_mask = 2")
+    out.append('script = ExtResource("32_grade")')
+    out.append('grade = &"annex"')
+    out.append("")
+    out.append('[node name="Shape" type="CollisionShape3D" parent="Annex/GradeThreshold"]')
+    out.append('shape = SubResource("BoxShape3D_annex")')
+    out.append("")
+
+    # The entity, which has a rule and no act until now.
+    out.append('[node name="Observer" type="Node3D" parent="Annex"]')
+    out.append("transform = %s" % upright((0.0, 0.0, -16.05)))
+    out.append('script = ExtResource("34_observer")')
+    out.append("")
+    out.append('[node name="Body" type="MeshInstance3D" parent="Annex/Observer"]')
+    out.append("")
+
+    out.append('[node name="Logic" type="Node" parent="Annex" groups=["saveable"]]')
+    out.append('script = ExtResource("33_annex")')
+    out.append('save_key = &"act3"')
+    out.append("")
+    return out
 
 
 def _plant():
@@ -521,10 +742,15 @@ def _ways_out():
     out.append('save_key = &"seam"')
     out.append("")
 
+    # No trigger volume: Act 3 ends with a reel in your hand, and AnnexLogic is
+    # what knows that. The volume this used to be sat at the annex door, which
+    # is now the middle of the observation corridor -- walking into Act 3 ended
+    # the game, which the first capture of the annex showed immediately.
     out.append('[node name="ActEnd" type="Area3D" parent="." groups=["act_end"]]')
-    out.append("transform = %s" % upright((0.0, 1.0, -15.6)))
+    out.append("transform = %s" % upright((0.0, -40.0, 0.0)))
     out.append("collision_layer = 0")
-    out.append("collision_mask = 2")
+    out.append("collision_mask = 0")
+    out.append("monitoring = false")
     out.append('script = ExtResource("19_end")')
     out.append('card = ExtResource("20_card")')
     out.append("return_to = Vector3(0, 0.1, -11.0)")
@@ -560,6 +786,11 @@ def _head():
     out.append("")
     out.append('[sub_resource type="BoxShape3D" id="BoxShape3D_end"]')
     out.append("size = Vector3(2.6, 2.2, 0.6)")
+    out.append("")
+    # Wide and deep enough to cover the whole annex, so the palette belongs to
+    # the building rather than to a doorway the player might sidestep.
+    out.append('[sub_resource type="BoxShape3D" id="BoxShape3D_annex"]')
+    out.append("size = Vector3(30.0, 3.4, 10.0)")
     out.append("")
     return out
 

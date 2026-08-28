@@ -1,0 +1,50 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"d15_quarterly_report"
+title = "Quarterly report, Q3 FY1974"
+byline = "carbon copy, corrections in her own hand"
+hand = 0
+body = "WORK UNIT 1615-C
+QUARTERLY PROGRESS — Q3 FY1974
+
+SUMMARY
+
+No run was conducted this quarter. Analysis
+of Runs 1 through 7 is complete and the
+finding is unchanged: a single imposed
+luminaire on a 24 hour cycle restores group
+temporal synchrony within four days. Groups
+receiving no signal do not re-synchronise
+within the observation period.
+
+The work unit's stated objective is met. I
+have said so in three consecutive reports.
+
+OBSERVATIONS NOT REQUIRED BY THE OBJECTIVE
+
+In seven runs, subjects have reported the
+observer's position at the luminaire without
+being told it. Six of seven. The seventh was
+Run 4, in which the observer stood elsewhere
+by my instruction.
+
+I record this because it is consistent and
+because I do not have an account of it. It is
+not attention to the lamp: subjects describe
+the observer as an interruption of the lamp,
+and describe the interruption before it
+occurs. Twice with the observer absent.
+
+RECOMMENDATION
+
+That the work unit be concluded at the end of
+FY1975 and the installation removed.
+
+                              M. KETCH
+
+               [in pencil, later, different ink]
+               Not renewed. Not removed either."

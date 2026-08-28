@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"d13_protocol_4"
+title = "Protocol 4 — Observation"
+byline = "rev. 1966, framed at the observer station"
+hand = 0
+body = "WORK UNIT 1615-C
+STANDING PROCEDURE — OBSERVATION
+
+4.1  The chamber shall be dark except for
+     the schedule luminaire.
+
+4.2  The observer stands at the lamp. The
+     subject may look toward the lamp at
+     any time.
+
+4.3  The observer shall not speak except on
+     the schedule. The subject shall not be
+     told the schedule.
+
+4.4  A run is not concluded until the
+     observer leaves the lamp.
+
+NOTES ON 4.2
+
+The observer's position is not incidental.
+A subject deprived of exterior cues will
+attend to the only varying feature of the
+environment, and will attend to it whether
+or not they are told to. Placing the observer
+at that feature means the subject's attention
+and the observer's are on the same object at
+the same time, which is the condition the
+schedule requires.
+
+The subject is not to be told that the
+observer is at the lamp. Subjects have
+reported this without being told, in six
+runs of nine.
+
+                              M. KETCH
+                              rev. 3, 1966"

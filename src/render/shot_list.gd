@@ -72,6 +72,15 @@ const SHOTS: Array = [
 	["20-stair-head", Vector3(0.00, 0.00, -9.00), 0.0, -22.0],
 	["21-page-service-card", Vector3(-5.00, 0.00, -2.20), 19.3, 0.0,
 		"res://assets/documents/d09_generator_card.tres"],
+	# The annex. Same building, and it should not look like it.
+	["22-annex-corridor", Vector3(-7.00, 0.00, -16.05), -90.0, -2.0],
+	["23-observer-station", Vector3(0.00, 0.00, -15.30), 0.0, -4.0],
+	["24-chamber-b", Vector3(0.00, 0.00, -18.30), 0.0, -6.0],
+	["25-tank-room", Vector3(-10.10, 0.00, -14.30), 118.0, -9.0],
+	["26-recorder-bay", Vector3(10.10, 0.00, -16.60), -20.0, -12.0],
+	["27-tape-library", Vector3(-11.90, 0.00, -19.60), -180.0, -6.0],
+	["28-page-protocol", Vector3(0.00, 0.00, -15.30), 0.0, 0.0,
+		"res://assets/documents/d13_protocol_4.tres"],
 ]
 
 var _player: Player

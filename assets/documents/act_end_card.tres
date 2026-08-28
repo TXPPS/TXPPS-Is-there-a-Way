@@ -1,9 +1,9 @@
 [gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
 
-; Not a document. The one piece of text in this game that addresses the player,
-; and it is allowed to because it is not in the world: it is the edge of what is
-; built. Everything the fiction says is said by somebody who was not talking to
-; you.
+; A chapter break, not a document and not the edge of anything. Act One hands
+; on to Act Two: the shelter is behind the door the player just came through,
+; and it is built. Kept deliberately short -- the game does not narrate itself,
+; and a card between two acts that both exist has nothing to explain.
 
 [ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
 
@@ -11,6 +11,8 @@
 script = ExtResource("1_doc")
 id = &"act_end_card"
 title = "End of Act One"
-byline = "This is the edge of what is built, not the end of the story."
+byline = "The powerhouse is behind you."
 hand = 0
-body = "The shelter is Act Two, and it is not made yet.\n\nWhat you have just played is the whole of Act One: the powerhouse, the switchgear room, the lockmaster\'s office, the stair tower and the gallery. Five puzzles, seven documents, and one person who has been keeping the log since 1994.\n\nIf you found everything, you know his initials and you know he was here this month. You do not yet know his name.\n\nPut this down to go back."
+body = "Act Two — The Shelter
+
+Put this down to go on."

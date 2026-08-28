@@ -1,0 +1,54 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"d14_appendix_c"
+title = "Appendix C — equipment schedule"
+byline = "attached to the FY1966 procurement request"
+hand = 0
+body = "WORK UNIT 1615-C — INSTALLED EQUIPMENT
+
+C-1  Schedule luminaire, 150W, dimmer
+     driven. Three off, chambers A/B/C.
+     The imposed signal.
+
+C-2  Program timeclock, cam driven, 24 hr
+     drum, three channels. Drives C-1.
+
+C-3  Observer intercom, two channel,
+     talk and monitor.
+
+C-4  Chart recorder bank, six pen, 12 in
+     paper. Temperature, activity,
+     respiration, per subject.
+
+C-5  Immersion tank, 8 ft x 4 ft,
+     thermostatted. Severe condition.
+
+C-6  Photometer, portable. Certification
+     of C-1 output, quarterly.
+
+C-7  Door interlock cabinet, three
+     channel, key released.
+
+C-8  Tape deck, 1/4 in, 3 3/4 ips, and
+     reel library. Observer channel.
+
+C-9  Ration store, staged and rotated,
+     14 day units.
+
+C-10 Emergency generator, 30 kW diesel,
+     and battery bank.
+
+JUSTIFICATION
+
+Items C-1 and C-2 are the experimental
+condition and are not substitutable. C-6 is
+required because a schedule made of light is
+worthless if the lamp drifts. C-7 is required
+by Protocol 4.4. The remainder are ordinary
+provision for a facility of this occupancy.
+
+                              M. KETCH"

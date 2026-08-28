@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"d17_chart_trace"
+title = "C-4 trace — Run 9, day 31"
+byline = "still on the drum; the paper ran out, the pens did not"
+hand = 0
+body = "RECORDER C-4. SIX PEN. 12 IN.
+RUN 9 / CHAMBER B / DAY 31
+04 JUNE 1977
+
+PEN 1  TEMP        steady, 36.4 - 36.7
+PEN 2  ACTIVITY    steady, low
+PEN 3  RESP        steady, 12 - 14
+PEN 4  LUMINAIRE   on at 0600, off at 0800
+PEN 5  DOOR        closed
+PEN 6  OBSERVER    at station 0555 - 0805
+
+The six lines run the width of the sheet in
+the same shapes they have run for thirty
+days. Nothing on this page is remarkable.
+
+At the right hand edge, where the paper ends,
+pen 4 and pen 6 continue onto the drum itself
+for about two inches, in pencil-thin ink,
+and stop together.
+
+Pens 1, 2 and 3 do not continue onto the
+drum. They stop at the paper's edge.
+
+Somebody has written along the drum, small,
+following the ink:
+
+     PAPER OUT 0806. RE-ORDER.
+     STAYED FOR THE WINDOW."

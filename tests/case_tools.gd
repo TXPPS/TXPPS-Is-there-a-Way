@@ -26,6 +26,9 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	# swap does. No act has a photometer in it yet -- it belongs to Act 3 -- so
 	# this case brings its own.
 	var tool: CarriedTool = PHOTOMETER.instantiate()
+	# Its own key: the annex has a real C-6 in chamber B, and two saveable nodes
+	# sharing a key is a save that quietly keeps one of them.
+	tool.save_key = &"test_photometer"
 	runner.root().add_child(tool)
 	tool.global_position = player.global_position + Vector3(0.0, 1.2, -1.0)
 	main.call("wire_level")
@@ -33,8 +36,8 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 
 	await _picking_it_up(tree, hands, player, tool, expect)
 	await _putting_it_down(tree, hands, player, expect)
-	await _it_comes_with_you(tree, main, hands, runner, expect)
-	await _a_save_remembers_the_hand(tree, main, hands, expect)
+	await _it_comes_with_you(tree, main, hands, runner, expect, tool)
+	await _a_save_remembers_the_hand(tree, main, hands, expect, tool)
 	await _the_meter_reads_the_room(tree, main, expect)
 	await _the_meter_sees_the_seam(tree, main, expect)
 
@@ -43,15 +46,15 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	# interactable in both acts straight after this, and a photometer left in
 	# the shelter is a photometer it counts and tries to reach.
 	hands.drop()
-	for node in tree.get_nodes_in_group(&"carried_tool"):
-		var stray := node as Node
-		stray.get_parent().remove_child(stray)
-		stray.free()
+	var borrowed := tool.save_key
+	tool.get_parent().remove_child(tool)
+	tool.free()
 	await tree.process_frame
-	expect.ok(
-		tree.get_nodes_in_group(&"carried_tool").is_empty(),
-		"the case takes its own prop back out of the level it borrowed"
-	)
+	var left := 0
+	for node in tree.get_nodes_in_group(&"carried_tool"):
+		if (node as CarriedTool).save_key == borrowed:
+			left += 1
+	expect.eq(left, 0, "the case takes its own prop back out of the level it borrowed")
 	runner.load_act(0)
 	await tree.physics_frame
 
@@ -114,10 +117,15 @@ func _putting_it_down(
 
 
 ## The point of a tool: it is worthless in the room it was found in.
+## The point of a tool: it is worthless in the room it was found in.
+##
+## The act it is carried into has a photometer of its own, so this tracks the
+## one it brought rather than asking the group for "a tool" -- which is the bug
+## the annex found in this case the day the annex got its own C-6.
 func _it_comes_with_you(
-	tree: SceneTree, main: Node, hands: Hands, runner: ActRunner, expect: RefCounted
+	tree: SceneTree, main: Node, hands: Hands, runner: ActRunner, expect: RefCounted,
+	tool: CarriedTool
 ) -> void:
-	var tool: CarriedTool = tree.get_first_node_in_group(&"carried_tool")
 	tool.get_node("Zone").engage()
 	await tree.physics_frame
 	expect.ok(not hands.empty(), "pick it up again")
@@ -134,18 +142,16 @@ func _it_comes_with_you(
 	# outliving it invisibly in the middle of the next one.
 	hands.drop()
 	await tree.physics_frame
-	var dropped: CarriedTool = tree.get_first_node_in_group(&"carried_tool")
 	expect.ok(
-		dropped.get_parent() == runner.root(),
-		"and putting it down leaves it in the act you are in (%s)" % dropped.get_parent().name
+		tool.get_parent() == runner.root(),
+		"and putting it down leaves it in the act you are in (%s)" % tool.get_parent().name
 	)
 
 
 func _a_save_remembers_the_hand(
-	tree: SceneTree, main: Node, hands: Hands, expect: RefCounted
+	tree: SceneTree, main: Node, hands: Hands, expect: RefCounted, tool: CarriedTool
 ) -> void:
 	var saves: SaveService = main.get_node("Saves")
-	var tool: CarriedTool = tree.get_first_node_in_group(&"carried_tool")
 	tool.get_node("Zone").engage()
 	await tree.physics_frame
 	expect.ok(not hands.empty(), "hold it")
@@ -158,7 +164,7 @@ func _a_save_remembers_the_hand(
 	expect.ok(saves.load_from(SaveService.MANUAL), "load the slot")
 	await tree.physics_frame
 	expect.ok(
-		hands.holding() != null and String(hands.holding().save_key) == "photometer",
+		hands.holding() != null and hands.holding().save_key == tool.save_key,
 		"and it is back in your hand"
 	)
 

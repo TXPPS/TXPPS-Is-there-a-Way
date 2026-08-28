@@ -1,4 +1,4 @@
-[gd_scene load_steps=44 format=3]
+[gd_scene load_steps=59 format=3]
 
 [ext_resource type="Script" path="res://src/world/kit/room_box.gd" id="1_room"]
 [ext_resource type="Script" path="res://src/world/kit/opening.gd" id="2_open"]
@@ -20,7 +20,7 @@
 [ext_resource type="PackedScene" path="res://src/world/devices/device_selector.tscn" id="17_selector"]
 [ext_resource type="Script" path="res://src/world/act2/shelter_logic.gd" id="18_logic"]
 [ext_resource type="Script" path="res://src/world/act1/act_end.gd" id="19_end"]
-[ext_resource type="Resource" path="res://assets/documents/act_end_card.tres" id="20_card"]
+[ext_resource type="Resource" path="res://assets/documents/built_end_card.tres" id="20_card"]
 [ext_resource type="Script" path="res://src/world/act2/light_seam.gd" id="21_seam"]
 [ext_resource type="AudioStream" path="res://assets/audio/amb_powerhouse.wav" id="22_tone"]
 [ext_resource type="AudioStream" path="res://assets/audio/mach_diesel.wav" id="23_diesel"]
@@ -28,6 +28,13 @@
 [ext_resource type="AudioStream" path="res://assets/audio/mach_catch.wav" id="25_catch"]
 [ext_resource type="Script" path="res://src/audio/occluder.gd" id="26_occl"]
 [ext_resource type="PackedScene" path="res://src/world/devices/device_intercom.tscn" id="27_intercom"]
+[ext_resource type="PackedScene" path="res://src/world/kit/fluorescent.tscn" id="28_tube"]
+[ext_resource type="PackedScene" path="res://src/world/puzzles/timeclock.tscn" id="29_clock"]
+[ext_resource type="PackedScene" path="res://src/world/devices/device_interlock.tscn" id="30_interlock"]
+[ext_resource type="PackedScene" path="res://src/world/tools/photometer.tscn" id="31_meter"]
+[ext_resource type="Script" path="res://src/render/grade_zone.gd" id="32_grade"]
+[ext_resource type="Script" path="res://src/world/act2/annex_logic.gd" id="33_annex"]
+[ext_resource type="Script" path="res://src/world/entity/observer.gd" id="34_observer"]
 [ext_resource type="Resource" path="res://assets/documents/d07_stocking_manifest.tres" id="doc_d07"]
 [ext_resource type="Resource" path="res://assets/documents/d08_ration_card.tres" id="doc_d08"]
 [ext_resource type="Resource" path="res://assets/documents/d09_generator_card.tres" id="doc_d09"]
@@ -36,9 +43,20 @@
 [ext_resource type="Resource" path="res://assets/documents/d10_postcard.tres" id="doc_d10"]
 [ext_resource type="Resource" path="res://assets/documents/d11_occupancy_notice.tres" id="doc_d11"]
 [ext_resource type="Resource" path="res://assets/documents/d12_work_unit_cover.tres" id="doc_d12"]
+[ext_resource type="Resource" path="res://assets/documents/d13_protocol_4.tres" id="doc_d13"]
+[ext_resource type="Resource" path="res://assets/documents/d14_appendix_c.tres" id="doc_d14"]
+[ext_resource type="Resource" path="res://assets/documents/d15_quarterly_report.tres" id="doc_d15"]
+[ext_resource type="Resource" path="res://assets/documents/d16_cam_notes.tres" id="doc_d16"]
+[ext_resource type="Resource" path="res://assets/documents/d17_chart_trace.tres" id="doc_d17"]
+[ext_resource type="Resource" path="res://assets/documents/d18_photometer_log.tres" id="doc_d18"]
+[ext_resource type="Resource" path="res://assets/documents/d19_reel_index.tres" id="doc_d19"]
+[ext_resource type="Resource" path="res://assets/documents/d20_admission_sheet.tres" id="doc_d20"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_end"]
 size = Vector3(2.6, 2.2, 0.6)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_annex"]
+size = Vector3(30.0, 3.4, 10.0)
 
 [sub_resource type="Resource" id="Opening_1"]
 script = ExtResource("2_open")
@@ -85,6 +103,62 @@ script = ExtResource("2_open")
 wall = 0
 offset = 0
 width = 1.2
+height = 2.1
+sill = 0.0
+
+[sub_resource type="Resource" id="Opening_7"]
+script = ExtResource("2_open")
+wall = 1
+offset = 0
+width = 1.2
+height = 2.1
+sill = 0.0
+
+[sub_resource type="Resource" id="Opening_8"]
+script = ExtResource("2_open")
+wall = 0
+offset = -5
+width = 1
+height = 2.1
+sill = 0.0
+
+[sub_resource type="Resource" id="Opening_9"]
+script = ExtResource("2_open")
+wall = 0
+offset = 0
+width = 1
+height = 2.1
+sill = 0.0
+
+[sub_resource type="Resource" id="Opening_10"]
+script = ExtResource("2_open")
+wall = 0
+offset = 5
+width = 1
+height = 2.1
+sill = 0.0
+
+[sub_resource type="Resource" id="Opening_11"]
+script = ExtResource("2_open")
+wall = 2
+offset = 0
+width = 1.2
+height = 2.1
+sill = 0.0
+
+[sub_resource type="Resource" id="Opening_12"]
+script = ExtResource("2_open")
+wall = 3
+offset = 0
+width = 1.2
+height = 2.1
+sill = 0.0
+
+[sub_resource type="Resource" id="Opening_13"]
+script = ExtResource("2_open")
+wall = 0
+offset = 0
+width = 1
 height = 2.1
 sill = 0.0
 
@@ -181,6 +255,98 @@ floor_material = ExtResource("4_concrete")
 script = ExtResource("9_tag")
 surface = ExtResource("10_surface")
 
+[node name="ObsCorridor" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -16.05)
+script = ExtResource("1_room")
+interior = Vector3(18, 2.6, 2.5)
+thickness = 0.4
+openings = Array[ExtResource("2_open")]([SubResource("Opening_7"), SubResource("Opening_8"), SubResource("Opening_9"), SubResource("Opening_10"), SubResource("Opening_11"), SubResource("Opening_12")])
+wall_material = ExtResource("4_concrete")
+floor_material = ExtResource("4_concrete")
+
+[node name="Surface" type="Node" parent="ObsCorridor"]
+script = ExtResource("9_tag")
+surface = ExtResource("10_surface")
+
+[node name="ChamberA" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, -19.2)
+script = ExtResource("1_room")
+interior = Vector3(3, 2.6, 3)
+thickness = 0.4
+omit_walls = Array[int]([1])
+wall_material = ExtResource("4_concrete")
+floor_material = ExtResource("4_concrete")
+
+[node name="Surface" type="Node" parent="ChamberA"]
+script = ExtResource("9_tag")
+surface = ExtResource("10_surface")
+
+[node name="ChamberB" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -19.2)
+script = ExtResource("1_room")
+interior = Vector3(3, 2.6, 3)
+thickness = 0.4
+omit_walls = Array[int]([1])
+wall_material = ExtResource("4_concrete")
+floor_material = ExtResource("4_concrete")
+
+[node name="Surface" type="Node" parent="ChamberB"]
+script = ExtResource("9_tag")
+surface = ExtResource("10_surface")
+
+[node name="ChamberC" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -19.2)
+script = ExtResource("1_room")
+interior = Vector3(3, 2.6, 3)
+thickness = 0.4
+omit_walls = Array[int]([1])
+wall_material = ExtResource("4_concrete")
+floor_material = ExtResource("4_concrete")
+
+[node name="Surface" type="Node" parent="ChamberC"]
+script = ExtResource("9_tag")
+surface = ExtResource("10_surface")
+
+[node name="TankRoom" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.9, 0, -16.05)
+script = ExtResource("1_room")
+interior = Vector3(5, 2.8, 5)
+thickness = 0.4
+openings = Array[ExtResource("2_open")]([SubResource("Opening_13")])
+omit_walls = Array[int]([3])
+wall_material = ExtResource("4_concrete")
+floor_material = ExtResource("4_concrete")
+
+[node name="Surface" type="Node" parent="TankRoom"]
+script = ExtResource("9_tag")
+surface = ExtResource("10_surface")
+
+[node name="RecorderBay" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.9, 0, -16.05)
+script = ExtResource("1_room")
+interior = Vector3(5, 2.6, 5)
+thickness = 0.4
+omit_walls = Array[int]([2])
+wall_material = ExtResource("4_concrete")
+floor_material = ExtResource("4_concrete")
+
+[node name="Surface" type="Node" parent="RecorderBay"]
+script = ExtResource("9_tag")
+surface = ExtResource("10_surface")
+
+[node name="TapeLibrary" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.9, 0, -20.95)
+script = ExtResource("1_room")
+interior = Vector3(4, 2.6, 4)
+thickness = 0.4
+omit_walls = Array[int]([1])
+wall_material = ExtResource("4_concrete")
+floor_material = ExtResource("4_concrete")
+
+[node name="Surface" type="Node" parent="TapeLibrary"]
+script = ExtResource("9_tag")
+surface = ExtResource("10_surface")
+
 [node name="Lamps" type="Node3D" parent="."]
 
 [node name="CorridorSouth" parent="Lamps" instance=ExtResource("8_lamp")]
@@ -227,6 +393,225 @@ lit = false
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.38, 2.2, -12.4)
 circuit = &"SHLT"
 lit = false
+
+[node name="Annex" type="Node3D" parent="."]
+
+[node name="TubeObsWest" parent="Annex" instance=ExtResource("28_tube")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -6.5, 2.3, -14.93)
+circuit = &"ANNEX"
+lit = false
+
+[node name="TubeObsMid" parent="Annex" instance=ExtResource("28_tube")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 0, 2.3, -14.93)
+circuit = &"ANNEX"
+lit = false
+
+[node name="TubeObsEast" parent="Annex" instance=ExtResource("28_tube")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 6.5, 2.3, -14.93)
+circuit = &"ANNEX"
+lit = false
+
+[node name="TubeTank" parent="Annex" instance=ExtResource("28_tube")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.28, 2.4, -16.05)
+circuit = &"ANNEX"
+lit = false
+
+[node name="TubeRecorder" parent="Annex" instance=ExtResource("28_tube")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 9.53, 2.2, -16.05)
+circuit = &"ANNEX"
+lit = false
+
+[node name="TubeLibrary" parent="Annex" instance=ExtResource("28_tube")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.78, 2.2, -20.95)
+circuit = &"ANNEX"
+lit = false
+
+[node name="LampChamberA" parent="Annex" instance=ExtResource("8_lamp")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5, 2.2, -20.58)
+circuit = &"CHAM_A"
+lit = false
+energy = 2.6
+
+[node name="LampChamberB" parent="Annex" instance=ExtResource("8_lamp")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, 2.2, -20.58)
+circuit = &"CHAM_B"
+lit = false
+energy = 2.6
+
+[node name="LampChamberC" parent="Annex" instance=ExtResource("8_lamp")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 5, 2.2, -20.58)
+circuit = &"CHAM_C"
+lit = false
+energy = 2.6
+
+[node name="ObsBench" type="Node3D" parent="Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.86, -15.05)
+script = ExtResource("3_slab")
+size = Vector3(2.2, 0.06, 0.5)
+material = ExtResource("6_paint")
+solid = true
+
+[node name="ObsLeg1" type="Node3D" parent="Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0.42, -15.05)
+script = ExtResource("3_slab")
+size = Vector3(0.06, 0.84, 0.4)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="ObsLeg2" type="Node3D" parent="Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0.42, -15.05)
+script = ExtResource("3_slab")
+size = Vector3(0.06, 0.84, 0.4)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="Timeclock" parent="Annex" instance=ExtResource("29_clock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1.45, -17.2)
+save_key = &"timeclock"
+
+[node name="Interlock" parent="Annex" instance=ExtResource("30_interlock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.45, -17.2)
+save_key = &"interlock"
+
+[node name="Photometer" parent="Annex" instance=ExtResource("31_meter")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 0.95, -19.6)
+
+[node name="ChamberBench" type="Node3D" parent="Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 0.9, -19.6)
+script = ExtResource("3_slab")
+size = Vector3(1.2, 0.06, 0.5)
+material = ExtResource("6_paint")
+solid = true
+
+[node name="ChamberLeg1" type="Node3D" parent="Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0.44, -19.6)
+script = ExtResource("3_slab")
+size = Vector3(0.05, 0.88, 0.4)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="ChamberLeg2" type="Node3D" parent="Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0.44, -19.6)
+script = ExtResource("3_slab")
+size = Vector3(0.05, 0.88, 0.4)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="TankShell" type="Node3D" parent="Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.6, 0.65, -16.05)
+script = ExtResource("3_slab")
+size = Vector3(2.4, 1.3, 1.8)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="TankLid" type="Node3D" parent="Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.6, 1.34, -16.05)
+script = ExtResource("3_slab")
+size = Vector3(2.5, 0.08, 1.9)
+material = ExtResource("6_paint")
+solid = true
+
+[node name="TankStand" type="Node3D" parent="Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.6, 0.06, -16.05)
+script = ExtResource("3_slab")
+size = Vector3(2.5, 0.12, 1.9)
+material = ExtResource("4_concrete")
+solid = true
+
+[node name="TankDrain" parent="Annex" instance=ExtResource("13_toggle")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -11.15, 1.2, -16.05)
+save_key = &"tank_drain"
+label = "TANK DRAIN"
+on = false
+prompt_when_on = "Shut the drain"
+prompt_when_off = "Open the drain"
+
+[node name="TankWater" type="Node3D" parent="Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.9, 0.25, -16.05)
+script = ExtResource("3_slab")
+size = Vector3(4.9, 0.5, 4.9)
+material = ExtResource("7_silt")
+solid = false
+
+[node name="RecorderRack" type="Node3D" parent="Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.9, 0.55, -14.3)
+script = ExtResource("3_slab")
+size = Vector3(1.6, 1.1, 0.5)
+material = ExtResource("6_paint")
+solid = true
+
+[node name="RecorderDrum" type="Node3D" parent="Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.9, 1.22, -14.3)
+script = ExtResource("3_slab")
+size = Vector3(1.3, 0.34, 0.34)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="ReelShelf" type="Node3D" parent="Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.9, 1.3, -22.4)
+script = ExtResource("3_slab")
+size = Vector3(3.6, 0.06, 0.4)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="ReelShelfLower" type="Node3D" parent="Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.9, 0.9, -22.4)
+script = ExtResource("3_slab")
+size = Vector3(3.6, 0.06, 0.4)
+material = ExtResource("5_steel")
+solid = true
+
+[node name="Reels" type="Node3D" parent="Annex"]
+
+[node name="RF0836" parent="Annex/Reels" instance=ExtResource("14_push")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.25, 1.44, -22.3)
+label = "RF-0836"
+prompt = "Take reel RF-0836"
+
+[node name="RF0837" parent="Annex/Reels" instance=ExtResource("14_push")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.71, 1.44, -22.3)
+label = "RF-0837"
+prompt = "Take reel RF-0837"
+
+[node name="RF0838" parent="Annex/Reels" instance=ExtResource("14_push")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.17, 1.44, -22.3)
+label = "RF-0838"
+prompt = "Take reel RF-0838"
+
+[node name="RF0839" parent="Annex/Reels" instance=ExtResource("14_push")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.63, 1.44, -22.3)
+label = "RF-0839"
+prompt = "Take reel RF-0839"
+
+[node name="RF0840" parent="Annex/Reels" instance=ExtResource("14_push")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.09, 1.44, -22.3)
+label = "RF-0840"
+prompt = "Take reel RF-0840"
+
+[node name="RF0841" parent="Annex/Reels" instance=ExtResource("14_push")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.55, 1.44, -22.3)
+label = "RF-0841"
+prompt = "Take reel RF-0841"
+
+[node name="GradeThreshold" type="Area3D" parent="Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, -18)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("32_grade")
+grade = &"annex"
+
+[node name="Shape" type="CollisionShape3D" parent="Annex/GradeThreshold"]
+shape = SubResource("BoxShape3D_annex")
+
+[node name="Observer" type="Node3D" parent="Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -16.05)
+script = ExtResource("34_observer")
+
+[node name="Body" type="MeshInstance3D" parent="Annex/Observer"]
+
+[node name="Logic" type="Node" parent="Annex" groups=["saveable"]]
+script = ExtResource("33_annex")
+save_key = &"act3"
 
 [node name="Plant" type="Node3D" parent="."]
 
@@ -745,6 +1130,38 @@ document = ExtResource("doc_d10")
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -7.53, 1.45, 5.5)
 document = ExtResource("doc_d12")
 
+[node name="Protocol4" parent="Readables" instance=ExtResource("12_page")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.2, 1.5, -17.18)
+document = ExtResource("doc_d13")
+
+[node name="CamNotes" parent="Readables" instance=ExtResource("12_page")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.2, 1.5, -17.18)
+document = ExtResource("doc_d16")
+
+[node name="AppendixC" parent="Readables" instance=ExtResource("12_page")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 14.28, 1.5, -15.2)
+document = ExtResource("doc_d14")
+
+[node name="QuarterlyReport" parent="Readables" instance=ExtResource("12_page")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 14.28, 1.5, -16.9)
+document = ExtResource("doc_d15")
+
+[node name="ChartTrace" parent="Readables" instance=ExtResource("12_page")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 11.9, 1.34, -14.52)
+document = ExtResource("doc_d17")
+
+[node name="PhotometerLog" parent="Readables" instance=ExtResource("12_page")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.38, 1.45, -19.2)
+document = ExtResource("doc_d18")
+
+[node name="ReelIndex" parent="Readables" instance=ExtResource("12_page")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -9.78, 1.5, -20.95)
+document = ExtResource("doc_d19")
+
+[node name="AdmissionSheet" parent="Readables" instance=ExtResource("12_page")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.9, 1.62, -22.83)
+document = ExtResource("doc_d20")
+
 [node name="ShelterDoor" parent="." instance=ExtResource("15_door")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 13.6)
 save_key = &"shelter_door"
@@ -775,9 +1192,10 @@ script = ExtResource("21_seam")
 save_key = &"seam"
 
 [node name="ActEnd" type="Area3D" parent="." groups=["act_end"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -15.6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -40, 0)
 collision_layer = 0
-collision_mask = 2
+collision_mask = 0
+monitoring = false
 script = ExtResource("19_end")
 card = ExtResource("20_card")
 return_to = Vector3(0, 0.1, -11.0)

@@ -47,7 +47,19 @@ func _ready() -> void:
 
 
 func _on_entered(body: Node3D) -> void:
-	if _fading or not body.is_in_group(&"listener"):
+	if not body.is_in_group(&"listener"):
+		return
+	trigger()
+
+
+## Ends the act without anybody having walked through anything.
+##
+## Act 3 does not end at a doorway: it ends with a reel in your hand, and the
+## thing that knows that is `AnnexLogic`. A trigger volume for it would have to
+## be somewhere the player happens to stand afterwards, which is not the same
+## event at all.
+func trigger() -> void:
+	if _fading:
 		return
 	_fading = true
 	set_process(true)

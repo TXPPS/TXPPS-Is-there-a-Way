@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"d16_cam_notes"
+title = "C-2 cams — cutting notes"
+byline = "pencil on the back of a parts envelope, 1966"
+hand = 1
+body = "CLOCK C-2. 24 HR DRUM. 3 CHANNELS.
+
+CAM BLANK IS 12 TOOTH. DRUM IS 24 HR.
+SO ONE TOOTH = TWO HOURS. NOT ONE.
+CUT IT FOR ONE AND YOU GET HALF A DAY.
+
+TOOTH N COVERS HOUR 2N AND 2N+1.
+
+    TOOTH 0  -> 00 AND 01
+    TOOTH 3  -> 06 AND 07
+    TOOTH 7  -> 14 AND 15
+    TOOTH 11 -> 22 AND 23
+
+WORKED: DR K WANTS CH B LIT 0600.
+        0600 / 2 = 3. CUT TOOTH 3.
+        CHECKED ON THE BENCH. GOOD.
+
+DRUM READS THE HOUR IT THINKS IT IS.
+IT IS NOT A CLOCK. IT DOES NOT KNOW.
+IF THE DRUM SAYS 0600 THE LAMP DOES
+0600 WHATEVER THE TIME IS OUTSIDE.
+
+CH A CAM IS SEIZED. LEFT IT. DR K SAYS
+A IS NOT IN USE THIS RUN.
+
+                              E.O."

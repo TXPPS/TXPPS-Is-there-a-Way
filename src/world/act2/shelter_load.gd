@@ -20,6 +20,24 @@ const CAPACITY_KW := 30.0
 ## number that makes an allocation which boots still able to fail.
 const PEAK_KW := 45.0
 
+## The same sump, starting against head.
+##
+## Draining the tank room means lifting water from below the sump's own suction,
+## so the motor comes up to speed under load instead of into an open pipe and
+## the set has less of its transient left to give. `PUZZLES.md` P3.3 asks for a
+## number that cannot be met by the allocation that got the player this far, and
+## this is it: 39.5 kW admits shedding the annex bank, or the chamber
+## luminaires *and* the well, and refuses the chamber luminaires alone.
+##
+## Which is the thesis. To go forward you must put out a lamp, and every player
+## chooses a different one.
+const TANK_PEAK_KW := 39.5
+
+
+## Whether the set will ride the sump starting against the tank's head.
+static func survives_tank_start(breakers: Array, starting: DeviceToggle) -> bool:
+	return inrush(breakers, starting) <= TANK_PEAK_KW
+
 
 ## Everything drawing right now.
 static func running(breakers: Array) -> float:

@@ -283,6 +283,30 @@ func _on_pump_finished() -> void:
 	_apply()
 
 
+## A second call on the sump, made from the annex when the tank room's drain
+## valve is opened. It is the same sump and the same panel -- which is the whole
+## point of P3.3 -- but against the tank's head, so it needs more of the set's
+## transient than the stair did.
+##
+## Returns true if it ran. If it did not, the set main opens exactly as it does
+## for any other overload: the player already knows what that means and what to
+## do about it, which is why the failure is this one and not a new one.
+func call_sump_for_tank() -> bool:
+	if not _live:
+		return false
+	if not _sump.on:
+		return false
+	if not ShelterLoad.survives_tank_start(_breakers.get_children(), _sump):
+		var peak := ShelterLoad.inrush(_breakers.get_children(), _sump)
+		_set_main.on = false
+		_set_main.play(0.72)
+		_drop()
+		bus_tripped.emit("%.1f kW starting the sump against the tank" % peak)
+		_apply()
+		return false
+	return true
+
+
 # --- the way on -------------------------------------------------------------
 
 func _stair_clear() -> bool:

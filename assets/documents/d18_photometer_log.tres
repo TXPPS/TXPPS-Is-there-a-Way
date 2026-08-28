@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"d18_photometer_log"
+title = "C-6 — certification log"
+byline = "quarterly, 1966–77, one hand throughout"
+hand = 1
+body = "PHOTOMETER C-6. CERT QUARTERLY.
+LUMINAIRE C-1. 150W. DIMMER DRIVEN.
+
+DATE      LAMP  DIST   READ   SPEC
+Q1 1966    B    2.0M   121    120 +/- 8
+Q2 1966    B    2.0M   119    120 +/- 8
+Q3 1966    B    2.0M   120    120 +/- 8
+Q4 1966    B    2.0M   118    120 +/- 8
+
+Forty-four entries. The same distance, the
+same lamp, the same two minutes of somebody's
+quarter, for eleven years.
+
+Q1 1977    B    2.0M   117    120 +/- 8
+Q2 1977    B    2.0M   116    120 +/- 8
+                LAMP LOW BUT IN SPEC.
+                NEW TUBE ON ORDER.
+
+TWO METRES IS THE STANDING DISTANCE.
+IT IS MARKED ON THE FLOOR.
+
+IF THE READING FALLS AND THE LAMP HAS NOT
+CHANGED THEN SOMETHING IS IN THE WAY.
+THAT IS ALL A READING CAN TELL YOU AND IT
+IS ENOUGH.
+
+                              E. OSTRANDER"
