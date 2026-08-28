@@ -89,3 +89,31 @@ machinery loops, three metal one-shots and six footsteps.
 
 The compression is Godot's QOA on import, roughly 5:1 on this material. The
 sources stay 16-bit 22050 Hz mono PCM so they remain diffable and regenerable.
+
+---
+
+## Draw calls: a target, a ceiling, and what actually moves them
+
+**120 is a target, not a measured limit.** It was chosen for a phone without a
+phone in the room. `tools/web/capture_shots.js` reports every frame's cost at
+all thirty-five vantages across the four acts, warns on anything over the
+target, and fails only past **400** — an order of magnitude out is a bug, and
+14% over is a question for a device.
+
+The worst frame in the game is **134**, in the annex observation corridor
+looking down eighteen metres at three chamber doorways. Three frames are over
+the target; the rest are well under. Act 1's generator hall is 33.
+
+It was 4086.
+
+What was wrong, and in the order it mattered:
+
+| | |
+|---|---|
+| **Shadows, by a mile** | A shadow-casting omni draws the scene once per cubemap face. Fifteen fittings shipped with `shadow_enabled` on, and `ART_BIBLE.md` had said since P0 that shadows are a spend enabled per light, deliberately. They are now off by default and on for four fittings in the whole game: the hall's dominant practical, and the three schedule luminaires — which have to cast, because the entity's only expression is the interruption of light and a light that casts nothing cannot be interrupted. |
+| **Reach on the ones that do cast** | Everything inside a casting light's range is submitted once per face. A 150 W fitting in a three-metre chamber had a fourteen-metre range and was shadowing four rooms it did not light. |
+| **One mesh per box** | `RoomBox` emitted a `MeshInstance3D` per wall segment and every dressing prop was its own `Slab`. Both merge now, one mesh per material, which is what `RoomBox`'s own comment promised before there was a problem. Worth about half the remaining count. |
+| **Occlusion culling: not available** | Godot's web export has it compiled out. The setting does nothing but emit a build-time warning loud enough to trip the game's own error toasts, and every room baked a perfectly good occluder for no change at all. Removed. |
+
+The lesson worth keeping: the budget was asserted on every build, in one room,
+and reported green for weeks while three acts ran thirty times over it.

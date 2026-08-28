@@ -37,6 +37,10 @@ const SETTLE_FRAMES := 8
 ## And back again for Act 4, which is rooms in Act 1's building (D29).
 @export_range(0, 40, 1) var act1_again_from: int = 99
 
+## C-1, the schedule luminaires. One is lit at a time, always.
+const CHAMBER_CIRCUITS := [&"CHAM_A", &"CHAM_B", &"CHAM_C"]
+const RUN_CHAMBER_CIRCUIT := &"CHAM_B"
+
 ## name, position, yaw degrees, pitch degrees.
 ## name, position (y is floor level; the eye is 1.62 above it), yaw and pitch in
 ## degrees, and optionally a Document to hold up. Computed from the room's own
@@ -154,7 +158,16 @@ func _next() -> void:
 	_player.velocity = Vector3.ZERO
 	_player.face(deg_to_rad(shot[2]), deg_to_rad(shot[3]))
 	for node in get_tree().get_nodes_in_group(&"bulkhead_lamp"):
-		(node as BulkheadLamp).lit = _index >= lit_from
+		var lamp := node as BulkheadLamp
+		# The three schedule luminaires are not "the lights": they are C-1, and
+		# the whole programme is that exactly one of them is on at a time. Force
+		# all three and you photograph a building that cannot exist -- and, since
+		# they are the only fittings in the annex that cast, you measure three
+		# shadow passes where the game has one.
+		if lamp.circuit in CHAMBER_CIRCUITS:
+			lamp.lit = _index >= lit_from and lamp.circuit == RUN_CHAMBER_CIRCUIT
+			continue
+		lamp.lit = _index >= lit_from
 	if shot.size() > 4 and _reader != null:
 		_reader.show_document(load(String(shot[4])) as Document)
 	elif _reader != null:

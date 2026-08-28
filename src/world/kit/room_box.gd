@@ -69,7 +69,18 @@ extends Node3D
 
 const GROUP := &"room_geometry"
 
-var _mesh := BoxMesh.new()
+## Every box this room is made of, gathered while it builds and merged into one
+## mesh per material at the end.
+##
+## This is the answer the comment at the top of this file promised before there
+## was a problem. There was: one `MeshInstance3D` per wall segment, twenty rooms
+## of them, and nothing occluding anything, so a long sight line drew the whole
+## level. The tape library measured 4086 draw calls against a budget of 120.
+##
+## Merging is free here in a way it would not be in a hand-built level, because
+## the geometry is already arithmetic: the room knows every box before it makes
+## any of them.
+var _boxes: Dictionary = {}
 var _body: StaticBody3D
 const BUILT := &"kit_built"
 
@@ -109,6 +120,7 @@ func _rebuild() -> void:
 	for wall in [Opening.Wall.NORTH, Opening.Wall.SOUTH, Opening.Wall.WEST, Opening.Wall.EAST]:
 		if not omit_walls.has(wall):
 			_wall(body, wall)
+	_commit()
 
 
 ## One wall, minus its openings. Each opening leaves a left piece, a right piece
@@ -169,15 +181,15 @@ func _segment(
 	_slab(_body, size, at, wall_material)
 
 
+## One box: remembered for the merge, and given a collider now.
+##
+## The collider stays per box on purpose. Physics does not cost draw calls, a
+## box shape is the cheapest collider there is, and one merged concave shape for
+## a whole room would be slower to test against and far worse to debug.
 func _slab(body: StaticBody3D, size: Vector3, at: Vector3, material: Material) -> void:
-	var mesh := MeshInstance3D.new()
-	mesh.mesh = _mesh
-	mesh.transform = Transform3D(Basis().scaled(size), at)
-	if material != null:
-		mesh.material_override = material
-	mesh.add_to_group(GROUP)
-	mesh.add_to_group(BUILT)
-	add_child(mesh)
+	if not _boxes.has(material):
+		_boxes[material] = []
+	(_boxes[material] as Array).append([size, at])
 
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
@@ -186,5 +198,34 @@ func _slab(body: StaticBody3D, size: Vector3, at: Vector3, material: Material) -
 	shape.position = at
 	body.add_child(shape)
 	if Engine.is_editor_hint():
-		mesh.owner = self
 		shape.owner = self
+
+
+## One mesh per material, out of everything the room just described.
+func _commit() -> void:
+	for material in _boxes:
+		var surface := SurfaceTool.new()
+		surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+		for entry in _boxes[material]:
+			BoxMeshBuilder.append_box(surface, entry[0] as Vector3, entry[1] as Vector3)
+		var mesh := MeshInstance3D.new()
+		mesh.mesh = surface.commit()
+		if material != null:
+			mesh.material_override = material as Material
+		mesh.add_to_group(GROUP)
+		mesh.add_to_group(BUILT)
+		add_child(mesh)
+		if Engine.is_editor_hint():
+			mesh.owner = self
+	_boxes.clear()
+
+
+## Occlusion culling was tried here and taken out again: **Godot's web export
+## has it compiled out**, so the setting does nothing but emit a build-time
+## warning, and the warning is loud enough to trip the game's own error toasts.
+## Every room baked a perfectly good occluder and the draw-call count did not
+## move by one.
+##
+## Which leaves two levers on this target, and they turned out to be enough:
+## merge what is static, and spend shadows deliberately. 4086 draw calls became
+## 134.

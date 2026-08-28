@@ -29,7 +29,7 @@ OUT = pathlib.Path(__file__).resolve().parents[2] / "src/world/act2/shelter.tscn
 EAST, WEST, NORTH, SOUTH = "east", "west", "north", "south"
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from tscn import WALLS, box, facing, fmt, t3, upright  # noqa: E402
+from tscn import WALLS, box, facing, flush_boxes, fmt, solo_box, t3, upright  # noqa: E402
 
 THICK = 0.4
 CORRIDOR = dict(interior=(2.5, 2.6, 20.0), at=(0.0, 0.0, 0.0))
@@ -242,12 +242,13 @@ DOCS = {
 EXT = [
     ("Script", "res://src/world/kit/room_box.gd", "1_room"),
     ("Script", "res://src/world/kit/opening.gd", "2_open"),
-    ("Script", "res://src/world/kit/slab.gd", "3_slab"),
+    ("Script", "res://src/world/kit/slab_group.gd", "slab_group"),
     ("Material", "res://assets/materials/graybox_concrete.tres", "4_concrete"),
     ("Material", "res://assets/materials/graybox_steel.tres", "5_steel"),
     ("Material", "res://assets/materials/graybox_paint.tres", "6_paint"),
     ("Material", "res://assets/materials/graybox_silt.tres", "7_silt"),
     ("Material", "res://assets/materials/graybox_paper.tres", "7b_paper"),
+    ("Script", "res://src/world/kit/slab.gd", "3_slab"),
     ("PackedScene", "res://src/world/kit/bulkhead_lamp.tscn", "8_lamp"),
     ("Script", "res://src/world/surface_tag.gd", "9_tag"),
     ("Resource", "res://assets/surfaces/concrete.tres", "10_surface"),
@@ -361,6 +362,7 @@ def build():
     body += _reverb()
     body += _pages()
     body += _ways_out()
+    body += flush_boxes()
     return lines, openings, body
 
 
@@ -381,6 +383,12 @@ def _annex():
         out.append('circuit = &"%s"' % circuit)
         out.append("lit = false")
         out.append("energy = 2.6")
+        # C-1 casts, and it is the only thing in the annex that does. The
+        # entity's whole expression is the interruption of light.
+        out.append("casts_shadow = true")
+        # The chamber is three metres across. Anything past five is shadowing
+        # rooms it does not light, six times a frame.
+        out.append("reach = 5.0")
         out.append("")
 
     # The observer station. The bench is against the *south* wall, opposite the
@@ -434,8 +442,8 @@ def _annex():
     out.append("")
 
     # And the water that is over the sill until P3.3 takes a load off the set.
-    out += box("TankWater", (4.9, 0.5, 4.9), (-11.9, 0.25, -16.05),
-               ext_id("silt"), "Annex", solid=False)
+    out += solo_box("TankWater", (4.9, 0.5, 4.9), (-11.9, 0.25, -16.05),
+                    ext_id("silt"), "Annex", solid=False)
 
     # C-4, the chart recorder, with Run 9 day 31 still on the drum.
     out += box("RecorderRack", (1.6, 1.1, 0.5), (11.9, 0.55, -14.3), ext_id("paint"), "Annex")
@@ -726,7 +734,7 @@ def _ways_out():
     out.append("")
 
     # Water in the stair head, up over the nosings, until the sump has run.
-    out += box("StairWater", (2.9, 0.34, 3.9), (0.0, 0.17, -12.4), ext_id("silt"), ".", solid=False)
+    out += solo_box("StairWater", (2.9, 0.34, 3.9), (0.0, 0.17, -12.4), ext_id("silt"), ".", solid=False)
 
     out.append('[node name="Logic" type="Node" parent="." groups=["saveable", "act_logic"]]')
     out.append('script = ExtResource("18_logic")')

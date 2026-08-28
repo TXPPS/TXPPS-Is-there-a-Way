@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://src/world/kit/room_box.gd" id="1_room"]
 [ext_resource type="Script" path="res://src/world/kit/opening.gd" id="2_open"]
-[ext_resource type="Script" path="res://src/world/kit/slab.gd" id="3_slab"]
+[ext_resource type="Script" path="res://src/world/kit/slab_group.gd" id="slab_group"]
 [ext_resource type="Script" path="res://src/world/kit/stair_run.gd" id="4_stair"]
 [ext_resource type="Material" path="res://assets/materials/graybox_concrete.tres" id="5_concrete"]
 [ext_resource type="Material" path="res://assets/materials/graybox_steel.tres" id="6_steel"]
@@ -107,13 +107,6 @@ surface = ExtResource("11_grating")
 
 [node name="Gallery" type="Node3D" parent="."]
 
-[node name="RelayPanel" type="Node3D" parent="Gallery"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.34, -2.6, 13.6)
-script = ExtResource("3_slab")
-size = Vector3(0.1, 1.2, 1.4)
-material = ExtResource("7_paint")
-solid = true
-
 [node name="StageGauge" parent="Gallery" instance=ExtResource("16_gauge")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.28, -2.3, 13.9)
 save_key = &"stage_gauge"
@@ -127,20 +120,6 @@ label = "SEQ HELD"
 on = true
 available = false
 
-[node name="BenchShelf" type="Node3D" parent="Gallery"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.08, -2.6, 15)
-script = ExtResource("3_slab")
-size = Vector3(0.42, 0.05, 0.9)
-material = ExtResource("6_steel")
-solid = true
-
-[node name="BenchUnit" type="Node3D" parent="Gallery"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.06, -2.44, 15)
-script = ExtResource("3_slab")
-size = Vector3(0.3, 0.24, 0.5)
-material = ExtResource("7_paint")
-solid = true
-
 [node name="BenchLead" parent="Gallery" instance=ExtResource("13_toggle")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 11.28, -2.3, 15.8)
 save_key = &"bench_lead"
@@ -150,20 +129,6 @@ prompt_when_on = "Pull the lead"
 prompt_when_off = "Put the lead back"
 
 [node name="Pier" type="Node3D" parent="."]
-
-[node name="HpuSkid" type="Node3D" parent="Pier"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.7, 1.05, 10.4)
-script = ExtResource("3_slab")
-size = Vector3(1.6, 0.9, 1)
-material = ExtResource("6_steel")
-solid = true
-
-[node name="HpuMotor" type="Node3D" parent="Pier"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.3, 1.75, 10.4)
-script = ExtResource("3_slab")
-size = Vector3(0.5, 0.5, 0.5)
-material = ExtResource("7_paint")
-solid = true
 
 [node name="GateRelease" type="AudioStreamPlayer3D" parent="Pier"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.7, 1.4, 11.6)
@@ -182,34 +147,6 @@ prompt_when_on = "Take the gate off its permissive"
 prompt_when_off = "Put the permissive back"
 
 [node name="House" type="Node3D" parent="."]
-
-[node name="Desk" type="Node3D" parent="House"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.7, 1.46, 19)
-script = ExtResource("3_slab")
-size = Vector3(2.6, 0.08, 0.7)
-material = ExtResource("7_paint")
-solid = true
-
-[node name="DeskLeg1" type="Node3D" parent="House"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.5, 1.03, 19)
-script = ExtResource("3_slab")
-size = Vector3(0.06, 0.86, 0.6)
-material = ExtResource("6_steel")
-solid = true
-
-[node name="DeskLeg2" type="Node3D" parent="House"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.9, 1.03, 19)
-script = ExtResource("3_slab")
-size = Vector3(0.06, 0.86, 0.6)
-material = ExtResource("6_steel")
-solid = true
-
-[node name="Cabinet" type="Node3D" parent="House"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 1.55, 21.5)
-script = ExtResource("3_slab")
-size = Vector3(1.1, 1.9, 0.4)
-material = ExtResource("7_paint")
-solid = true
 
 [node name="Interlock" parent="House" instance=ExtResource("17_interlock")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 16.7, 1.55, 21.6)
@@ -321,4 +258,40 @@ script = ExtResource("19_end")
 card = ExtResource("doc_end_b")
 fade_seconds = 3.4
 return_to = Vector3(16.7, 0.7, 13)
+
+[node name="BenchShelf_1" type="Node3D" parent="Gallery"]
+script = ExtResource("slab_group")
+sizes = PackedVector3Array(0.42, 0.05, 0.9)
+positions = PackedVector3Array(11.08, -2.6, 15)
+material = ExtResource("6_steel")
+
+[node name="RelayPanel_2" type="Node3D" parent="Gallery"]
+script = ExtResource("slab_group")
+sizes = PackedVector3Array(0.1, 1.2, 1.4, 0.3, 0.24, 0.5)
+positions = PackedVector3Array(11.34, -2.6, 13.6, 11.06, -2.44, 15)
+material = ExtResource("7_paint")
+
+[node name="DeskLeg1_3" type="Node3D" parent="House"]
+script = ExtResource("slab_group")
+sizes = PackedVector3Array(0.06, 0.86, 0.6, 0.06, 0.86, 0.6)
+positions = PackedVector3Array(15.5, 1.03, 19, 17.9, 1.03, 19)
+material = ExtResource("6_steel")
+
+[node name="Desk_4" type="Node3D" parent="House"]
+script = ExtResource("slab_group")
+sizes = PackedVector3Array(2.6, 0.08, 0.7, 1.1, 1.9, 0.4)
+positions = PackedVector3Array(16.7, 1.46, 19, 18, 1.55, 21.5)
+material = ExtResource("7_paint")
+
+[node name="HpuSkid_5" type="Node3D" parent="Pier"]
+script = ExtResource("slab_group")
+sizes = PackedVector3Array(1.6, 0.9, 1)
+positions = PackedVector3Array(16.7, 1.05, 10.4)
+material = ExtResource("6_steel")
+
+[node name="HpuMotor_6" type="Node3D" parent="Pier"]
+script = ExtResource("slab_group")
+sizes = PackedVector3Array(0.5, 0.5, 0.5)
+positions = PackedVector3Array(16.3, 1.75, 10.4)
+material = ExtResource("7_paint")
 

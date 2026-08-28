@@ -155,6 +155,12 @@ func _choose_lamp() -> Node3D:
 		var light := node as Light3D
 		if light == null or not light.visible or light.light_energy <= 0.01:
 			continue
+		# It can only be seen as an interruption, so it can only stand at a lamp
+		# that casts. Standing at one that does not would put a black slab in a
+		# lit room with nothing to explain it -- which is the one thing
+		# `ART_BIBLE.md` says never to do with this creature.
+		if not light.shadow_enabled:
+			continue
 		var distance := light.global_position.distance_to(_player.global_position)
 		if distance >= best_distance:
 			continue

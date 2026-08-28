@@ -216,6 +216,9 @@ func _lamp(room: Node3D, name: String, at: Vector3) -> OmniLight3D:
 	light.add_to_group(&"practical")
 	light.light_energy = 4.2
 	light.omni_range = 14.0
+	# It stands only at a lamp that casts, because it is only ever seen as the
+	# interruption of one. These stand in for C-1, which does.
+	light.shadow_enabled = true
 	room.add_child(light)
 	light.global_position = at
 	return light

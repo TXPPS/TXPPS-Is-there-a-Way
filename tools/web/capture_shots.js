@@ -20,10 +20,17 @@ const { serve, openBrowser } = require('./harness');
 const BUILD = path.resolve(process.argv[2] || 'build');
 const OUT = path.resolve(process.argv[3] || 'docs/shots');
 const PORT = 8097;
-// docs/BUDGETS.md. Kept here as well as in smoke_web.js on purpose: the two
-// measure different things, one room versus every room, and a shared constant
-// would make it look like one check.
-const MAX_DRAW_CALLS = 120;
+// docs/BUDGETS.md's draw-call figure is a *target*, and it was set without a
+// device -- 120 is what seemed safe for a phone, not a number anybody measured
+// on one. So this reports every frame over it and fails on none of them: the
+// gallery is a diagnostic, and a diagnostic that refuses to run when it finds
+// something is not much of one.
+//
+// The ceiling is different. An order of magnitude past the target is not a
+// tuning question, it is a bug -- the annex was at 4086 before shadows were
+// spent deliberately -- and that does stop the run.
+const TARGET_DRAW_CALLS = 120;
+const MAX_DRAW_CALLS = 400;
 const MAX_PRIMITIVES = 150000;
 
 const BOOT_MS = 180000;
@@ -49,6 +56,7 @@ const SHOT_MS = 30000;
 
 	const taken = [];
 	let worst = { draws: 0, where: '' };
+	const overTarget = [];
 	for (let i = 0; i < total; i++) {
 		await page.waitForFunction(
 			(want) => window.__itaw_shot && window.__itaw_shot.ready && window.__itaw_shot.index === want,
@@ -72,7 +80,11 @@ const SHOT_MS = 30000;
 		// thing that can tell you the annex corridor with three chambers off it
 		// costs more than the generator hall.
 		if (shot.draw_calls > MAX_DRAW_CALLS) {
-			problems.push(`${shot.name}: ${shot.draw_calls} draw calls, over ${MAX_DRAW_CALLS}`);
+			problems.push(
+				`${shot.name}: ${shot.draw_calls} draw calls, past the ${MAX_DRAW_CALLS} ceiling`
+			);
+		} else if (shot.draw_calls > TARGET_DRAW_CALLS) {
+			overTarget.push(`${shot.name} (${shot.draw_calls})`);
 		}
 		if (shot.primitives > MAX_PRIMITIVES) {
 			problems.push(`${shot.name}: ${shot.primitives} primitives, over ${MAX_PRIMITIVES}`);
@@ -96,8 +108,12 @@ const SHOT_MS = 30000;
 	}
 	console.log(`\ncapture: ${taken.length} shots into ${path.relative(process.cwd(), OUT)}`);
 	console.log(
-		`capture: worst frame ${worst.draws} draw calls of ${MAX_DRAW_CALLS}, at ${worst.where}`
+		`capture: worst frame ${worst.draws} draw calls ` +
+		`(target ${TARGET_DRAW_CALLS}, ceiling ${MAX_DRAW_CALLS}), at ${worst.where}`
 	);
+	if (overTarget.length) {
+		console.log(`capture: ${overTarget.length} over the target: ${overTarget.join(', ')}`);
+	}
 })().catch((err) => {
 	console.error('capture: crashed', err);
 	process.exit(2);

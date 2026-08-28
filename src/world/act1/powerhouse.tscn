@@ -239,10 +239,15 @@ material = ExtResource("6_steel")
 
 [node name="Lamps" type="Node3D" parent="."]
 
+; The one dominant practical in the generator hall, and the only fitting in Act
+; 1 that casts. ART_BIBLE.md: one dominant practical per space, and shadows are
+; a spend.
 [node name="HallWest" parent="Lamps" instance=ExtResource("8_lamp")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.88, 3.3, -2.5)
 circuit = &"LT-1"
 lit = false
+casts_shadow = true
+reach = 11.0
 
 [node name="HallEast" parent="Lamps" instance=ExtResource("8_lamp")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 7.88, 3.3, 2.5)

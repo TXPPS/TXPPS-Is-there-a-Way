@@ -19,7 +19,7 @@ import pathlib
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from tscn import WALLS, EAST, WEST, NORTH, SOUTH, box, facing, fmt, t3, upright  # noqa: E402
+from tscn import WALLS, EAST, WEST, NORTH, SOUTH, box, facing, flush_boxes, fmt, t3, upright  # noqa: E402
 
 OUT = pathlib.Path(__file__).resolve().parents[2] / "src/world/act1/gate.tscn"
 
@@ -106,7 +106,7 @@ DOCS = {
 EXT = [
     ("Script", "res://src/world/kit/room_box.gd", "1_room"),
     ("Script", "res://src/world/kit/opening.gd", "2_open"),
-    ("Script", "res://src/world/kit/slab.gd", "3_slab"),
+    ("Script", "res://src/world/kit/slab_group.gd", "slab_group"),
     ("Script", "res://src/world/kit/stair_run.gd", "4_stair"),
     ("Material", "res://assets/materials/graybox_concrete.tres", "5_concrete"),
     ("Material", "res://assets/materials/graybox_steel.tres", "6_steel"),
@@ -378,6 +378,7 @@ def main():
     body += _reverb()
     body += _lamps_and_pages()
     body += _logic()
+    body += flush_boxes()
 
     for name, _at, half, _s, _d, _w, _p in REVERB:
         openings.append("\n".join([

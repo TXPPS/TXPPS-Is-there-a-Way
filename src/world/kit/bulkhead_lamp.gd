@@ -29,6 +29,27 @@ extends Node3D
 		energy = value
 		_apply()
 
+## Whether this fitting casts. Off by default and on where it earns it: a
+## shadow-casting omni draws the scene once per cubemap face, so this is the
+## most expensive checkbox in the game and `ART_BIBLE.md` treats it that way.
+##
+## The three chamber luminaires have it on because the entity's entire
+## expression is the interruption of light, and a light that casts no shadow
+## cannot be interrupted.
+@export var casts_shadow: bool = false:
+	set(value):
+		casts_shadow = value
+		_apply()
+
+## How far the fitting reaches, in metres. It matters most on a lamp that
+## casts: everything inside the range is submitted once per cubemap face, so a
+## 150 W fitting in a three-metre chamber given a fourteen-metre range is
+## shadowing four rooms it does not light.
+@export_range(1.0, 30.0, 0.5) var reach: float = 14.0:
+	set(value):
+		reach = value
+		_apply()
+
 @export var glass_lit: Material
 @export var glass_dark: Material
 
@@ -87,6 +108,9 @@ func _apply() -> void:
 		return
 	_light.light_energy = energy if lit else 0.0
 	_light.visible = lit
+	_light.shadow_enabled = casts_shadow
+	if _light is OmniLight3D:
+		(_light as OmniLight3D).omni_range = reach
 	if glass_lit != null and glass_dark != null:
 		_glass.material_override = glass_lit if lit else glass_dark
 	if lit:

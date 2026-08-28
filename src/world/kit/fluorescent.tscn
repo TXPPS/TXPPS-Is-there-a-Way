@@ -61,6 +61,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 0, 0)
 light_color = Color(0.83, 1, 0.87, 1)
 light_energy = 3.1
 light_specular = 0.2
-shadow_enabled = true
+; Off by default, and turned on per fitting in the level.
+;
+; ART_BIBLE.md has always said "shadows are a spend, not a default -- positional
+; shadows are enabled per light, deliberately, and counted against the draw
+; budget", and then every lamp shipped with them on. A shadow-casting omni draws
+; the scene six times, once per cubemap face, so fifteen of them in one building
+; is the difference between 156 draw calls and 4086.
+shadow_enabled = false
 shadow_bias = 0.04
 omni_range = 11.0

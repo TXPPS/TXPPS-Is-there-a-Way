@@ -250,9 +250,15 @@ func _the_observer_is_here(
 
 	# Put a light back on: the annex bank went off to drain the tank, and the
 	# entity cannot cross unlit space -- which is the bargain P3.3 just made.
-	var bank: DeviceToggle = breakers.get_node("AnnexLighting")
+	#
+	# The chamber luminaires, specifically. It stands only at a lamp that casts,
+	# and C-1 is the only thing in the annex that does -- which is not a
+	# convenience, it is the reason the programme's own fittings are the ones
+	# the entity travels between.
+	var bank: DeviceToggle = breakers.get_node("Chambers")
 	if not bank.on:
 		bank.get_node("Zone").engage()
+	(annex.get_node("Timeclock") as Timeclock).load_state({"digits": [6, 3, 0]})
 	player.global_position = Vector3(0.0, 0.1, -16.05)
 	for frame in 8:
 		await tree.physics_frame
@@ -271,13 +277,13 @@ func _the_observer_is_here(
 		"and the fear number is hearing about it"
 	)
 
-	# The bargain, stated as a check: the annex bank is the entity's road.
+	# The bargain, stated as a check: the schedule luminaire is its road.
 	bank.get_node("Zone").engage()
 	for frame in 4:
 		await tree.physics_frame
 	expect.ok(
 		not entity.present(),
-		"put the annex lights out and there is no line for it to stand on"
+		"put the chamber lamps out and there is no line for it to stand on"
 	)
 
 

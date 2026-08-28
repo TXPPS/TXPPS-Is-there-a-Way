@@ -85,11 +85,37 @@ def upright(pos):
 # rooms omit the side they share with it.
 
 
+WALLS = ["NORTH", "SOUTH", "WEST", "EAST"]
+
+
+# Dressing accumulates instead of emitting, and is flushed as one node per
+# (parent, material, solid). One MeshInstance3D per prop cost more draw calls
+# than the rooms did; a hundred boxes that draw once cost one.
+_PILES = {}
+
+
 def box(name, size, at, material, parent=".", solid=True):
+    """Remember a box. Emits nothing -- `flush_boxes` does that."""
+    key = (parent, material, bool(solid))
+    _PILES.setdefault(key, {"names": [], "sizes": [], "positions": []})
+    pile = _PILES[key]
+    pile["names"].append(name)
+    pile["sizes"].append(tuple(float(v) for v in size))
+    pile["positions"].append(tuple(float(v) for v in at))
+    return []
+
+
+def solo_box(name, size, at, material, parent=".", solid=True, script="3_slab"):
+    """A box that keeps its own node, because something addresses it by name.
+
+    Almost nothing needs this. Dressing does not: nobody ever looks up a
+    ration carton. State does -- the water over the annex stair is shown and
+    hidden by `ShelterLogic`, and a merged pile has no handle for that.
+    """
     return [
         '[node name="%s" type="Node3D" parent="%s"]' % (name, parent),
         "transform = %s" % upright(at),
-        'script = ExtResource("3_slab")',
+        'script = ExtResource("%s")' % script,
         "size = Vector3(%s)" % ", ".join(fmt(float(v)) for v in size),
         'material = ExtResource("%s")' % material,
         "solid = %s" % ("true" if solid else "false"),
@@ -97,4 +123,23 @@ def box(name, size, at, material, parent=".", solid=True):
     ]
 
 
-WALLS = ["NORTH", "SOUTH", "WEST", "EAST"]
+def flush_boxes():
+    """Every pile, as one SlabGroup each. Call once, at the end of a build."""
+    out = []
+    for index, (key, pile) in enumerate(sorted(_PILES.items(), key=lambda kv: str(kv[0])), start=1):
+        parent, material, solid = key
+        # Named after the first thing in it, so a node in the tree still says
+        # what it is rather than "Group3".
+        name = "%s_%d" % (pile["names"][0], index)
+        out.append('[node name="%s" type="Node3D" parent="%s"]' % (name, parent))
+        out.append('script = ExtResource("slab_group")')
+        out.append("sizes = PackedVector3Array(%s)"
+                   % ", ".join(fmt(v) for triple in pile["sizes"] for v in triple))
+        out.append("positions = PackedVector3Array(%s)"
+                   % ", ".join(fmt(v) for triple in pile["positions"] for v in triple))
+        out.append('material = ExtResource("%s")' % material)
+        if not solid:
+            out.append("solid = false")
+        out.append("")
+    _PILES.clear()
+    return out
