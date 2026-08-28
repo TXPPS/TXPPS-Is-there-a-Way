@@ -103,6 +103,16 @@ func _wire_act() -> void:
 		# shift from sodium to fluorescent is the marker that the player has
 		# left the dam and entered the programme, so it belongs to the level.
 		_post.set_grade(StringName(node.get_meta(&"grade", "act1")))
+	# The entity, where an act has one. It does not find the player for itself
+	# and it does not reach for the fear state: both are handed to it here, so
+	# it behaves the same in a test scene as in a level.
+	for node in get_tree().get_nodes_in_group(&"observer"):
+		var entity := node as Observer
+		if entity == null:
+			continue
+		entity.bind(_player)
+		_link(entity.approached, _fear.report_seam)
+
 	var logic := get_tree().get_first_node_in_group(&"act_logic")
 	if logic == null:
 		return

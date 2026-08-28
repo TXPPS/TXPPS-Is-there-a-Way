@@ -603,7 +603,7 @@ grade = &"annex"
 [node name="Shape" type="CollisionShape3D" parent="Annex/GradeThreshold"]
 shape = SubResource("BoxShape3D_annex")
 
-[node name="Observer" type="Node3D" parent="Annex"]
+[node name="Observer" type="Node3D" parent="Annex" groups=["observer"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -16.05)
 script = ExtResource("34_observer")
 

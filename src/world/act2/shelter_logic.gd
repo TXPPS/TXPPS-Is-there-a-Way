@@ -40,6 +40,15 @@ const PUMP_SECONDS := 6.0
 ## not because the player did anything -- which is the point of him.
 const SCHEDULE_SECONDS := 24.0
 
+## Which breaker feeds which lighting circuit. The lamps carry the circuit name
+## from the panel schedule and nothing else; this is the only place that knows
+## a circuit is a breaker. The chamber luminaires are not here -- they are on a
+## timeclock as well as a breaker, and `AnnexLogic` owns that.
+const CIRCUITS := {
+	&"SHLT": &"ShelterLighting",
+	&"ANNEX": &"AnnexLighting",
+}
+
 @export var save_key: StringName = &"act2"
 
 @onready var _valve: DeviceValve = $"../Plant/DayTankValve"
@@ -313,6 +322,28 @@ func _stair_clear() -> bool:
 	return _sump_has_run
 
 
+## A lamp is lit when the bus is live and its own breaker is closed. Both, and
+## in that order: a breaker closed onto a dead bus lights nothing, which is the
+## whole of P2.2 and the reason the panel is not the puzzle on its own.
+func _apply_lighting() -> void:
+	for node in get_tree().get_nodes_in_group(&"bulkhead_lamp"):
+		var lamp := node as BulkheadLamp
+		if lamp == null or not CIRCUITS.has(lamp.circuit):
+			continue
+		lamp.lit = _live and _breaker_closed(CIRCUITS[lamp.circuit])
+
+
+## Whether a named breaker on DP-2 is in. Public because `AnnexLogic` needs the
+## same answer for the chamber luminaires and there should be one way to get it.
+func breaker_closed(name: StringName) -> bool:
+	return _breaker_closed(name)
+
+
+func _breaker_closed(name: StringName) -> bool:
+	var breaker := _breakers.get_node_or_null(String(name)) as DeviceToggle
+	return breaker != null and breaker.on
+
+
 ## The annex door is not opened by the player. It is found already open, which
 ## is the act's last beat -- but only once the stair below is clear and there is
 ## light on the other side to walk into.
@@ -321,6 +352,7 @@ func _apply() -> void:
 		_stair_water.visible = not _stair_clear()
 	if _intercom != null:
 		_intercom.set_live(_live)
+	_apply_lighting()
 	var reachable := _stair_clear() and _live and _annex_light.on
 	if reachable and not _annex_door.open:
 		_annex_door.open = true

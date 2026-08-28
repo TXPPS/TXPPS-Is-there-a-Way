@@ -5,7 +5,7 @@
 > feels right, sounds right, or looks right, and neither is an iPhone.
 >
 > Numbered so it can be run in one sitting. Report anything that fails by its
-> number. Ninety-five items; the Act 2 section (78 onward) is the newest and the
+> number. A hundred and seven items; the Act 3 section (95 onward) is the newest and the
 > least examined.
 
 ---
@@ -290,6 +290,45 @@ to end every build. What no test can tell me is whether it is *playable*
 94. Read all six Act 2 documents plus the operating card and the panel
     schedule. Same question as before: any line breaks wrong on the device?
 
+**Act 3 — the annex.** Behind the annex door, in the same scene, because P3.3
+sends you back to Act 2's panel. `tests/case_act3.gd` walks all of it.
+
+95. Go through the annex door. **The colour changes as you walk through it** —
+    sodium behind you, fluorescent green-white ahead. That shift is the marker
+    that you have left the dam and entered the programme, and it is the single
+    thing in Act 3 I most want a human opinion on. Does it land, or does it just
+    look like a different room?
+96. The tubes **flicker**. Is it a tired fitting or a broken shader? It is meant
+    to be a tube failing to strike and recovering, not noise on the brightness.
+97. Read **Protocol 4** at the observer station. It is four lines and one of
+    them is the entity's whole behaviour. Say whether 4.2 registers as a rule
+    or as flavour — a player is meant to be able to state it in one sentence.
+98. Chamber B's lamp is **warm** in a green building, because a 1964 dimmer-
+    driven 150 W fitting is an incandescent one. Does that read as deliberate?
+99. The **interlock** will not release chamber B's key while the lamp is on.
+    Read Emil's cam notes, work the **timeclock**, get the key. **Is the cam
+    relationship findable?** Tooth n covers hours 2n and 2n+1, it is written
+    once, in his handwriting, with a worked example. This is the puzzle most
+    likely to be too hard, and I cannot judge it.
+100. Take the **photometer** from chamber B. Hold it up under a fitting and in
+    the dark. Numbers on its face, not on the HUD. Is it readable at arm's
+    length on a phone?
+101. **Point it at the entity.** When something is between you and a lamp the
+    reading drops, and the drop is the same number every time. Did you ever get
+    the chance? Did you understand what you were looking at?
+102. Open the **tank drain**. It trips the set, because starting the sump
+    against head needs more than you have left. Go back to DP-2, shed something
+    real, come back. **What did you choose to put out, and why?** That answer is
+    the whole of Act 3 and there is no wrong one.
+103. With the annex bank off, the entity has no line to walk. **Was being blind
+    and safe better or worse than being lit and watched?**
+104. The **tape library**: work out which reel is Run 9 from the index and the
+    admission sheet. Wrong reels cost nothing. **Was the deduction fair, or did
+    you end up pulling reels at random?**
+105. Taking **RF-0840** ends what is built. The card says so plainly.
+106. **Reload in the annex.** The clock's wheels, the key, the drain, the tank,
+    and whether the reel is gone must all come back.
+
 **Errors**
-95. If anything at all goes wrong, a toast should say what. If something goes
+107. If anything at all goes wrong, a toast should say what. If something goes
     wrong **silently**, that is itself the bug worth reporting.

@@ -7,27 +7,34 @@
 
 **Unattended run.** The work order was A finish P1, B write the story bible,
 C P2 rendering, D P3 audio, E Act 1 as a vertical slice, F later acts only if
-credits remained. **A through E are done and live. F is under way: Act 2 is
-built, playable start to finish, and walked by the suite.**
+credits remained. **A through E are done and live, and F has reached Act 3:
+three acts are built, playable end to end, and walked by the suite.**
 
-Acts 3 and 4 are **not** started, and the rule that says so is the work order's
-own: do not start an act you cannot finish to the same standard. Act 2 met that
-bar. Whether to spend the remaining budget on Act 3 or on getting a human to
-play the two that exist is the open question, and my answer is the second —
-neither act has been played by a person, and Act 2's central puzzle in
-particular has a failure mode (item 88 in the QA list) that I cannot evaluate.
+**Act 4 is not started.** The gate piers and the control house are the last act
+and the two endings are in it, and the rule that says wait is the work order's
+own: do not start an act you cannot finish to the same standard.
+
+The real reason to stop here is different and worth stating plainly. **None of
+the three acts has been played by a person.** Everything below is green in CI
+and unverified by a human, and the further this goes the more of it is stacked
+on judgements a test cannot make — whether the cam relationship is findable,
+whether the load budget reads as your own miscalculation or as unfairness,
+whether the palette shift lands. `NEEDS_DEVICE_QA.md` is a hundred and seven
+numbered items for exactly that reason, and it is the next thing that should
+happen.
 
 | | |
 |---|---|
 | **Live** | <https://txpps.github.io/TXPPS-Is-there-a-Way/> |
-| **Stamp to expect** | `v0.1.0 a48ab44` (or later — every push deploys) |
-| **First thing to do** | `docs/NEEDS_DEVICE_QA.md`, all 95 items, in order. Section "Controls" first: if that fails, stop, because everything else stands on it. |
+| **Stamp to expect** | see "Deploy state" below (or later — every push deploys) |
+| **First thing to do** | `docs/NEEDS_DEVICE_QA.md`, all 107 items, in order. Section "Controls" first: if that fails, stop, because everything else stands on it. |
 | **Blocked on a human** | Everything unverifiable. Nothing is blocked on a decision. |
 | **Frozen** | The input layer. No change to touch semantics, layout or the router without a failing test to justify it. |
 
 ### What is true now that was not
 
-- **Act 1 is playable start to finish** and `tests/case_act1.gd` walks it every
+- **Three acts are playable start to finish** — the powerhouse, the shelter and
+  the annex — and `case_act1`, `case_act2` and `case_act3` walk all of them every
   build — including down the stair, which is the only way to know a ramp under
   the nosings is right.
 - **Every interactable is provably reachable.** `tests/case_reach.gd` works out
@@ -59,40 +66,57 @@ of the last thing Emil did — which is the act's subject, not its obstacle.
 It ends with the annex door found already open, and one vertical seam of light
 in a corridor already walked. Once. No sound, no consequence.
 
-### What Act 3 needs, when it starts
+### Act 3, as built
 
-`PUZZLES.md` has the design (P3.1–P3.4). What is missing is content and three
-things that do not exist yet:
+Four gates and one loop back into Act 2, in rooms behind the shelter's annex
+door — not an act of its own, because P3.3's whole thesis needs the same panel
+and a real walk (D28).
 
-1. **A second LUT and a fluorescent practical.** The palette shift from sodium
-   to sick green-white is what marks leaving the *dam* and entering the
-   *programme*, and it is the single highest-value thing in Act 3 because it is
-   the one the player feels before they read anything. `tools/gen/make_lut.py`
-   takes a palette; the fitting is a second scene beside `bulkhead_lamp.tscn`.
-2. **The entity.** Act 3 is where it becomes active, and its rule — *it is only
-   ever between you and a light* — is the first thing in this project that is
-   behaviour rather than state. `LightSeam` is the motif and nothing more; the
-   thing that moves does not exist.
-3. **A held tool.** P3.2 needs the photometer carried between rooms, which the
-   interaction system does not do: it engages with things in place. That is a
-   real addition to `Interactor`, not a prop.
+| | |
+|---|---|
+| **P3.1** | Chamber B's interlock will not release its key while the chamber's lamp is on. Set the cam timeclock so the lamp is dark in the current window. The relationship — tooth n covers hours 2n and 2n+1 — is written once, in Emil's handwriting, with a worked example. Opening the chamber breaker at the panel is a second, honest route, and it costs every chamber lamp. |
+| **P3.2** | The photometer, in chamber B. It reads illuminance where you stand, and when something is between you and a lamp the reading drops by exactly what that lamp was worth. The same number every time, which is what makes it evidence. |
+| **P3.3** | The tank room is flooded. Starting the sump against head needs 39.5 kW of headroom instead of 45, which the allocation that got you here cannot give. Go back to DP-2 and put something out: the annex bank, or the chamber lamps *and* the well. Shedding the bank leaves you blind and safe; shedding the chamber lamps leaves the corridor lit and the entity somewhere to walk. |
+| **P3.4** | Four hundred reels in accession order. The index gives Run 9's block, the admission sheet's amendment gives the fortieth day, and the boxing rule gives the name. RF-0840 is Reel 9-C. |
 
-Everything else Act 3 needs is content: the annex spaces, the chambers, the
-tank room, the recorder bay, and D-13 through D-19.
+**The entity runs here for the first time.** Not a threat with a health bar: a
+rule, running, in a room with lamps in it. Protocol 4.2 — *the observer stands
+at the lamp* — is its entire behaviour, and everything the bible's rule table
+promises falls out of that one placement.
 
-**All three are built and tested.** `Observer` is the entity's rule as
-behaviour, asserted row by row against the bible's own table; `annex.png` and
-`fluorescent.tscn` are the palette shift, measured rather than eyeballed; and
-`Hands` plus `Photometer` are a tool that travels and the number that makes the
-seam evidence rather than a feeling.
+Act 3 ends with the reel in hand, and that is the edge of what is built.
 
-None of them is placed in a level. They were built first deliberately: each is
-needed by every act that remains, and an act designed around an unproven system
-is an act that gets rebuilt.
+### What Act 4 needs, when it starts
 
-**Act 3's rooms are next**, and they go *inside* `shelter.tscn` rather than into
-an act of their own — P3.3 sends the player back to Act 2's panel, and that only
-means anything if it is the same panel and a real walk. See `DECISIONS.md` D28.
+`PUZZLES.md` has the design (P4.1–P4.3) and `STORY.md` has both endings as
+mechanisms. What is missing:
+
+1. **A held permissive and a selsyn bench unit** — two more devices, both in the
+   grammar that already exists.
+2. **Somewhere to put them.** The gate piers and the control house are up inside
+   the dam with no loop back to the shelter, so unlike the annex they can and
+   should be their own mounted act. D28's own last line says so.
+3. **Two endings**, which is the first thing in this project that branches. Both
+   are reached from the control house and both are earned by what the player
+   understood, not by a dialogue choice.
+
+**Do not start it until the device QA has come back.** Three acts are built and
+none has been played by a person.
+
+### Systems before rooms, which is worth doing again
+
+Act 3 needed three things that did not exist: a second grade and a fluorescent
+fitting, an entity that behaves rather than a motif that appears, and a tool the
+player carries between rooms. All three were built and tested **before** a single
+annex wall went up, and each landed in the level unchanged.
+
+That is not tidiness. Each of the three is needed by every act that remains, and
+an act designed around an unproven system is an act that gets rebuilt. It also
+meant the entity's rule table could be asserted row by row in an empty fixture,
+where a failure names the rule instead of the room.
+
+Act 4 should be approached the same way: the held permissive and the selsyn
+bench unit first, then the piers.
 
 **Engine:** Godot 4.6.3-stable, Compatibility (WebGL2), single-threaded web export.
 **Target:** iPhone 16 Pro Max, Safari, **landscape**.
@@ -105,7 +129,7 @@ means anything if it is the same panel and a real walk. See `DECISIONS.md` D28.
 
 | | Status |
 |---|---|
-| Build | **green.** Export, budgets (download, texture size, shipped audio), the loop-mode check, a **352-check headless suite**, 55-check gameplay smoke, 28-check update-path smoke. |
+| Build | **green.** Export, budgets (download, texture size, shipped audio), the import-settings check, a **496-check headless suite**, 55-check gameplay smoke, 28-check update-path smoke. |
 | Last verified | `v0.1.0 a48ab44`, serving from GitHub Pages with every payload file answering 200 and the wasm as `application/wasm`. |
 | Publish | **automatic.** Every push to `main` deploys, and so does a manual **Run workflow** on `main` — both proven, runs #15 and #16. |
 | Verified | the `verify` job fetches the live URL after every deploy and fails the build unless it serves *this* commit with every payload file answering 200 and the wasm as `application/wasm`. |

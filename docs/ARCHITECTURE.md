@@ -403,6 +403,26 @@ all 128 allocations in a few milliseconds because of it.
 `ShelterLogic` also runs four countdowns through one `_advance()` rather than
 four chances to write the same off-by-one.
 
+**Act 3 is rooms in Act 2's scene**, not an act of its own (D28). So one
+building carries two logics, and they meet at exactly one place: panel DP-2.
+`AnnexLogic` never touches a breaker — it asks `ShelterLogic`, which owns the
+panel and the arithmetic, and what comes back is drained water or a tripped set
+main. The trip is the one the player already met in Act 2, deliberately: P3.3 is
+not a new failure, it is the old one with a new price.
+
+**Lighting is a two-stage answer and nothing else may shortcut it.** A lamp is
+lit when the bus is live *and* its own breaker is closed — both, in that order,
+because a breaker closed onto a dead bus lights nothing and that is the whole of
+P2.2. The chamber luminaires need a third: the timeclock's cam has to be in its
+window. One consequence worth having on purpose is that opening the chamber
+breaker at the panel de-energises the circuit just as honestly as moving the
+drum does, so P3.1 has a second solution that costs every chamber lamp.
+
+This was missing for a while and nothing noticed: the shot list forces every
+lamp on to photograph a level, so the captures looked right while the shelter
+would have been pitch dark in play. What found it was the photometer, in a test,
+reading its own floor in a room that was supposed to be lit.
+
 `Interactable.instant` distinguishes things you *use* from things you *engage
 with*. A switch is flipped and you are still standing there with both sticks; a
 document is picked up and held, and the HUD locks to it. Without that

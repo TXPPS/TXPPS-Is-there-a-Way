@@ -518,7 +518,7 @@ def _annex():
     out.append("")
 
     # The entity, which has a rule and no act until now.
-    out.append('[node name="Observer" type="Node3D" parent="Annex"]')
+    out.append('[node name="Observer" type="Node3D" parent="Annex" groups=["observer"]]')
     out.append("transform = %s" % upright((0.0, 0.0, -16.05)))
     out.append('script = ExtResource("34_observer")')
     out.append("")

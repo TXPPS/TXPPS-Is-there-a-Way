@@ -23,6 +23,12 @@ signal checkpoint_reached(id: String)
 ## The chamber the last run was in, and the only one that has anything in it.
 const RUN_CHAMBER := &"B"
 
+## The breaker on DP-2 that feeds all three chamber luminaires.
+const CHAMBER_BREAKER := &"Chambers"
+
+## Circuit name to chamber, for the lamps the timeclock drives.
+const CHAMBER_CIRCUITS := {&"CHAM_A": &"A", &"CHAM_B": &"B", &"CHAM_C": &"C"}
+
 ## The reel P3.4 is looking for: day 40 of Run 9, the last of box C.
 const RUN_9_LAST := "RF-0840"
 
@@ -52,11 +58,19 @@ func _ready() -> void:
 	# The interlock is told how to find out whether a circuit is live. It does
 	# not go looking: an interlock that reasoned about lamps would be one with
 	# an opinion about the puzzle.
-	_interlock.watch(func(channel: StringName) -> bool: return _clock.lit(channel))
+	# What "energised" means for a chamber: the bus is up, the breaker that feeds
+	# all three is in, *and* the clock has that chamber's cam in its window. All
+	# three, which means opening the breaker at the panel is a second, honest
+	# way through P3.1 -- and it costs the player every chamber lamp to do it.
+	_interlock.watch(_chamber_energised)
 	for node in _reels.get_children():
 		(node as DevicePush).pushed.connect(_on_reel_taken.bind(node.get("label")))
 	_drain.toggled.connect(_on_drain_worked)
-	_observer.bind(_player())
+	if _shelter != null:
+		_shelter.bus_live.connect(_on_power_changed)
+		_shelter.bus_tripped.connect(func(_why: String) -> void: _on_power_changed())
+		for node in _shelter.get_parent().get_node("Panel/Breakers").get_children():
+			(node as DeviceToggle).toggled.connect(func(_on: bool) -> void: _on_power_changed())
 	_apply()
 
 
@@ -97,6 +111,11 @@ func load_state(state: Dictionary) -> void:
 # --- P3.1 the timeclock -----------------------------------------------------
 
 func _on_clock_changed() -> void:
+	_apply()
+
+
+## The bus came up or went down, so every chamber lamp's answer changed.
+func _on_power_changed() -> void:
 	_apply()
 
 
@@ -151,17 +170,31 @@ func _on_reel_taken(accession: String) -> void:
 		_end.trigger()
 
 
+## The one place that decides whether a chamber's luminaire is alight.
+func _chamber_energised(chamber: StringName) -> bool:
+	if _shelter == null or not _shelter.live():
+		return false
+	if not _shelter.breaker_closed(CHAMBER_BREAKER):
+		return false
+	return _clock.lit(chamber)
+
+
+func _apply_chamber_lamps() -> void:
+	for node in get_tree().get_nodes_in_group(&"bulkhead_lamp"):
+		var lamp := node as BulkheadLamp
+		if lamp == null or not CHAMBER_CIRCUITS.has(lamp.circuit):
+			continue
+		lamp.lit = _chamber_energised(CHAMBER_CIRCUITS[lamp.circuit])
+
+
 func _apply() -> void:
+	_apply_chamber_lamps()
 	if _tank_water != null:
 		_tank_water.visible = not _drained
 	for node in _reels.get_children():
 		var reel := node as DevicePush
 		if reel != null:
 			reel.visible = _reel.is_empty() or String(reel.get("label")) != _reel
-
-
-func _player() -> Node3D:
-	return get_tree().get_first_node_in_group(&"listener") as Node3D
 
 
 func _mark(id: String) -> void:

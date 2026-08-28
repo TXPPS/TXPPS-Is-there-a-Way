@@ -41,6 +41,7 @@ tests/case_reading.gd  picking a page up, scrolling it, and remembering it
 tests/case_devices.gd  Act 2's parts on their own, and the load arithmetic
 tests/case_act1.gd     the whole act, from the first breaker to the door
 tests/case_act2.gd     the shelter, including the answer that looks right
+tests/case_act3.gd     the annex, and the price of getting through it
 tests/case_tools.gd    carrying something, and what the meter reads
 tests/case_observer.gd the entity's rule, row by row from the bible
 tests/case_reach.gd    can a player actually stand somewhere and touch each thing
@@ -126,6 +127,7 @@ mix untestable until the wire comes off for the duration.
 | act2 | **is the wrong answer still interesting.** It walks the shed-the-heater allocation that holds for nine seconds and then dies when the sump starts, because that failure is the act's best moment and would ship broken silently |
 | tools | a tool that follows the camera instead of being it; one that vanishes when the act it was found in is thrown away; a save that puts it in the wrong hand |
 | observer | every row of STORY.md's rule table, because the player is meant to *learn* those rows and a rule that is true four times in five is not a rule |
+| act3 | **does one building hold two logics.** The annex is rooms in Act 2's scene, so this case walks across the seam between `ShelterLogic` and `AnnexLogic` — and it is the only case that watches the entity run in a level rather than in a fixture |
 | reach | **is it touchable.** For every interactable in the act it works out where a player would have to stand, checks there is floor there, aims from eye height, and asks the interactor what it sees. It is the only case that can fail with "line of sight blocked by StaticBody3D", and it is the case that found the most: see below. |
 
 A case that leaves the world somewhere runs before one that assumes where it is.
