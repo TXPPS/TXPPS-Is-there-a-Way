@@ -414,3 +414,28 @@ Two lessons worth keeping:
   `Player` of ignoring `load_state`; it was the sweep emptying arrays, and the
   player's `at.size() == 3` guard correctly reading an empty array as absent.
   The careful code looked broken to the careless test.
+
+---
+
+## Two things about the live site that are easy to get wrong
+
+**The build is not byte-reproducible, and that is fine.** The same commit built
+here and built in CI produces the same `.wasm` and `.js` (they are the export
+template, untouched) and a `.pck` that differs by a few hundred bytes. The
+payload id in the filename is a content hash over those three, so the id differs
+too. Do not treat "my local payload id is not the one that is live" as a failed
+deploy — compare the **commit** in the build stamp, which is what
+`tools/ci/verify_live.sh` does.
+
+**Nothing points a browser at the live URL, deliberately.** The chain that makes
+a deploy trustworthy is: CI builds, runs the headless suite, runs `smoke_web.js`
+and `smoke_pwa.js` *against the very artifact it is about to upload*, deploys
+that artifact, and then `verify_live.sh` curls the published site for the right
+commit stamp, the payload it names, and the content types. So the bytes that
+ship are browser-tested; what is asserted about the live host is served
+correctly rather than played. Playing it live is a device-QA item, which is
+where it belongs — that check needs a real phone anyway.
+
+(An attempt to add a Playwright run against the published URL was abandoned: in
+this container Chromium's HTTPS never reaches the egress proxy, so it could not
+be made to work honestly. It would also have duplicated the two checks above.)
