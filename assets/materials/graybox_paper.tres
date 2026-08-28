@@ -15,8 +15,8 @@
 resource_name = "Paper"
 shader = ExtResource("1_shader")
 shader_parameter/noise_tex = ExtResource("2_noise")
-shader_parameter/albedo_dark = Color(0.42, 0.405, 0.36, 1)
-shader_parameter/albedo_light = Color(0.6, 0.585, 0.53, 1)
+shader_parameter/albedo_dark = Color(0.24, 0.232, 0.206, 1)
+shader_parameter/albedo_light = Color(0.34, 0.331, 0.3, 1)
 shader_parameter/albedo_weights = Vector4(0.6, 0.3, 0.1, 0)
 shader_parameter/metallic_amount = 0.0
 shader_parameter/specular_amount = 0.12

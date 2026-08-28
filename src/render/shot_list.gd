@@ -29,6 +29,11 @@ const SETTLE_FRAMES := 8
 ## worth photographing and neither is "the game".
 @export_range(0, 40, 1) var lit_from: int = 99
 
+## Shots from this index on are taken in Act 2, which is mounted when the run
+## reaches it. Two acts cannot be photographed at once for the same reason they
+## cannot be played at once: only one is ever in the tree.
+@export_range(0, 40, 1) var act2_from: int = 99
+
 ## name, position, yaw degrees, pitch degrees.
 ## name, position (y is floor level; the eye is 1.62 above it), yaw and pitch in
 ## degrees, and optionally a Document to hold up. Computed from the room's own
@@ -55,6 +60,18 @@ const SHOTS: Array = [
 	["11-lit-hall", Vector3(6.00, 0.00, 0.00), 80.7, 2.4],
 	["12-lit-panel", Vector3(-6.00, 0.00, -3.00), 0.0, -12.0],
 	["13-lit-switchgear", Vector3(-9.60, 0.00, -2.00), 90.0, -4.0],
+	# Act 2. Everything from here is in the shelter, lit, because the shelter's
+	# lighting is a load the player chose to keep -- the dark version of these
+	# rooms is a decision, not a starting state.
+	["14-shelter-corridor", Vector3(0.00, 0.00, 8.00), 0.0, -2.0],
+	["15-plant-room", Vector3(-5.00, 0.00, -2.20), 19.3, -8.0],
+	["16-panel-dp2", Vector3(-0.30, 0.00, -6.50), -90.0, -6.0],
+	["17-mess", Vector3(-3.20, 0.00, 6.80), 27.4, -9.0],
+	["18-bunks", Vector3(2.40, 0.00, 5.00), -90.0, -6.0],
+	["19-store", Vector3(2.20, 0.00, -1.70), 0.0, -12.0],
+	["20-stair-head", Vector3(0.00, 0.00, -9.00), 0.0, -22.0],
+	["21-page-service-card", Vector3(-5.00, 0.00, -2.20), 19.3, 0.0,
+		"res://assets/documents/d09_generator_card.tres"],
 ]
 
 var _player: Player
@@ -111,6 +128,7 @@ func _next() -> void:
 		set_process(false)
 		return
 	var shot: Array = SHOTS[_index]
+	_mount_for(_index)
 	_player.global_position = shot[1]
 	_player.velocity = Vector3.ZERO
 	_player.face(deg_to_rad(shot[2]), deg_to_rad(shot[3]))
@@ -122,6 +140,19 @@ func _next() -> void:
 		_reader.close()
 	_settle = SETTLE_FRAMES
 	_publish(false)
+
+
+## Swaps to the act this shot belongs to, if it is not already up. Called on
+## every shot rather than once at the boundary so that a run started part-way
+## through -- which is what a re-capture of one shot is -- still lands in the
+## right building.
+func _mount_for(index: int) -> void:
+	var runner := get_tree().get_first_node_in_group(&"act_runner") as ActRunner
+	if runner == null:
+		return
+	var want := 1 if index >= act2_from else 0
+	if runner.current() != want:
+		runner.load_act(want)
 
 
 func _publish(ready: bool) -> void:

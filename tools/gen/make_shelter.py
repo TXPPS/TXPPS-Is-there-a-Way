@@ -186,7 +186,7 @@ READABLES = [
     ("ServiceCard",      "d09", (-8.53, 1.5, -3.0),  EAST),   # plant room, wire frame
     ("OperatingCard",    "d09a", (-4.4, 1.78, -7.38), SOUTH), # inside the cabinet door
     ("PanelSchedule",    "d09b", (1.10, 1.95, -6.5),  WEST),  # in the panel door
-    ("Postcard",         "d10", (5.6, 0.92, 3.4),    WEST),   # bunk room, on the shelf
+    ("Postcard",         "d10", (5.6, 1.02, 3.4),    WEST),   # propped on the bunk shelf
     ("WorkUnitCover",    "d12", (-7.53, 1.45, 5.5),  EAST),   # mess, on the board over the table
 ]
 
@@ -409,12 +409,18 @@ def _dressing():
     """
     out = ['[node name="Dressing" type="Node3D" parent="."]', ""]
 
-    # Bunk room: two frames, one made up, one stripped to the springs.
+    # Bunk room: two frames, one made up, one stripped to the springs. The legs
+    # are not detail for its own sake -- a bunk without them floats, which the
+    # first capture showed plainly.
+    for i, z in enumerate([3.4, 6.4]):
+        for j, (lx, lz) in enumerate([(-0.4, -0.85), (0.4, -0.85), (-0.4, 0.85), (0.4, 0.85)]):
+            out += box("BunkLeg%d%d" % (i + 1, j + 1), (0.05, 0.5, 0.05),
+                       (5.6 + lx, 0.25, z + lz), ext_id("steel"), "Dressing")
     out += box("BunkMadeFrame", (0.9, 0.1, 1.9), (5.6, 0.55, 3.4), ext_id("steel"), "Dressing")
     out += box("BunkMade", (0.86, 0.16, 1.8), (5.6, 0.68, 3.4), ext_id("paper"), "Dressing")
-    out += box("BunkMadeShelf", (0.34, 0.05, 0.5), (5.6, 0.88, 3.4), ext_id("steel"), "Dressing")
+    out += box("BunkMadeShelf", (0.34, 0.05, 0.5), (5.6, 0.9, 3.4), ext_id("steel"), "Dressing")
     out += box("BunkStripped", (0.9, 0.1, 1.9), (5.6, 0.55, 6.4), ext_id("steel"), "Dressing")
-    out += box("BunkStrippedUpper", (0.9, 0.08, 1.9), (5.6, 1.45, 6.4), ext_id("steel"), "Dressing")
+    out += box("BunkStrippedRail", (0.05, 0.55, 1.9), (5.16, 0.85, 6.4), ext_id("steel"), "Dressing")
 
     # Store room: water drums and the ration cartons, rotated front to back.
     for i in range(4):
@@ -422,15 +428,25 @@ def _dressing():
                    (2.1 + (i % 2) * 0.66, 0.43, -4.4 + (i // 2) * 0.66),
                    ext_id("steel"), "Dressing")
     out += box("Shelf", (2.6, 0.06, 0.5), (3.15, 1.2, -1.6), ext_id("steel"), "Dressing")
+    for i, sx in enumerate([-1.25, 1.25]):
+        out += box("ShelfBracket%d" % (i + 1), (0.05, 1.2, 0.45),
+                   (3.15 + sx, 0.6, -1.6), ext_id("steel"), "Dressing")
     for i in range(5):
         out += box("Carton%d" % (i + 1), (0.4, 0.3, 0.4), (2.1 + i * 0.45, 1.38, -1.6),
                    ext_id("paint"), "Dressing")
 
     # Mess: a table, a chair, one place set. Not two.
     out += box("MessTable", (1.6, 0.06, 0.8), (-4.65, 0.74, 5.5), ext_id("paint"), "Dressing")
-    out += box("MessLeg1", (0.06, 0.72, 0.06), (-5.35, 0.36, 5.2), ext_id("steel"), "Dressing")
-    out += box("MessLeg2", (0.06, 0.72, 0.06), (-3.95, 0.36, 5.8), ext_id("steel"), "Dressing")
+    for i, (lx, lz) in enumerate([(-0.72, -0.34), (0.72, -0.34), (-0.72, 0.34), (0.72, 0.34)]):
+        out += box("MessLeg%d" % (i + 1), (0.06, 0.71, 0.06),
+                   (-4.65 + lx, 0.355, 5.5 + lz), ext_id("steel"), "Dressing")
     out += box("MessChair", (0.42, 0.05, 0.42), (-4.65, 0.46, 6.4), ext_id("paint"), "Dressing")
+    out += box("MessChairBack", (0.42, 0.44, 0.05), (-4.65, 0.7, 6.6), ext_id("paint"), "Dressing")
+    for i, (lx, lz) in enumerate([(-0.17, -0.17), (0.17, -0.17), (-0.17, 0.17), (0.17, 0.17)]):
+        out += box("ChairLeg%d" % (i + 1), (0.04, 0.44, 0.04),
+                   (-4.65 + lx, 0.22, 6.4 + lz), ext_id("steel"), "Dressing")
+    # One place set. Not two.
+    out += box("MessMug", (0.09, 0.1, 0.09), (-4.35, 0.82, 5.5), ext_id("paint"), "Dressing")
 
     # Plant room: the cable Emil taped down so nobody trips on it, which is the
     # S1 beat that lands earliest -- a hazard fixed rather than ignored.
