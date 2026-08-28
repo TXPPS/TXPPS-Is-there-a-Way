@@ -24,6 +24,7 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	var interactor: Interactor = player.get_node("Head/Camera/Interactor")
 	var touch: RefCounted = TOUCH.new(tree.root)
 	var button: Control = hud.get_node("Controls/ActionButton")
+	_no_document_needs_a_monospace_font(main, expect)
 	await _the_index_is_complete(tree, main, expect)
 	await _the_menu_lists_what_was_read(tree, main, expect)
 
@@ -190,3 +191,42 @@ func _the_menu_lists_what_was_read(
 	await tree.process_frame
 
 	journal.load_state(kept)
+
+
+## `STORY.md`: **no document may depend on column alignment.**
+##
+## The reader has one proportional font -- there is no licensed monospace in
+## this project and no budget for a generated one -- so a four-column table does
+## not line up, it drifts. The rule is to write records as one line per field,
+## and on a 956-point screen that reads better anyway.
+##
+## The rule was written after Act 1's documents were fixed, and then most of
+## Acts 2 to 4 were written as tables anyway, including the panel schedule that
+## P2.3 turns on. Nothing noticed, because nothing was looking.
+##
+## What a table looks like from here: a line with two or more runs of three or
+## more spaces in it, which is somebody lining up columns by eye.
+func _no_document_needs_a_monospace_font(main: Node, expect: RefCounted) -> void:
+	var journal: Journal = main.get_node("Journal")
+	var offenders := PackedStringArray()
+	for document in journal.index.documents:
+		if document == null:
+			continue
+		for line in document.body.split("\n"):
+			var runs := 0
+			var spaces := 0
+			for index in line.length():
+				if line[index] == " ":
+					spaces += 1
+					continue
+				if spaces >= 3:
+					runs += 1
+				spaces = 0
+			# A leading indent is not a column; two gaps inside a line are.
+			if runs >= 2:
+				offenders.append("%s: %s" % [document.id, line.strip_edges()])
+				break
+	expect.ok(
+		offenders.is_empty(),
+		"no document lines up columns the font will not keep (%s)" % " | ".join(offenders)
+	)

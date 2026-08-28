@@ -604,5 +604,12 @@ one voice.
   budget for a generated one — so a four-column table does not line up. Write
   records as one line per field. On a 956-point screen that reads better anyway,
   which is the usual shape of a constraint worth having.
+
+  This rule was written after Act 1's documents were fixed, and then most of
+  Acts 2 to 4 were written as tables anyway — including the panel schedule
+  P2.3 turns on, and two Act 1 documents that predate the rule and were never
+  revisited. `tests/case_reading.gd` enforces it now: a line with two or more
+  runs of three or more spaces is somebody lining up columns by eye, and it
+  fails naming the document and the line.
 - **The word "kindness" never appears.** Neither does "experiment", "subject 9's
   fate", or any sentence that tells the player how to feel.

@@ -8,23 +8,26 @@ id = &"d18_photometer_log"
 title = "C-6 — certification log"
 byline = "quarterly, 1966–77, one hand throughout"
 hand = 1
-body = "PHOTOMETER C-6. CERT QUARTERLY.
-LUMINAIRE C-1. 150W. DIMMER DRIVEN.
+body = "PHOTOMETER C-6
+CERTIFIED QUARTERLY
 
-DATE      LAMP  DIST   READ   SPEC
-Q1 1966    B    2.0M   121    120 +/- 8
-Q2 1966    B    2.0M   119    120 +/- 8
-Q3 1966    B    2.0M   120    120 +/- 8
-Q4 1966    B    2.0M   118    120 +/- 8
+LUMINAIRE   C-1, 150W, DIMMER DRIVEN
+DISTANCE    2.0M, MARKED ON THE FLOOR
+SPEC        120 LUX, PLUS OR MINUS 8
+
+Q1 1966     READ 121
+Q2 1966     READ 119
+Q3 1966     READ 120
+Q4 1966     READ 118
 
 Forty-four entries. The same distance, the
 same lamp, the same two minutes of somebody's
 quarter, for eleven years.
 
-Q1 1977    B    2.0M   117    120 +/- 8
-Q2 1977    B    2.0M   116    120 +/- 8
-                LAMP LOW BUT IN SPEC.
-                NEW TUBE ON ORDER.
+Q1 1977     READ 117
+Q2 1977     READ 116
+            LAMP LOW BUT IN SPEC.
+            NEW TUBE ON ORDER.
 
 TWO METRES IS THE STANDING DISTANCE.
 IT IS MARKED ON THE FLOOR.

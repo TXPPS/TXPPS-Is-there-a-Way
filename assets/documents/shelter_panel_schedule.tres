@@ -8,23 +8,41 @@ id = &"d09b_shelter_schedule"
 title = "Panel schedule, DP-2 (shelter)"
 byline = "typed card behind glass in the panel door, amended in pencil"
 hand = 0
-body = "PANEL DP-2   208Y/120V 3PH 4W   100A
+body = "PANEL DP-2
+208Y/120V 3PH 4W, 100A
 
-CKT  LOAD                        KW
- 1   SUMP PUMP 7.5 HP           6.9
- 3   ANNEX LIGHTING             4.4
- 5   SHELTER LIGHTING           2.6
- 7   MESS & GALLEY              5.2
- 9   VENT FAN 3 HP              2.8
-11   CHAMBER LUMINAIRES 12      2.5
-13   RECORDER BAY               3.1
-15   WELL PUMP 2 HP             1.9
-17   UNIT HEATER                9.0
+CKT 1   SUMP PUMP 7.5 HP
+        6.9 KW
 
-                    CONNECTED    38.4
+CKT 3   ANNEX LIGHTING
+        4.4 KW
 
-NORMAL SOURCE   STATION SERVICE
-STANDBY SOURCE  SET NO. 1, 30 KW
+CKT 5   SHELTER LIGHTING
+        2.6 KW
+
+CKT 7   MESS & GALLEY
+        5.2 KW
+
+CKT 9   VENT FAN 3 HP
+        2.8 KW
+
+CKT 11  CHAMBER LUMINAIRES, 12
+        2.5 KW
+
+CKT 13  RECORDER BAY
+        3.1 KW
+
+CKT 15  WELL PUMP 2 HP
+        1.9 KW
+
+CKT 17  UNIT HEATER
+        9.0 KW
+
+TOTAL CONNECTED
+        38.4 KW
+
+NORMAL SOURCE   station service
+STANDBY SOURCE  set no. 1, 30 KW
 
 MOTOR LOADS DRAW SEVERAL TIMES NAMEPLATE
 WHILE COMING UP TO SPEED.

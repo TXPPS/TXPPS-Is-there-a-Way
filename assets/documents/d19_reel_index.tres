@@ -11,16 +11,32 @@ hand = 0
 body = "OBSERVER CHANNEL RECORDINGS
 INDEXED BY RUN. FILED BY ACCESSION.
 
-RUN  DATES              ACCESSION
- 1   09/64 - 10/64      RF-0071 to 0098
- 2   02/65 - 03/65      RF-0114 to 0149
- 3   11/65 - 12/65      RF-0202 to 0244
- 4   06/67 - 08/67      RF-0310 to 0388
- 5   03/69 - 04/69      RF-0401 to 0432
- 6   09/71 - 11/71      RF-0500 to 0561
- 7   05/73 - 06/73      RF-0604 to 0637
- 8   01/75 - 02/75      RF-0700 to 0741
- 9   05/77 - ??/77      RF-0801 to 0840
+RUN 1   09/64 to 10/64
+        RF-0071 to 0098
+
+RUN 2   02/65 to 03/65
+        RF-0114 to 0149
+
+RUN 3   11/65 to 12/65
+        RF-0202 to 0244
+
+RUN 4   06/67 to 08/67
+        RF-0310 to 0388
+
+RUN 5   03/69 to 04/69
+        RF-0401 to 0432
+
+RUN 6   09/71 to 11/71
+        RF-0500 to 0561
+
+RUN 7   05/73 to 06/73
+        RF-0604 to 0637
+
+RUN 8   01/75 to 02/75
+        RF-0700 to 0741
+
+RUN 9   05/77 to ??/77
+        RF-0801 to 0840
 
 ONE REEL PER DAY OF RUN. DAY ONE IS THE
 FIRST ACCESSION OF ITS BLOCK.

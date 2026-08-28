@@ -8,29 +8,40 @@ id = &"d09_generator_card"
 title = "Standby set — monthly service"
 byline = "card in a wire frame on the engine room wall, pencil throughout"
 hand = 1
-body = "SET NO. 1   30 KW   ONAN   S/N 4471-J
+body = "SET NO. 1
+30 KW, ONAN, S/N 4471-J
+MONTHLY SERVICE
 
-DATE      HRS   REMARKS
-04 JAN 94  0.5  RUN NO LOAD. OIL OK.
-                DAY TANK ISOL
-07 FEB 94  0.5  RUN NO LOAD. DAY TANK ISOL
-04 MAR 94  0.5  RUN NO LOAD. BATT 12.9
-                DAY TANK ISOL
-05 APR 94  0.5  RUN NO LOAD. DAY TANK ISOL
-02 MAY 94  0.5  RUN NO LOAD. DAY TANK ISOL
-06 JUN 94  0.5  RUN NO LOAD. AIR CLNR.
-                DAY TANK ISOL
+04 JAN 94, 0.5 HR
+RUN NO LOAD. OIL OK.
+DAY TANK ISOL
+
+07 FEB 94, 0.5 HR
+RUN NO LOAD.
+DAY TANK ISOL
+
+04 MAR 94, 0.5 HR
+RUN NO LOAD. BATT 12.9
+DAY TANK ISOL
+
+05 APR 94, 0.5 HR
+RUN NO LOAD.
+DAY TANK ISOL
 
 Forty-seven entries. The same hand, the same
 half hour, the same two words at the end of
 every one of them.
 
-03 NOV 97  0.5  RUN NO LOAD. DAY TANK ISOL
-01 DEC 97  0.5  RUN NO LOAD. BATT 12.8
-                DAY TANK ISOL
-05 JAN 98  0.5  RUN NO LOAD. DAY TANK ISOL
-02 FEB 98  0.5  RUN NO LOAD. DAY TANK ISOL
-02 MAR 98  0.5  RUN NO LOAD. FUEL 340 GAL
-                DAY TANK ISOL
+01 DEC 97, 0.5 HR
+RUN NO LOAD. BATT 12.8
+DAY TANK ISOL
+
+05 JAN 98, 0.5 HR
+RUN NO LOAD.
+DAY TANK ISOL
+
+02 MAR 98, 0.5 HR
+RUN NO LOAD. FUEL 340 GAL
+DAY TANK ISOL
 
 NEXT DUE 05 APR 98"
