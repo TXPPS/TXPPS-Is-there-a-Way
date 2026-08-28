@@ -39,6 +39,7 @@ func _ready() -> void:
 	_settings.changed.connect(_on_setting)
 	_settings.changed.connect(_post.on_setting)
 	_settings.changed.connect(_reader.on_setting)
+	_settings.changed.connect(_hud.subtitles().on_setting)
 	_fear.changed.connect(_post.set_fear)
 	_fear.changed.connect(_score.set_fear)
 	_hud.action_pressed.connect(_on_action)

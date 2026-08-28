@@ -228,6 +228,7 @@ EXT = [
     ("AudioStream", "res://assets/audio/mach_crank.wav", "24_crank"),
     ("AudioStream", "res://assets/audio/mach_catch.wav", "25_catch"),
     ("Script", "res://src/audio/occluder.gd", "26_occl"),
+    ("PackedScene", "res://src/world/devices/device_intercom.tscn", "27_intercom"),
 ]
 EXT += [("Resource", "res://assets/documents/%s.tres" % f, "doc_%s" % k) for k, f in sorted(DOCS.items())]
 
@@ -304,6 +305,7 @@ def build():
     body += _plant()
     body += _panel()
     body += _dressing()
+    body += _intercom()
     body += _pages()
     body += _ways_out()
     return lines, openings, body
@@ -435,6 +437,29 @@ def _dressing():
     out += box("TapedCable", (2.2, 0.05, 0.09), (-7.0, 0.02, -2.0), ext_id("steel"), "Dressing")
     out += box("CableTape1", (0.12, 0.06, 0.13), (-7.9, 0.03, -2.0), ext_id("paper"), "Dressing")
     out += box("CableTape2", (0.12, 0.06, 0.13), (-6.1, 0.03, -2.0), ext_id("paper"), "Dressing")
+    return out
+
+
+# Four sentences. He does not ask a question and does not answer one, because
+# Protocol 4.3 says the observer shall not speak except on the schedule, and he
+# has followed that line for thirty-four years. What makes it frightening is
+# that it is punctual. See STORY.md, plot-hole audit question 9.
+EMIL_LINES = [
+    "Bus is up. That's the set carrying, not the station.",
+    "You'll want the heater off. It's nine kilowatts and it isn't cold yet.",
+    "There's food in the store room. The cycle card is on the door.",
+    "Schedule says twenty-two hundred. I'll not speak again before then.",
+]
+
+
+def _intercom():
+    """C-3, on the mess wall, where a 1964 retrofit would have put it."""
+    out = ['[node name="Intercom" parent="." instance=ExtResource("27_intercom")]']
+    out.append("transform = %s" % t3(facing(SOUTH), (-4.65, 1.5, 2.62)))
+    out.append('save_key = &"intercom"')
+    out.append('lines = Array[String]([%s])'
+               % ", ".join('"%s"' % line.replace('"', '\\"') for line in EMIL_LINES))
+    out.append("")
     return out
 
 

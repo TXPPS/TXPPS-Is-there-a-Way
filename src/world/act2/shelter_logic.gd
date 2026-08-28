@@ -36,6 +36,10 @@ const FLOAT_SECONDS := 9.0
 ## How long the sump runs before the stair is clear.
 const PUMP_SECONDS := 6.0
 
+## The scheduled hour, counted from the bus coming up. Emil speaks once, and
+## not because the player did anything -- which is the point of him.
+const SCHEDULE_SECONDS := 24.0
+
 @export var save_key: StringName = &"act2"
 
 @onready var _valve: DeviceValve = $"../Plant/DayTankValve"
@@ -51,6 +55,7 @@ const PUMP_SECONDS := 6.0
 @onready var _crank: AudioStreamPlayer3D = $"../Plant/Crank"
 @onready var _catch: AudioStreamPlayer3D = $"../Plant/Catch"
 @onready var _diesel: AudioStreamPlayer3D = $"../Plant/Diesel"
+@onready var _intercom: DeviceIntercom = $"../Intercom"
 
 var _running := false
 var _live := false
@@ -59,6 +64,7 @@ var _cranking := -1.0
 var _tripping := -1.0
 var _float := -1.0
 var _pumping := -1.0
+var _scheduled := -1.0
 var _reached: Dictionary[String, bool] = {}
 
 
@@ -124,6 +130,7 @@ func load_state(state: Dictionary) -> void:
 	_tripping = -1.0
 	_float = -1.0
 	_pumping = -1.0
+	_scheduled = -1.0
 	_apply()
 
 
@@ -132,6 +139,7 @@ func _physics_process(delta: float) -> void:
 	_tripping = _advance(_tripping, delta, _on_trip_finished)
 	_float = _advance(_float, delta, _on_float_called)
 	_pumping = _advance(_pumping, delta, _on_pump_finished)
+	_scheduled = _advance(_scheduled, delta, _on_scheduled_hour)
 
 
 ## One countdown, run down and fired once. Four of these in a row is four
@@ -205,6 +213,8 @@ func _reassess(_cause: String) -> void:
 	if not _live:
 		_live = true
 		_float = FLOAT_SECONDS
+		if not _intercom.has_spoken():
+			_scheduled = SCHEDULE_SECONDS
 		_mark("bus")
 		bus_live.emit()
 
@@ -229,6 +239,18 @@ func _drop() -> void:
 	_live = false
 	_float = -1.0
 	_pumping = -1.0
+	# The schedule is not a countdown the player can lose by tripping the bus.
+	# It waits for the power to come back and resumes where it was.
+	_intercom.set_live(false)
+
+
+# --- P2.4 the intercom, which is a scene and not a gate ---------------------
+
+func _on_scheduled_hour() -> void:
+	if not _live:
+		_scheduled = 4.0   # ask again once there is power to ask with
+		return
+	_intercom.speak()
 
 
 ## The sump is on a float switch, so the player does not choose when it starts.
@@ -273,6 +295,8 @@ func _stair_clear() -> bool:
 func _apply() -> void:
 	if _stair_water != null:
 		_stair_water.visible = not _stair_clear()
+	if _intercom != null:
+		_intercom.set_live(_live)
 	var reachable := _stair_clear() and _live and _annex_light.on
 	if reachable and not _annex_door.open:
 		_annex_door.open = true

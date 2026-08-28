@@ -39,6 +39,7 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	await _too_much_load(tree, logic, plant, breakers, trips, expect)
 	await _the_obvious_answer_fails(tree, logic, plant, breakers, trips, expect)
 	await _shedding_enough(tree, logic, plant, breakers, expect)
+	await _emil_speaks(tree, main, shelter, expect)
 	await _the_way_on(tree, shelter, logic, expect)
 	_the_set_is_heard(shelter, expect)
 
@@ -181,6 +182,41 @@ func _the_way_on(
 	expect.ok(not shelter.get_node("StairWater").visible, "and the water is gone from it")
 	expect.ok(shelter.get_node("AnnexDoor").open, "the annex door is found already open")
 	expect.ok((shelter.get_node("Seam") as LightSeam).was_shown(), "and the seam happens, once")
+
+
+## P2.4. Not a gate: a scene, on a schedule the player did not set and cannot
+## trigger, which is the whole of what makes Emil frightening. See STORY.md's
+## plot-hole audit, question 9.
+func _emil_speaks(
+	tree: SceneTree, main: Node, shelter: Node3D, expect: RefCounted
+) -> void:
+	var intercom: DeviceIntercom = shelter.get_node("Intercom")
+	var hud: Hud = main.get_node("Hud")
+	expect.ok(intercom.lines.size() == 4, "he has four sentences (%d)" % intercom.lines.size())
+	for line in intercom.lines:
+		expect.ok(
+			not String(line).ends_with("?"),
+			"and none of them is a question (%s)" % line
+		)
+
+	for frame in PATIENCE:
+		await tree.physics_frame
+		if intercom.has_spoken():
+			break
+	expect.ok(intercom.has_spoken(), "the scheduled hour comes and he speaks")
+
+	await tree.process_frame
+	expect.ok(
+		hud.probe()["subtitle"] == intercom.lines[0],
+		"the first line is on the screen (%s)" % hud.probe()["subtitle"]
+	)
+	expect.ok(
+		hud.subtitles().speaking(),
+		"with the rest of them still to come"
+	)
+	hud.subtitles().clear()
+	await tree.process_frame
+	expect.ok(hud.probe()["subtitle"] == "", "and the band clears when there is nothing to say")
 
 
 ## The set has a voice, and the voice is running because the set is.

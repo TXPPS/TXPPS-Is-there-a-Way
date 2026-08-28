@@ -1,4 +1,4 @@
-[gd_scene load_steps=43 format=3]
+[gd_scene load_steps=44 format=3]
 
 [ext_resource type="Script" path="res://src/world/kit/room_box.gd" id="1_room"]
 [ext_resource type="Script" path="res://src/world/kit/opening.gd" id="2_open"]
@@ -27,6 +27,7 @@
 [ext_resource type="AudioStream" path="res://assets/audio/mach_crank.wav" id="24_crank"]
 [ext_resource type="AudioStream" path="res://assets/audio/mach_catch.wav" id="25_catch"]
 [ext_resource type="Script" path="res://src/audio/occluder.gd" id="26_occl"]
+[ext_resource type="PackedScene" path="res://src/world/devices/device_intercom.tscn" id="27_intercom"]
 [ext_resource type="Resource" path="res://assets/documents/d07_stocking_manifest.tres" id="doc_d07"]
 [ext_resource type="Resource" path="res://assets/documents/d08_ration_card.tres" id="doc_d08"]
 [ext_resource type="Resource" path="res://assets/documents/d09_generator_card.tres" id="doc_d09"]
@@ -578,6 +579,11 @@ script = ExtResource("3_slab")
 size = Vector3(0.12, 0.06, 0.13)
 material = ExtResource("7b_paper")
 solid = true
+
+[node name="Intercom" parent="." instance=ExtResource("27_intercom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.65, 1.5, 2.62)
+save_key = &"intercom"
+lines = Array[String](["Bus is up. That's the set carrying, not the station.", "You'll want the heater off. It's nine kilowatts and it isn't cold yet.", "There's food in the store room. The cycle card is on the door.", "Schedule says twenty-two hundred. I'll not speak again before then."])
 
 [node name="Readables" type="Node3D" parent="."]
 

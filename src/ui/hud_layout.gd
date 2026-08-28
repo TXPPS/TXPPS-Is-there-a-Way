@@ -68,6 +68,13 @@ extends Resource
 ## straight into the buttons it belongs to.
 @export_range(0.0, 160.0, 1.0) var prompt_gap: float = 26.0
 
+## Subtitles sit above the prompt, wider and taller: a line of speech is longer
+## than "Turn the wheel" and may wrap to two.
+@export var subtitle_size: Vector2 = Vector2(640.0, 96.0)
+
+## Between the top of the prompt and the bottom of the subtitle band.
+@export_range(0.0, 160.0, 1.0) var subtitle_gap: float = 16.0
+
 @export_group("Reach")
 
 ## Apple's floor for a touch target, in points. Enforced at runtime against the
@@ -96,6 +103,17 @@ func prompt_rect(safe: Rect2, offset: Vector2) -> Rect2:
 	return Rect2(
 		Vector2(safe.get_center().x - prompt_size.x * 0.5, bottom - prompt_size.y),
 		prompt_size
+	)
+
+
+## Above the prompt, centred. Deliberately stacked on the prompt rather than
+## pinned to the bottom of the safe area: the bottom belongs to the sticks and
+## the action arc, and a subtitle under a thumb is a subtitle nobody reads.
+func subtitle_rect(safe: Rect2, offset: Vector2) -> Rect2:
+	var bottom := prompt_rect(safe, offset).position.y - subtitle_gap
+	return Rect2(
+		Vector2(safe.get_center().x - subtitle_size.x * 0.5, bottom - subtitle_size.y),
+		subtitle_size
 	)
 
 

@@ -52,6 +52,7 @@ const OVERLAY_TOP_POINTS := 56.0
 @onready var _pause: TouchButton = $Controls/PauseButton
 @onready var _action: TouchButton = $Controls/ActionButton
 @onready var _prompt: Label = $Controls/Prompt
+@onready var _subtitles: Subtitles = $Controls/Subtitles
 @onready var _overlay: DebugOverlay = $SafeArea/DebugOverlay
 
 var _style: LookStyle = LookStyle.STICK
@@ -176,6 +177,7 @@ func probe() -> Dictionary:
 		"look": [_look.value.x, _look.value.y],
 		"focused": _focused,
 		"prompt": _prompt.text if _prompt.visible else "",
+		"subtitle": _subtitles.text if _subtitles.visible else "",
 		"rects": _rects.describe(),
 	}
 
@@ -191,6 +193,7 @@ func _relayout() -> void:
 	_action.position = layout.action_centre(safe, _stick_offset, 0)
 	_action.radius = maxf(layout.action_button_radius, layout.min_touch_points * scale * 0.5)
 	_place_prompt(safe)
+	_place_subtitles(safe)
 	_pause.radius = maxf(layout.pause_radius, layout.min_touch_points * scale * 0.5)
 	for stick in [_move, _look]:
 		stick.radius = radius
@@ -232,6 +235,21 @@ func _reserve_rects() -> void:
 		_rects.reserve(LOOK, _stick_rect.bind(_look))
 	else:
 		_rects.release(LOOK)
+
+
+## Subtitles are a consumer of screen area too, and the loudest one: a line of
+## speech is the widest thing the HUD draws. It sits above the prompt for the
+## same reason the prompt sits above the arc -- the bottom of the screen belongs
+## to the thumbs.
+func _place_subtitles(safe: Rect2) -> void:
+	var area := layout.subtitle_rect(safe, _stick_offset)
+	_subtitles.position = area.position
+	_subtitles.size = area.size
+
+
+## What is being said, for the suite and the overlay.
+func subtitles() -> Subtitles:
+	return _subtitles
 
 
 ## The prompt is a consumer of screen area, not an owner of it: it asks rather

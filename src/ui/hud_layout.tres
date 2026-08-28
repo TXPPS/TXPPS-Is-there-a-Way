@@ -17,4 +17,6 @@ pause_inset = Vector2(46, 44)
 pause_radius = 34.0
 prompt_size = Vector2(420, 44)
 prompt_gap = 26.0
+subtitle_size = Vector2(640, 96)
+subtitle_gap = 16.0
 min_touch_points = 44.0

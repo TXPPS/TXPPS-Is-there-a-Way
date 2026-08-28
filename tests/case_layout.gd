@@ -34,6 +34,21 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 		tree.root.get_visible_rect().get_center() - PROBE_SIZE * 0.5, PROBE_SIZE
 	)
 	expect.ok(rects.is_clear(middle), "the middle of the screen is free for a prompt")
+
+	# The two things the HUD draws that are not controls have to obey the same
+	# contract as anything else: nothing is drawn where a thumb already is.
+	# Subtitles are the widest thing on screen, so they are the likeliest to
+	# collide, and a line of Emil's under a thumb is a line nobody reads.
+	var inside := (hud.get_node("SafeArea") as SafeArea).rect()
+	for named in [
+		[&"prompt", hud.layout.prompt_rect(inside, Vector2.ZERO)],
+		[&"subtitles", hud.layout.subtitle_rect(inside, Vector2.ZERO)],
+	]:
+		var hit := rects.conflicts(named[1] as Rect2)
+		expect.ok(
+			hit.is_empty(),
+			"the %s band is clear of every control (%s)" % [named[0], " ".join(hit)]
+		)
 	var over_stick := Rect2(live[Hud.MOVE].get_center() - PROBE_SIZE * 0.5, PROBE_SIZE)
 	expect.ok(
 		not rects.is_clear(over_stick),
