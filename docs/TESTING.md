@@ -41,6 +41,8 @@ tests/case_reading.gd  picking a page up, scrolling it, and remembering it
 tests/case_devices.gd  Act 2's parts on their own, and the load arithmetic
 tests/case_act1.gd     the whole act, from the first breaker to the door
 tests/case_act2.gd     the shelter, including the answer that looks right
+tests/case_tools.gd    carrying something, and what the meter reads
+tests/case_observer.gd the entity's rule, row by row from the bible
 tests/case_reach.gd    can a player actually stand somewhere and touch each thing
 ```
 
@@ -122,6 +124,8 @@ mix untestable until the wire comes off for the duration.
 | act1 | **is it finishable.** Every other case asserts a mechanism; this one walks the act. It also walks the stair rather than teleporting past it, because the only way to know a ramp under the nosings is right is to put a player on it and see where they end up. |
 | devices | a valve that reports open one turn early; a selector that runs off the end of its own plate; a nameplate edited on a prop until the load puzzle has one answer or none |
 | act2 | **is the wrong answer still interesting.** It walks the shed-the-heater allocation that holds for nine seconds and then dies when the sump starts, because that failure is the act's best moment and would ship broken silently |
+| tools | a tool that follows the camera instead of being it; one that vanishes when the act it was found in is thrown away; a save that puts it in the wrong hand |
+| observer | every row of STORY.md's rule table, because the player is meant to *learn* those rows and a rule that is true four times in five is not a rule |
 | reach | **is it touchable.** For every interactable in the act it works out where a player would have to stand, checks there is floor there, aims from eye height, and asks the interactor what it sees. It is the only case that can fail with "line of sight blocked by StaticBody3D", and it is the case that found the most: see below. |
 
 A case that leaves the world somewhere runs before one that assumes where it is.
@@ -443,3 +447,24 @@ where it belongs — that check needs a real phone anyway.
 (An attempt to add a Playwright run against the published URL was abandoned: in
 this container Chromium's HTTPS never reaches the egress proxy, so it could not
 be made to work honestly. It would also have duplicated the two checks above.)
+
+---
+
+## Empty space is part of the fixture
+
+Two cases build their own scene rather than using an act: `case_observer` needs
+a lamp, a stand-in and nothing else, and `case_tools` needs a room with one
+light in it and one body between.
+
+Both put that scene **sixty metres under the building**, and they have to. The
+suite runs every case against one tree and one physics space, so a bare lamp at
+the origin is inside Act 1's generator hall, and every sight line either case
+cares about is cut by a wall it never asked for. The first version of
+`case_observer` failed nine checks for exactly that reason and the failures all
+looked like bugs in the entity.
+
+The matching rule: **a case that changes the world puts it back.** Cases run in
+one process in order, so a case that finishes in the wrong act, or leaves a prop
+in somebody else's level, breaks its *neighbours* rather than itself — which is
+the worst way to find out. `case_tools` borrows the mounted act to put a
+photometer in, and asserts that it took it out again.

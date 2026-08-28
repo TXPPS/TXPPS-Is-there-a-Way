@@ -1,0 +1,51 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://src/world/tools/carried_tool.gd" id="1_tool"]
+[ext_resource type="Script" path="res://src/world/tools/photometer.gd" id="2_meter"]
+[ext_resource type="Script" path="res://src/world/interactable.gd" id="3_zone"]
+[ext_resource type="Material" path="res://assets/materials/graybox_paint.tres" id="4_paint"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_case"]
+size = Vector3(0.13, 0.19, 0.05)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_reach"]
+size = Vector3(0.3, 0.32, 0.24)
+
+; C-6. A hand meter in a bakelite case with a window on the front and a cell on
+; a short lead, certified quarterly since 1964 and signed by Emil every time.
+; Faces +Z: the face the reading is on is the face the player is shown.
+[node name="Photometer" type="Node3D" groups=["saveable", "carried_tool"]]
+script = ExtResource("1_tool")
+save_key = &"photometer"
+tool_name = "photometer"
+instrument = NodePath("Meter")
+
+[node name="Case" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_case")
+surface_material_override/0 = ExtResource("4_paint")
+
+[node name="Face" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.035, 0.027)
+pixel_size = 0.0006
+billboard = 0
+shaded = false
+double_sided = false
+modulate = Color(0.72, 0.95, 0.68, 1)
+outline_size = 0
+font_size = 64
+text = "-- lx"
+
+[node name="Meter" type="Node" parent="."]
+script = ExtResource("2_meter")
+display = NodePath("../Face")
+
+[node name="Zone" type="Area3D" parent="."]
+collision_layer = 4
+collision_mask = 0
+monitoring = false
+script = ExtResource("3_zone")
+prompt = "Take the photometer"
+instant = true
+
+[node name="Shape" type="CollisionShape3D" parent="Zone"]
+shape = SubResource("BoxShape3D_reach")

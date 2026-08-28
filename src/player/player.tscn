@@ -1,6 +1,7 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://src/player/player.gd" id="1_player"]
+[ext_resource type="Script" path="res://src/player/hands.gd" id="HANDS"]
 [ext_resource type="Resource" path="res://src/player/player_tuning.tres" id="2_tuning"]
 [ext_resource type="Script" path="res://src/player/interactor.gd" id="3_interactor"]
 [ext_resource type="Script" path="res://src/audio/footsteps.gd" id="4_steps"]
@@ -50,6 +51,12 @@ script = ExtResource("3_interactor")
 
 ; At the feet, not at the head: a footstep that comes from your ears is a
 ; footstep that sounds like somebody else's.
+
+; What the player is carrying, under the camera so a held tool *is* the camera's
+; transform rather than something that follows it and disagrees on some frame.
+[node name="Hands" type="Node3D" parent="Head/Camera" groups=["saveable"]]
+script = ExtResource("HANDS")
+save_key = &"hands"
 [node name="Footsteps" type="Node3D" parent="."]
 script = ExtResource("4_steps")
 default_surface = ExtResource("5_concrete")

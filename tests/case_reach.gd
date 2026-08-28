@@ -22,7 +22,7 @@ const EYE := 1.62
 ## wherever the generator put them.
 const ACTS := [
 	{"index": 0, "node": "Powerhouse", "least": 12},
-	{"index": 1, "node": "Shelter", "least": 18},
+	{"index": 1, "node": "Shelter", "least": 22},
 ]
 
 

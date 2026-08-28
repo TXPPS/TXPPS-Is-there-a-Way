@@ -329,9 +329,18 @@ func _saving(
 ## is named and fails.
 ##
 ## Returns the keys that refused to change, which is the failure worth printing.
+## Nodes whose saved state is *the name of another node*. A synthetic wrong
+## value for one of these is a node that does not exist, and correctly ending up
+## holding nothing is indistinguishable from having ignored the input. They are
+## covered directly instead, by a case that hands them something real.
+const BY_REFERENCE: Array[StringName] = [&"hands"]
+
+
 func _derange(tree: SceneTree) -> Array[String]:
 	var refused: Array[String] = []
 	for node in tree.get_nodes_in_group(&"saveable"):
+		if BY_REFERENCE.has(node.get("save_key")):
+			continue
 		var state: Dictionary = node.call("save_state")
 		var wrong := {}
 		var changeable := false

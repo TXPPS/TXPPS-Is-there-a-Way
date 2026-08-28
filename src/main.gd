@@ -22,6 +22,7 @@ extends Node3D
 @onready var _world: WorldEnvironment = $WorldEnvironment
 @onready var _interactor: Interactor = $Player/Head/Camera/Interactor
 @onready var _acts: ActRunner = $Acts
+@onready var _hands: Hands = $Player/Head/Camera/Hands
 
 ## Whatever the player is engaged with, or null. The only thing gestures go to
 ## while GameState says FOCUSED.
@@ -51,8 +52,7 @@ func _ready() -> void:
 	_interactor.target_changed.connect(_on_target_changed)
 	if is_instance_valid(_shots):
 		_shots.bind(_player, _hud, _reader)
-	_wire_readables()
-	_wire_act()
+	wire_level()
 	if is_instance_valid(_acts):
 		_acts.act_changed.connect(_on_act_changed)
 	_settings.apply_all()
@@ -106,14 +106,42 @@ func _wire_act() -> void:
 	var logic := get_tree().get_first_node_in_group(&"act_logic")
 	if logic == null:
 		return
-	logic.connect(&"checkpoint_reached", Callable(_saves, "checkpoint"))
+	_link(Signal(logic, &"checkpoint_reached"), Callable(_saves, "checkpoint"))
 
 
-## An act was swapped in. Everything that was wired to the old one is gone with
-## it, so this is the same wiring again rather than an update of it.
-func _on_act_changed(_root: Node) -> void:
+## Connects everything in the level to the services that drive it: pages to the
+## reader, tools to the hands, the act's checkpoints to the saves, the act's
+## grade to the post stack.
+##
+## Public, and idempotent, because it is called from three places: once at
+## startup, again whenever an act is swapped in, and by the suite when a test
+## puts something in the level by hand. Everything wired to the old act went
+## with it, so this is the same wiring again rather than an update of it.
+func wire_level() -> void:
 	_wire_readables()
+	_wire_tools()
 	_wire_act()
+
+
+func _on_act_changed(_root: Node) -> void:
+	wire_level()
+
+
+## Every tool in the level, wired here for the same reason readables are: a tool
+## that had to find the player's hands for itself would work differently in a
+## test scene. A tool already in those hands is skipped -- it left the old act
+## with the player and is not the new act's to claim.
+func _wire_tools() -> void:
+	for node in get_tree().get_nodes_in_group(&"carried_tool"):
+		var tool := node as CarriedTool
+		if tool == null or tool.held():
+			continue
+		_link(tool.taken, _on_tool_taken.bind(tool))
+
+
+func _on_tool_taken(tool: CarriedTool) -> void:
+	_hands.take(tool)
+	_interactor.set_scanning(true)
 
 
 ## Every page in the level, wired here rather than each one finding the reader
@@ -125,10 +153,20 @@ func _wire_readables() -> void:
 		var page := node as Readable
 		if page == null:
 			continue
-		page.opened.connect(_reader.show_document)
-		page.opened.connect(_journal.mark_read)
-		page.closed.connect(_reader.close)
-		page.scrolled.connect(_reader.scroll_by)
+		# Guarded rather than connected blind: `wire_level` is called again on
+		# every act swap, and a page that survived one -- or was put in the
+		# level by hand -- would otherwise open its document twice.
+		_link(page.opened, _reader.show_document)
+		_link(page.opened, _journal.mark_read)
+		_link(page.closed, _reader.close)
+		_link(page.scrolled, _reader.scroll_by)
+
+
+## One connection, once. Enough of the wiring above runs more than once that
+## the guard is worth a name rather than four copies of an `if`.
+func _link(from: Signal, to: Callable) -> void:
+	if not from.is_connected(to):
+		from.connect(to)
 
 
 ## Whether the player is inside the useful reach of any lit practical. The
@@ -160,6 +198,12 @@ func _on_action() -> void:
 		return
 	var target := _interactor.target()
 	if target == null:
+		# The action button with nothing to act on, while carrying something,
+		# puts it down. No new control for it: "act" with no target is already
+		# a press that does nothing, and this is the obvious thing for it to
+		# mean once the player's hands can be full.
+		if not _hands.empty():
+			_hands.drop()
 		return
 	# A switch is used, not engaged with: it acts and the player is still
 	# standing there with both sticks, which is what flipping a switch is like.
