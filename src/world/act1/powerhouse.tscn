@@ -38,11 +38,11 @@
 [ext_resource type="PackedScene" path="res://src/world/devices/device_toggle.tscn" id="23_toggle"]
 [ext_resource type="PackedScene" path="res://src/world/devices/device_push.tscn" id="24_push"]
 [ext_resource type="PackedScene" path="res://src/world/devices/device_door.tscn" id="25_door"]
-[ext_resource type="Resource" path="res://assets/documents/d07_panel_schedule.tres" id="26_sched"]
+[ext_resource type="Resource" path="res://assets/documents/panel_schedule.tres" id="26_sched"]
 [ext_resource type="AudioStream" path="res://assets/audio/bell_admit.wav" id="27_bell"]
 [ext_resource type="Resource" path="res://assets/surfaces/grating.tres" id="28_grating"]
 [ext_resource type="Script" path="res://src/world/act1/act_end.gd" id="29_end"]
-[ext_resource type="Resource" path="res://assets/documents/d08_act_end.tres" id="30_card"]
+[ext_resource type="Resource" path="res://assets/documents/act_end_card.tres" id="30_card"]
 
 [sub_resource type="Resource" id="Opening_1"]
 script = ExtResource("2_open")

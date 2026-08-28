@@ -423,3 +423,33 @@ rather than something they start lost in. If it is still unplayable, the next
 move is more of the same -- level design, not a brighter torch.
 
 Cost to reverse: low.
+
+---
+
+## D26 — The bible's document numbers win a collision with the code
+
+**Decided:** when an implementation file has taken a `D-` number the bible
+assigns to something else, the file is renamed, not the bible.
+
+Act 1 shipped `d07_panel_schedule.tres` and `d08_act_end.tres`. `STORY.md` gives
+`D-07` to the shelter stocking manifest and `D-08` to the ration rotation card,
+both Act 2 documents, so building Act 2 collided with Act 1's asset names.
+
+**Alternatives:** renumber Act 2 to start at `D-09`, or renumber the whole
+scheme so Act 1 runs `D-01`–`D-08`.
+
+Both mean editing `D-` references inside `STORY.md` and `PUZZLES.md`, which name
+specific documents in specific puzzles — `D-09` is the generator service card
+that solves P2.1, `D-13` states the entity's rule. A renumber that misses one
+leaves a puzzle pointing at the wrong document, and nothing would catch it. The
+bible is the thing every later act is written against; the asset filename is
+read by one line of one scene file.
+
+So the panel schedule became `panel_schedule.tres` and took the id `D-04a`,
+which is honest about what it is: a panel schedule is an annex to the operating
+documents, lives inside the panel door because the code says so, and is not a
+standalone find. It was missing from the bible's Act 1 table and has been added
+there. The end-of-act card became `act_end_card.tres` and lost its number
+entirely — it is a title card, not a document somebody wrote and left.
+
+Cost to reverse: low, and lower now than it would have been in another act.

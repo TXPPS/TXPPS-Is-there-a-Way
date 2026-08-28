@@ -352,6 +352,7 @@ had a reason to write it and a reason to leave it there.
 | `D-02` | Lockmaster's log, 1993–94 | G. Pfeiffer | Statutory | What normal looked like |
 | `D-03` | Lockmaster's log, 1994–98 | Emil, in pencil | Nobody asked him to. He kept it because the log gets kept. | Someone is here. This is the first S1 beat. |
 | `D-04` | Flood-response sequence card, laminated, at the panel | Corps, 1954 | Operating instruction | The rules of the lock you are inside |
+| `D-04a` | Panel schedule, DP-1, inside the panel door | Corps, amended in pencil | A panel schedule lives in the panel door because the code says so | Which circuit is which, and therefore which one is faulted |
 | `D-05` | Hand-lettered card, `WATCH THE THIRD STEP` | Emil | Because the step is bad and somebody might fall | Kindness, unattributed |
 | `D-06` | Battery room service tag | Emil, monthly since 1994 | The batteries need servicing | The plant is maintained. By whom? |
 

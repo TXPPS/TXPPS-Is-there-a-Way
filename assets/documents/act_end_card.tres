@@ -9,7 +9,7 @@
 
 [resource]
 script = ExtResource("1_doc")
-id = &"d08_act_end"
+id = &"act_end_card"
 title = "End of Act One"
 byline = "This is the edge of what is built, not the end of the story."
 hand = 0

@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_doc")
-id = &"d07_panel_schedule"
+id = &"d04a_panel_schedule"
 title = "Panel schedule, DP-1"
 byline = "Printed card behind the panel door. 1954, and corrected twice in pencil."
 hand = 3
