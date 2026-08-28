@@ -7,7 +7,14 @@ extends Node3D
 ## otherwise a circle, and the digit is a Label3D because the alternative is a
 ## texture, and this project makes no textures it did not generate.
 
-const DIGITS := 10
+## How many positions before it comes round again. Ten for a combination wheel,
+## twenty-four for the hour drum on the programme's timeclock. A property rather
+## than a constant because the two live in the same bank of wheels and turn the
+## same way; only the counting differs.
+var modulus: int = 10:
+	set(value):
+		modulus = maxi(2, value)
+		set_digit(digit)
 
 var digit: int = 0
 
@@ -20,9 +27,14 @@ func _ready() -> void:
 
 
 func set_digit(value: int) -> void:
-	digit = wrapi(value, 0, DIGITS)
-	_label.text = str(digit)
-	_barrel.rotation.z = -TAU * float(digit) / float(DIGITS)
+	digit = wrapi(value, 0, modulus)
+	if _label == null:
+		return
+	# Two digits on a twenty-four hour drum, one on a combination wheel: a clock
+	# face that reads "7" where it should read "07" is a clock face nobody
+	# trusts, and the leading zero is what makes it read as a time.
+	_label.text = ("%02d" % digit) if modulus > 10 else str(digit)
+	_barrel.rotation.z = -TAU * float(digit) / float(modulus)
 
 
 func highlight(on: bool) -> void:

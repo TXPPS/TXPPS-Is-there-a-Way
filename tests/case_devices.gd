@@ -10,6 +10,8 @@ extends RefCounted
 
 const VALVE := preload("res://src/world/devices/device_valve.tscn")
 const SELECTOR := preload("res://src/world/devices/device_selector.tscn")
+const TIMECLOCK := preload("res://src/world/puzzles/timeclock.tscn")
+const INTERLOCK := preload("res://src/world/devices/device_interlock.tscn")
 
 ## Act 2's distribution panel, as nameplates: running kW, then starting kW.
 ## These are the numbers on the props, and the puzzle is only as good as they
@@ -33,6 +35,94 @@ func run(tree: SceneTree, _main: Node, expect: RefCounted) -> void:
 	await _selector_walks_its_plate(tree, expect)
 	await _selector_survives_a_bad_save(tree, expect)
 	_the_load_budget(expect)
+	await _the_timeclock(tree, expect)
+	await _the_interlock(tree, expect)
+
+
+# --- P3.1, as two devices that have to agree --------------------------------
+
+## The cam relationship, which is the whole of P3.1 and is stated in exactly one
+## place in the world (`D-16`): **tooth n covers hours 2n and 2n+1.**
+##
+## Asserted here rather than through the act because the failure it guards
+## against is arithmetic -- a clock that is off by one window is a puzzle with
+## no solution and no way to tell.
+func _the_timeclock(tree: SceneTree, expect: RefCounted) -> void:
+	var clock: Timeclock = TIMECLOCK.instantiate()
+	tree.root.add_child(clock)
+	await tree.process_frame
+
+	expect.eq(clock.digits().size(), 3, "an hour drum and one cam wheel per chamber")
+
+	clock.load_state({"digits": [6, 3, 0]})
+	expect.eq(clock.hour(), 6, "the drum reads the hour")
+	expect.eq(clock.cam(&"B"), 3, "and each cam reads its tooth")
+	expect.ok(clock.lit(&"B"), "tooth 3 covers hours 6 and 7, so at 06:00 chamber B is lit")
+
+	clock.load_state({"digits": [7, 3, 0]})
+	expect.ok(clock.lit(&"B"), "and at 07:00 it still is")
+
+	clock.load_state({"digits": [8, 3, 0]})
+	expect.ok(not clock.lit(&"B"), "at 08:00 the window has passed and it is dark")
+
+	clock.load_state({"digits": [8, 4, 0]})
+	expect.ok(clock.lit(&"B"), "cut the cam one tooth on and it is lit again")
+
+	expect.ok(not clock.lit(&"C"), "the other chamber has its own cam and its own answer")
+	expect.eq(clock.cam(&"A"), -1, "and a chamber this clock does not drive says so")
+
+	# Twenty-four hours, twelve teeth: every hour of the day is in exactly one
+	# window, and every window is reachable.
+	var covered := {}
+	for hour in 24:
+		clock.load_state({"digits": [hour, int(hour / 2), 0]})
+		expect.ok(clock.lit(&"B"), "hour %02d is covered by tooth %d" % [hour, int(hour / 2)])
+		covered[int(hour / 2)] = true
+	expect.eq(covered.size(), 12, "and the twelve teeth cover the day exactly once each")
+
+	clock.queue_free()
+	await tree.process_frame
+
+
+## C-7. It has an opinion about voltage and no opinion about the puzzle.
+func _the_interlock(tree: SceneTree, expect: RefCounted) -> void:
+	var lock: DeviceInterlock = INTERLOCK.instantiate()
+	tree.root.add_child(lock)
+	await tree.process_frame
+
+	var live := {"B": true}
+	lock.watch(func(channel: StringName) -> bool: return live.get(String(channel), false))
+
+	var out: Array[String] = []
+	var stuck: Array[String] = []
+	lock.released.connect(func(c: StringName) -> void: out.append(String(c)))
+	lock.refused.connect(func(c: StringName) -> void: stuck.append(String(c)))
+
+	lock.ask_for(&"B")
+	lock.get_node("Zone").engage()
+	expect.ok(not lock.has_key(&"B"), "it will not let go of a key while the circuit is live")
+	expect.eq(stuck.size(), 1, "and says so")
+	expect.ok(
+		String((lock.get_node("Zone") as Interactable).prompt).contains("circuit dead"),
+		"the plate says when it releases, not what to go and do about it"
+	)
+
+	live["B"] = false
+	lock.get_node("Zone").engage()
+	expect.ok(lock.has_key(&"B"), "kill the circuit and the key comes out")
+	expect.eq(out, ["B"], "once, for the channel that was asked for")
+
+	lock.get_node("Zone").engage()
+	expect.eq(out.size(), 1, "and pulling again does not release it twice")
+
+	var kept := lock.save_state()
+	lock.load_state({"keys": []})
+	expect.ok(not lock.has_key(&"B"), "the keys can be put back")
+	lock.load_state(kept)
+	expect.ok(lock.has_key(&"B"), "and a save remembers which are out")
+
+	lock.queue_free()
+	await tree.process_frame
 
 
 # --- P2.3, as arithmetic ----------------------------------------------------

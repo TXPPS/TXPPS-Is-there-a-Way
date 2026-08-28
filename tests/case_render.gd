@@ -67,6 +67,48 @@ func _the_act_chooses_the_grade(
 	expect.eq(String(post.grade()), "act1", "the shelter is still the dam's palette")
 	runner.load_act(0)
 	await tree.physics_frame
+	await _the_threshold_changes_the_colour(tree, main, post, expect)
+
+
+## The palette shift belongs to a doorway, not to a load. See DECISIONS.md D28:
+## the annex is rooms inside Act 2's scene, because P3.3 sends the player back
+## to Act 2's panel and that only means anything if it is the same panel.
+func _the_threshold_changes_the_colour(
+	tree: SceneTree, main: Node, post: PostStack, expect: RefCounted
+) -> void:
+	var player: Player = main.get_node("Player")
+	var zone := GradeZone.new()
+	zone.grade = &"annex"
+	zone.collision_layer = 0
+	zone.collision_mask = 2
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(4.0, 3.0, 4.0)
+	shape.shape = box
+	zone.add_child(shape)
+	main.add_child(zone)
+	zone.global_position = Vector3(-6.0, 1.0, -2.5)
+	await tree.physics_frame
+
+	expect.eq(String(post.grade()), "act1", "outside it, the act's own colour")
+
+	player.global_position = Vector3(-6.0, 0.1, -2.5)
+	await tree.physics_frame
+	await tree.physics_frame
+	expect.ok(zone.inside(), "the player crosses the threshold")
+	expect.eq(String(post.grade()), "annex", "and the colour changes with them")
+
+	player.global_position = Vector3(-6.0, 0.1, 4.0)
+	await tree.physics_frame
+	await tree.physics_frame
+	expect.ok(not zone.inside(), "walk back out")
+	expect.eq(
+		String(post.grade()), "act1",
+		"and the act's colour comes back -- the zone does not decide what is outside it"
+	)
+
+	zone.queue_free()
+	await tree.process_frame
 
 
 ## A tired tube stumbles; a sodium lamp does not. The difference is most of what

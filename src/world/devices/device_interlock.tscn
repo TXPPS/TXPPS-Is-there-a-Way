@@ -1,0 +1,60 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://src/world/devices/device_interlock.gd" id="1_lock"]
+[ext_resource type="Script" path="res://src/world/interactable.gd" id="2_zone"]
+[ext_resource type="Material" path="res://assets/materials/graybox_paint.tres" id="3_paint"]
+[ext_resource type="Material" path="res://assets/materials/graybox_steel.tres" id="4_steel"]
+[ext_resource type="AudioStream" path="res://assets/audio/metal_wrench.wav" id="9_sound"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_cabinet"]
+size = Vector3(0.34, 0.46, 0.16)
+
+[sub_resource type="BoxMesh" id="BoxMesh_key"]
+size = Vector3(0.03, 0.09, 0.03)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_reach"]
+size = Vector3(0.46, 0.6, 0.28)
+
+; C-7. A painted steel cabinet with three captive keys in a row. Faces +Z.
+[node name="DeviceInterlock" type="Node3D" groups=["saveable"]]
+script = ExtResource("1_lock")
+save_key = &"interlock"
+
+[node name="Cabinet" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.08)
+mesh = SubResource("BoxMesh_cabinet")
+surface_material_override/0 = ExtResource("3_paint")
+
+[node name="KeyA" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1, -0.06, 0.17)
+mesh = SubResource("BoxMesh_key")
+surface_material_override/0 = ExtResource("4_steel")
+
+[node name="KeyB" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.06, 0.17)
+mesh = SubResource("BoxMesh_key")
+surface_material_override/0 = ExtResource("4_steel")
+
+[node name="KeyC" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, -0.06, 0.17)
+mesh = SubResource("BoxMesh_key")
+surface_material_override/0 = ExtResource("4_steel")
+
+[node name="Zone" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.1)
+collision_layer = 4
+collision_mask = 0
+monitoring = false
+script = ExtResource("2_zone")
+prompt = "Chamber keys, captive"
+instant = true
+
+[node name="Shape" type="CollisionShape3D" parent="Zone"]
+shape = SubResource("BoxShape3D_reach")
+
+[node name="Sound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("9_sound")
+volume_db = -9.0
+bus = &"SFX"
+unit_size = 2.6
+max_db = 0.0

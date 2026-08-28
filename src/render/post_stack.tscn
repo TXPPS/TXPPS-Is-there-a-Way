@@ -9,7 +9,7 @@ shader = ExtResource("2_shader")
 
 ; Layer 0: above the 3D scene, below the HUD (layer 1) and the pause menu
 ; (layer 3). The interface is deliberately not graded or grained.
-[node name="PostStack" type="CanvasLayer"]
+[node name="PostStack" type="CanvasLayer" groups=["post_stack"]]
 layer = 0
 script = ExtResource("1_post")
 tuning = ExtResource("3_tuning")

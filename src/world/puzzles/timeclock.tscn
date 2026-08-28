@@ -1,0 +1,41 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://src/world/puzzles/timeclock.gd" id="1_clock"]
+[ext_resource type="Script" path="res://src/world/puzzles/wheel_bank.gd" id="2_bank"]
+[ext_resource type="Script" path="res://src/world/interactable.gd" id="3_zone"]
+[ext_resource type="Material" path="res://assets/materials/graybox_paint.tres" id="4_paint"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_case"]
+size = Vector3(0.62, 0.34, 0.14)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_reach"]
+size = Vector3(0.8, 0.5, 0.3)
+
+; C-2. A wall-mounted cam timeclock: a case, an hour drum and two cam wheels
+; behind a window. Faces +Z.
+[node name="Timeclock" type="Node3D" groups=["saveable"]]
+script = ExtResource("1_clock")
+save_key = &"timeclock"
+
+[node name="Case" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.07)
+mesh = SubResource("BoxMesh_case")
+surface_material_override/0 = ExtResource("4_paint")
+
+[node name="Wheels" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.15)
+script = ExtResource("2_bank")
+spacing = 0.2
+units_per_step = 46.0
+
+[node name="Zone" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.16)
+collision_layer = 4
+collision_mask = 0
+monitoring = false
+script = ExtResource("3_zone")
+prompt = "Set the clock"
+release_prompt = "Step back"
+
+[node name="Shape" type="CollisionShape3D" parent="Zone"]
+shape = SubResource("BoxShape3D_reach")
