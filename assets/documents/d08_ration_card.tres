@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"d08_ration_card"
+title = "Ration rotation"
+byline = "index card, pencil, taped inside the store room door"
+hand = 1
+body = "14 DAY CYCLE — ONE
+
+DAY 1   BISCUIT 3   SUPP 1   WATER 2 QT
+DAY 2   BISCUIT 3   SUPP 1   WATER 2 QT
+DAY 3   BISCUIT 3   SUPP —   WATER 2 QT
+DAY 4   BISCUIT 3   SUPP 1   WATER 2 QT
+DAY 5   BISCUIT 2   SUPP 1   WATER 2 QT
+DAY 6   BISCUIT 3   SUPP 1   WATER 2 QT
+DAY 7   BISCUIT 3   SUPP —   WATER 2 QT
+
+DAY 8   BISCUIT 3   SUPP 1   WATER 2 QT
+DAY 9   BISCUIT 3   SUPP 1   WATER 2 QT
+DAY 10  BISCUIT 3   SUPP —   WATER 2 QT
+DAY 11  BISCUIT 3   SUPP 1   WATER 2 QT
+DAY 12  BISCUIT 2   SUPP 1   WATER 2 QT
+DAY 13  BISCUIT 3   SUPP 1   WATER 2 QT
+DAY 14  BISCUIT 3   SUPP —   WATER 2 QT
+
+ROTATE FRONT TO BACK. OLDEST FORWARD.
+CARTONS 1962 STOCK STILL GOOD, TESTED.
+
+CYCLE BEGAN   02 MAR 98
+NEXT ROTATION 16 MAR 98"

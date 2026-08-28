@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"d12_work_unit_cover"
+title = "Work Unit 1615-C — cover sheet"
+byline = "DCPA form, carbon copy, FY1972"
+hand = 0
+body = "DEFENSE CIVIL PREPAREDNESS AGENCY
+RESEARCH AND ENGINEERING
+
+WORK UNIT      1615-C
+TITLE          Extended Occupancy: Sensory and
+               Temporal Factors
+PREDECESSOR    OCD Task Order 4-A, FY1964-71
+PERIOD         FY1972 through FY1977
+PERFORMING     Ridgewater Field Station
+ADMINISTERING  Dept. of Psychology, under
+               separate agreement
+PRINCIPAL      M. Ketch, Ph.D.
+
+OBJECTIVE
+
+Determine the minimum imposed environmental
+signal sufficient to maintain group temporal
+synchrony in shelter occupancy exceeding
+seven days.
+
+REPORTING
+
+Quarterly. Runs numbered consecutively from
+Task Order 4-A. Run 8 concluded FY1975.
+
+PROPERTY
+
+Instrumentation installed under 4-A remains in
+place. No provision is made in this work unit
+for its removal at termination."

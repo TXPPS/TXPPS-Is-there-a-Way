@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"d11_occupancy_notice"
+title = "Notice of suspended civil-defense use"
+byline = "typed, taped over the licensed-capacity sign at the shelter door"
+hand = 0
+body = "NOTICE
+
+Effective 01 SEP 1964 the fallout shelter
+capacity posted at this entrance is suspended
+and shall not be relied upon.
+
+This facility is assigned to Office of Civil
+Defense Task Order 4-A, Shelter Habitability
+Research Program, for the period of the task
+order and any extension thereof.
+
+Occupancy during a research run is limited to
+persons named on the current run schedule.
+
+The posted capacity of 140 persons does not
+apply and the shelter is not to be entered by
+the public under any circumstance.
+
+Queries to the Field Station office.
+
+                              M. KETCH
+                              Principal Investigator
+                              Ridgewater Field Station
+
+Please leave the original sign in place beneath
+this notice."

@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"d09a_operating_card"
+title = "Standby set — operating instructions"
+byline = "printed card, taped inside the transfer switch cabinet door"
+hand = 3
+body = "ONAN 30 KW STANDBY SET
+MANUAL TRANSFER — OPERATING SEQUENCE
+
+TO EXERCISE THE SET (MONTHLY, NO LOAD)
+
+1  OPEN DAY TANK ISOLATING VALVE
+2  SELECTOR TO TEST
+3  PRESS START. ENGINE RUNS UNLOADED.
+4  RUN 30 MINUTES MINIMUM
+5  PRESS STOP. SELECTOR TO NORMAL.
+6  CLOSE DAY TANK ISOLATING VALVE
+
+TO CARRY LOAD ON LOSS OF STATION SERVICE
+
+1  OPEN DAY TANK ISOLATING VALVE
+2  PRESS START. ALLOW TO COME UP TO SPEED.
+3  SELECTOR TO EMERGENCY
+4  CLOSE SET MAIN
+
+CAUTION
+
+THE SET WILL NOT CARRY THE STATION. SHED LOAD
+AT THE DISTRIBUTION PANEL BEFORE CLOSING THE
+SET MAIN. SEE NAMEPLATE RATINGS.
+
+IN TEST THE ENGINE RUNS BUT IS NOT CONNECTED.
+
+FORM 928-B"

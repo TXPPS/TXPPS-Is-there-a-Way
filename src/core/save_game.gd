@@ -15,7 +15,7 @@ extends RefCounted
 ## is the only real answer to that.
 
 ## Bump this and add a step to MIGRATIONS in the same commit. Never one alone.
-const VERSION := 1
+const VERSION := 2
 
 const CODE_PREFIX := "ITAW"
 const CODE_PARTS := 4
@@ -25,7 +25,7 @@ const CHECKSUM_LENGTH := 8
 ## field at all", which is what a hand-written or hand-edited code looks like
 ## and is reachable through import. Add the new number here and its arm to
 ## `_step()` in the same commit that bumps VERSION.
-const MIGRATABLE_FROM: Array[int] = [0]
+const MIGRATABLE_FROM: Array[int] = [0, 1]
 
 
 static func fresh() -> Dictionary:
@@ -35,6 +35,7 @@ static func fresh() -> Dictionary:
 		"build": BuildInfo.describe(),
 		"play_seconds": 0.0,
 		"checkpoint": "start",
+		"act": 0,
 		"nodes": {},
 	}
 
@@ -71,6 +72,8 @@ static func _step(version: int, data: Dictionary) -> Dictionary:
 	match version:
 		0:
 			return _from_0(data)
+		1:
+			return _from_1(data)
 	return data
 
 
@@ -85,6 +88,16 @@ static func _from_0(data: Dictionary) -> Dictionary:
 		out["play_seconds"] = 0.0
 	if not (out.get("nodes") is Dictionary):
 		out["nodes"] = {}
+	return out
+
+
+## v1 -> v2. Acts arrived, and which one is mounted has to be known before any
+## node state is applied -- so it sits in the header rather than in `nodes`.
+## Every v1 save was made in the only act that existed.
+static func _from_1(data: Dictionary) -> Dictionary:
+	var out := data.duplicate(true)
+	out["version"] = 2
+	out["act"] = 0
 	return out
 
 

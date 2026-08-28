@@ -363,6 +363,8 @@ had a reason to write it and a reason to leave it there.
 | `D-07` | Shelter stocking manifest, Nov 1962 | Civil defense | Statutory | What this room was built for |
 | `D-08` | Ration rotation card, current | Emil | Because rations rotate | Fourteen days. One person. Dated this month. |
 | `D-09` | Generator service card, 1994–98 | Emil | Because generators get serviced | Four years of one man's monthly discipline |
+| `D-09a` | Operating card, taped inside the transfer switch cabinet | Onan, 1962 | The manufacturer tapes the sequence inside the door | The sequence, and the warning that the set will not carry the station |
+| `D-09b` | Panel schedule, DP-2, in the shelter panel door | Corps, amended in pencil by Emil | Same reason as D-04a: the code puts it there | Every load's rating, and one pencil line saying the sump starts by itself |
 | `D-10` | Postcard, Bettendorf, 1996, unanswered | G. Pfeiffer to Emil | Pfeiffer wondered where he went | Somebody looked for him once |
 | `D-11` | Shelter occupancy notice, 1964, taped over the original | Ketch | The shelter's civil-defense use was suspended for the programme | The first mention of the programme, in bureaucratic language |
 | `D-12` | Work Unit 1615-C cover sheet | DCPA, 1972 | Contract administration | The funding line, in full, checkable |

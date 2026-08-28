@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"d07_stocking_manifest"
+title = "Community Fallout Shelter — stocking manifest"
+byline = "Office of Civil Defense form C-3, stamped 19 NOV 1962"
+hand = 0
+body = "FACILITY
+Ridgewater Lock & Dam, powerhouse sub-level
+Licensed capacity   140 persons
+Design occupancy    14 days
+
+STOCKED THIS DATE
+
+Water drums, 17.5 gal          40
+Survival biscuit, carton       98
+Carbohydrate supplement, tin   36
+Medical kit C                   2
+Sanitation kit                 14
+Radiological kit, CD V-777      1
+
+REMARKS
+
+Shelter has own well and standby generator.
+Ventilation manual, hand-cranked, sufficient
+at licensed capacity.
+
+Marked and stocked in accordance with the
+National Fallout Shelter Survey. Signs posted
+at both approaches this date.
+
+Inspected           R. LINDQVIST
+Position            County Civil Defense Director"

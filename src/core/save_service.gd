@@ -36,6 +36,11 @@ var _play_seconds := 0.0
 var _checkpoint := "start"
 var _suspend_callback: JavaScriptObject
 
+## The act mounted when the save was written. Found rather than exported so a
+## test scene without one still saves -- everything here degrades to "one act"
+## when there is no runner, which is what the game was until there were two.
+@onready var _runner: ActRunner = get_tree().get_first_node_in_group(&"act_runner")
+
 
 func _ready() -> void:
 	_install_suspend_hook()
@@ -77,6 +82,8 @@ func collect() -> Dictionary:
 	data["saved_at"] = Time.get_datetime_string_from_system(true)
 	data["play_seconds"] = _play_seconds
 	data["checkpoint"] = _checkpoint
+	if _runner != null:
+		data["act"] = _runner.current()
 	var nodes: Dictionary = data["nodes"]
 	for node in get_tree().get_nodes_in_group(GROUP):
 		var key := _key_of(node)
@@ -96,6 +103,12 @@ func apply(data: Dictionary) -> bool:
 	if migrated.is_empty():
 		_fail("That save is from a build this one does not understand.")
 		return false
+	# Before anything else: a save from another act names nodes this act does
+	# not have. Switching first means the loop below is looking at the world the
+	# save was written in.
+	if _runner != null:
+		_runner.load_act(int(migrated.get("act", 0)))
+
 	var nodes: Dictionary = migrated.get("nodes", {})
 	for node in get_tree().get_nodes_in_group(GROUP):
 		var key := _key_of(node)

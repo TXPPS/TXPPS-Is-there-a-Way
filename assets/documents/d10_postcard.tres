@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="Document" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/document.gd" id="1_doc"]
+
+[resource]
+script = ExtResource("1_doc")
+id = &"d10_postcard"
+title = "Postcard, Bettendorf"
+byline = "postmarked 11 AUG 1996 — never answered"
+hand = 1
+body = "Emil —
+
+Marge and I are settled. There is a diner on
+the corner that opens at five, which suits me
+fine as you can imagine.
+
+Nobody at the district office seems to know
+where you went. I said you would have left a
+number with somebody. They said no.
+
+Come up any weekend. The spare room is made
+up and it stays made up.
+
+                                   G. Pfeiffer
+
+11 AUG 96"

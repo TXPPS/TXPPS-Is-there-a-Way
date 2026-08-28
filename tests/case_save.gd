@@ -87,11 +87,31 @@ func _migration(
 	await tree.physics_frame
 	expect.near(player.global_position.x, 6.0, 0.01, "carrying its state with it")
 
+	# A real v1 save, in the shape the deployed build actually wrote: a header
+	# with no `act` field, because there was only one act when it was written.
+	# This is not a hypothetical -- anyone who has played the live build has one.
+	var v1 := {
+		"version": 1,
+		"saved_at": "2026-08-27T22:10:00",
+		"build": "v0.1.0 3dfb78a",
+		"play_seconds": 402.5,
+		"checkpoint": "gallery",
+		"nodes": {"player": {"at": [9.9, -3.8, 22.0], "aim": [1.5, 0.0]}},
+	}
+	var brought_forward := SaveGame.migrate(v1)
+	expect.eq(brought_forward.get("version"), SaveGame.VERSION, "a v1 save migrates forward")
+	expect.eq(brought_forward.get("act"), 0, "and lands in the act it was written in")
+	expect.eq(brought_forward.get("checkpoint"), "gallery", "keeping the checkpoint it had")
+	expect.near(float(brought_forward.get("play_seconds")), 402.5, 0.01, "and the time played")
+	expect.ok(saves.apply(v1), "and it applies")
+	await tree.physics_frame
+	expect.near(player.global_position.z, 22.0, 0.01, "putting the player back where they were")
+
 	var future := {"version": SaveGame.VERSION + 99, "nodes": {"player": {"at": [0.0, 0.0, 0.0]}}}
 	expect.ok(SaveGame.migrate(future).is_empty(), "a save from a newer build is refused")
 	expect.ok(not saves.apply(future), "and does not reach the world")
 	await tree.physics_frame
-	expect.near(player.global_position.x, 6.0, 0.01, "which is left where it was")
+	expect.near(player.global_position.z, 22.0, 0.01, "which is left where it was")
 
 
 func _degrades(tree: SceneTree, saves: SaveService, expect: RefCounted) -> void:
