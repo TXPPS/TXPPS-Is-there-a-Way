@@ -31,6 +31,7 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 	await _act_one(tree, main, player, reader, reached, expect)
 	await _act_two(tree, main, player, reader, reached, expect)
 	await _act_three(tree, main, player, reader, reached, expect)
+	await _put_it_down_and_come_back(tree, main, runner, saves, player, expect)
 	await _act_four(tree, main, player, reader, reached, expect)
 
 	expect.ok(
@@ -161,6 +162,72 @@ func _act_three(
 		await tree.process_frame
 		if not reader.is_open() and main.get_node_or_null("Powerhouse") != null:
 			break
+
+
+## The thing a real player will do that no other case does: stop in the middle,
+## close the tab, and come back.
+##
+## `case_save` proves the mechanism and `case_act3` proves an act round-trips.
+## Neither proves that a save taken three acts in, wiped to nothing, and put
+## back leaves a game you can *finish* — which is the only version of the claim
+## a player cares about. The wipe is real: `restart()` throws away every stash
+## and rebuilds from the scene files, which is as close to a cold boot as this
+## process gets.
+func _put_it_down_and_come_back(
+	tree: SceneTree, main: Node, runner: ActRunner, saves: SaveService,
+	player: Player, expect: RefCounted
+) -> void:
+	var journal: Journal = main.get_node("Journal")
+	journal.mark_read(journal.index.documents[0])
+	var read_before := journal.count()
+	var where := player.global_position
+	expect.ok(saves.save_to(SaveService.AUTO), "the game saves three acts in")
+
+	runner.restart(0)
+	journal.load_state({"read": []})
+	await tree.physics_frame
+	expect.ok(
+		main.get_node_or_null("Powerhouse") != null,
+		"and then everything is thrown away and built again from the scene files"
+	)
+	expect.ok(
+		not (main.get_node("Powerhouse/Panel/Main") as DeviceToggle).on,
+		"with an untouched building in it"
+	)
+
+	expect.ok(saves.load_from(SaveService.AUTO), "the save loads")
+	await tree.physics_frame
+	await tree.physics_frame
+
+	expect.ok(main.get_node_or_null("Powerhouse") != null, "into the act it was taken in")
+	expect.ok(
+		(main.get_node("Powerhouse/Panel/Main") as DeviceToggle).on,
+		"with Act 1 as it was left, an act and an hour ago"
+	)
+	expect.ok(
+		(main.get_node("Powerhouse/GalleryDoor") as DeviceDoor).open,
+		"and its doors where the player left them"
+	)
+	expect.near(
+		player.global_position.z, where.z, 0.4,
+		"the player back where they were standing (%.1f vs %.1f)"
+			% [player.global_position.z, where.z]
+	)
+	expect.eq(journal.count(), read_before, "and everything they had read still read")
+
+	# Act 2 and 3 are not mounted, so their state is in the save's stashes and
+	# nothing has looked at it. That it comes back is what the next act proves.
+	var stored: Dictionary = JSON.parse_string(Storage.read("save." + SaveService.AUTO))
+	var acts: Dictionary = stored.get("acts", {})
+	expect.ok(
+		acts.has("1") and not (acts["1"] as Dictionary).is_empty(),
+		"with the shelter and the annex carried in the save, unmounted (%s)" % [acts.keys()]
+	)
+	expect.ok(
+		(acts["1"] as Dictionary).has("act3"),
+		"including everything Act 3 did (%d keys)" % (acts["1"] as Dictionary).size()
+	)
+	saves.erase(SaveService.AUTO)
 
 
 func _act_four(
