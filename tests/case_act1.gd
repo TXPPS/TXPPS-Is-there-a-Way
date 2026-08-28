@@ -39,6 +39,7 @@ func run(tree: SceneTree, main: Node, expect: RefCounted) -> void:
 		seen == ["lighting", "switchgear", "gallery", "shelter-answered"],
 		"the act's checkpoints fire once each, in order (%s)" % [seen]
 	)
+	await _sounds(tree, house, player, expect)
 	await _saving(tree, saves, logic, expect)
 
 
@@ -178,6 +179,57 @@ func _the_bell(tree: SceneTree, logic: PowerhouseLogic, expect: RefCounted) -> v
 		await tree.physics_frame
 	expect.ok(logic.probe()["shelter"], "but it answers")
 	logic.admit_delay = 11.0
+
+
+## Every device makes a noise, and the stair is steel.
+##
+## Worth asserting because all three sounds were generated in P3 and nothing
+## played them for a whole phase: a file in assets/ is not a sound in the game.
+func _sounds(
+	tree: SceneTree, house: Node3D, player: Player, expect: RefCounted
+) -> void:
+	for path in ["Panel/Main", "Panel/Fuses/LT-1"]:
+		var toggle: DeviceToggle = house.get_node(path)
+		expect.ok(
+			(toggle.get_node("Sound") as AudioStreamPlayer3D).stream != null,
+			"%s snaps when it is thrown" % path
+		)
+	for path in ["Wrench", "SeizedDog", "AdmitBell"]:
+		var push: DevicePush = house.get_node(path)
+		expect.ok(
+			(push.get_node("Sound") as AudioStreamPlayer3D).stream != null,
+			"%s makes a noise when pressed" % path
+		)
+	expect.ok(
+		(house.get_node("AdmitBell/Sound") as AudioStreamPlayer3D).stream
+			!= (house.get_node("Wrench/Sound") as AudioStreamPlayer3D).stream,
+		"and the bell is not the same noise as the wrench"
+	)
+	for path in ["SwitchgearDoor", "GalleryDoor", "ShelterDoor"]:
+		expect.ok(
+			(house.get_node("%s/Sound" % path) as AudioStreamPlayer3D).stream != null,
+			"%s is heard opening" % path
+		)
+
+	# The stair rings because it is grating, which the footstep system finds
+	# through SurfaceTag rather than being told.
+	var feet: Footsteps = player.get_node("Footsteps")
+	var heard: Array = []
+	var listener := func(surface: SurfaceType, _at: Vector3, _loud: float) -> void:
+		heard.append(surface.id)
+	feet.stepped.connect(listener)
+	player.global_position = Vector3(9.9, -1.2, 4.5)
+	for frame in 8:
+		await tree.physics_frame
+	feet.advance(3.0)
+	# Not a count: teleporting the player onto the stair is itself travel, so
+	# the mover fires a step of its own. What matters is what it was standing on.
+	var all_steel := heard.size() > 0
+	for id in heard:
+		if id != &"grating":
+			all_steel = false
+	expect.ok(all_steel, "a footstep on the stair is a footstep on steel (%s)" % [heard])
+	feet.stepped.disconnect(listener)
 
 
 func _saving(

@@ -203,6 +203,20 @@ def click_breaker() -> list[float]:
     return normalise(out, 0.9)
 
 
+def bell_admit() -> list[float]:
+    """The shelter admit bell. A 1962 civil-defense fitting: a small steel gong
+    struck by a solenoid, not a chime. Inharmonic and short, and the most
+    important sound in Act 1 because somebody answers it."""
+    frames = int(RATE * 2.6)
+    out = modal(frames, RATE, [
+        (523.0, 1.9, 1.0), (1310.0, 1.1, 0.55), (2270.0, 0.6, 0.3),
+        (3480.0, 0.32, 0.16), (4980.0, 0.18, 0.08),
+    ])
+    strike = apply(noise(frames, Rng(109)), envelope(frames, RATE, 0.0004, 0.008))
+    mix(out, one_pole_high(strike, RATE, 1400.0), 0.45)
+    return normalise(out, 0.85)
+
+
 def step(seed: int, kind: str) -> list[float]:
     """A footstep. Concrete is a damped thud with grit on it; grating is the
     same impact plus a ringing plate, because that is the difference."""
@@ -238,6 +252,7 @@ SOUNDS: dict = {
     "metal_door": (metal_door, False),
     "metal_wrench": (metal_wrench, False),
     "click_breaker": (click_breaker, False),
+    "bell_admit": (bell_admit, False),
     "step_concrete_1": (lambda: step(211, "concrete"), False),
     "step_concrete_2": (lambda: step(223, "concrete"), False),
     "step_concrete_3": (lambda: step(227, "concrete"), False),

@@ -15,14 +15,20 @@ signal pushed
 @export var travel: Vector3 = Vector3(0.0, 0.0, -0.02)
 @export_range(0.05, 1.0, 0.01) var depress_seconds: float = 0.18
 
+## What it sounds like when pressed. A bell is not a wrench.
+@export var sound: AudioStream
+
 @onready var _zone: Interactable = $Zone
 @onready var _cap: Node3D = $Cap
+@onready var _sound: AudioStreamPlayer3D = $Sound
 
 var _home := Vector3.ZERO
 var _held := 0.0
 
 
 func _ready() -> void:
+	if sound != null:
+		_sound.stream = sound
 	_home = _cap.position
 	_zone.instant = true
 	_zone.prompt = prompt if label.is_empty() else "%s  (%s)" % [prompt, label]
@@ -35,6 +41,8 @@ func _on_engaged() -> void:
 	_held = depress_seconds
 	set_process(true)
 	Haptics.tap()
+	if _sound.stream != null:
+		_sound.play()
 	pushed.emit()
 
 

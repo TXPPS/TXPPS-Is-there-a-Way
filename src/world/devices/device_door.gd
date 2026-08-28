@@ -23,6 +23,8 @@ signal closed
 		_apply()
 		if was == value:
 			return
+		if is_node_ready() and _sound != null:
+			_sound.play()
 		if open:
 			opened.emit()
 		else:
@@ -36,6 +38,7 @@ signal closed
 
 @onready var _leaf: Node3D = $Leaf
 @onready var _body: StaticBody3D = $Leaf/Body
+@onready var _sound: AudioStreamPlayer3D = $Sound
 
 var _home := Vector3.ZERO
 var _at := 0.0

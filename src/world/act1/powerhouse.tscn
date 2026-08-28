@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3]
+[gd_scene load_steps=36 format=3]
 
 ; Act 1 -- the powerhouse.
 ;
@@ -39,6 +39,8 @@
 [ext_resource type="PackedScene" path="res://src/world/devices/device_push.tscn" id="24_push"]
 [ext_resource type="PackedScene" path="res://src/world/devices/device_door.tscn" id="25_door"]
 [ext_resource type="Resource" path="res://assets/documents/d07_panel_schedule.tres" id="26_sched"]
+[ext_resource type="AudioStream" path="res://assets/audio/bell_admit.wav" id="27_bell"]
+[ext_resource type="Resource" path="res://assets/surfaces/grating.tres" id="28_grating"]
 
 [sub_resource type="Resource" id="Opening_1"]
 script = ExtResource("2_open")
@@ -162,6 +164,11 @@ rise = 0.3
 tread = 0.315
 width = 1.4
 material = ExtResource("6_steel")
+
+; Steel, and it rings. The kit only frees what it built, so this stays.
+[node name="Surface" type="Node" parent="StairRun"]
+script = ExtResource("9_tag")
+surface = ExtResource("28_grating")
 
 [node name="Surface" type="Node" parent="."]
 script = ExtResource("9_tag")
@@ -428,6 +435,7 @@ prompt = "Work the last dog"
 transform = Transform3D(-1.0, 0.0, -0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0, 10.7, -2.6, 28.35)
 label = "SHELTER — RING FOR ADMITTANCE"
 prompt = "Ring for admittance"
+sound = ExtResource("27_bell")
 
 [node name="Logic" type="Node" parent="." groups=["saveable"]]
 script = ExtResource("22_logic")

@@ -415,6 +415,11 @@ dark is exactly the judgement this session cannot make: `docs/shots/` is a
 software rasteriser at 956x440 on a monitor, and the real viewing condition is a
 phone in daylight. Queued rather than tuned further.
 
-If it turns out to be unplayable, the fix is level design and not lighting: put
-the panel within the torch's reach of where the player is standing when the
-sequence fires, rather than making the torch brighter. Cost to reverse: low.
+The first half of that fix is already applied: the player now starts two and a
+half metres off the panel, facing it, which is where an auditor writing a
+condition survey would be standing when the bus drops. So the first puzzle is
+inside the light they already have, and the dark is something they walk *into*
+rather than something they start lost in. If it is still unplayable, the next
+move is more of the same -- level design, not a brighter torch.
+
+Cost to reverse: low.

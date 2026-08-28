@@ -34,6 +34,7 @@ signal toggled(on: bool)
 
 @onready var _zone: Interactable = $Zone
 @onready var _handle: Node3D = $Handle
+@onready var _sound: AudioStreamPlayer3D = $Sound
 
 var _home := Vector3.ZERO
 
@@ -56,7 +57,15 @@ func load_state(state: Dictionary) -> void:
 func _on_engaged() -> void:
 	on = not on
 	Haptics.tap()
+	play(1.0)
 	toggled.emit(on)
+
+
+## The same snap, pitched. A breaker tripping is the same mechanism letting go
+## rather than being let go of, and it sounds like it: lower, and not asked for.
+func play(pitch: float) -> void:
+	_sound.pitch_scale = pitch
+	_sound.play()
 
 
 func _apply() -> void:

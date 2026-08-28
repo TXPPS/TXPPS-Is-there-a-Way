@@ -71,6 +71,8 @@ const GROUP := &"room_geometry"
 
 var _mesh := BoxMesh.new()
 var _body: StaticBody3D
+const BUILT := &"kit_built"
+
 var _built := false
 
 
@@ -82,11 +84,15 @@ func _ready() -> void:
 func _rebuild() -> void:
 	if not _built:
 		return
+	# Only what this built. Anything placed on this node in the scene -- a
+	# surface tag, a light, a sound -- is somebody else's and stays.
 	for child in get_children():
-		child.free()
+		if child.is_in_group(BUILT):
+			child.free()
 	var body := StaticBody3D.new()
 	_body = body
 	body.name = "Shell"
+	body.add_to_group(BUILT)
 	body.collision_layer = 1
 	body.collision_mask = 0
 	add_child(body)
@@ -170,6 +176,7 @@ func _slab(body: StaticBody3D, size: Vector3, at: Vector3, material: Material) -
 	if material != null:
 		mesh.material_override = material
 	mesh.add_to_group(GROUP)
+	mesh.add_to_group(BUILT)
 	add_child(mesh)
 
 	var shape := CollisionShape3D.new()

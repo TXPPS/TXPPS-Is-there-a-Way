@@ -49,6 +49,8 @@ extends Node3D
 ## Thickness of the invisible ramp under the nosings.
 const RAMP_DEPTH := 0.4
 
+const BUILT := &"kit_built"
+
 var _built := false
 
 
@@ -69,8 +71,11 @@ func pitch_degrees() -> float:
 func _rebuild() -> void:
 	if not _built:
 		return
+	# Only what this built. Anything placed on this node in the scene -- a
+	# surface tag, a light, a sound -- is somebody else's and stays.
 	for child in get_children():
-		child.free()
+		if child.is_in_group(BUILT):
+			child.free()
 	_build_ramp()
 	for index in range(1, steps + 1):
 		if index == missing_step:
@@ -87,6 +92,7 @@ func _build_ramp() -> void:
 	var length := sqrt(drop * drop + run * run)
 	var angle := atan2(drop, run)
 	var body := StaticBody3D.new()
+	body.add_to_group(BUILT)
 	body.collision_layer = 1
 	body.collision_mask = 0
 	var shape := CollisionShape3D.new()
@@ -111,6 +117,7 @@ func _build_step(index: int) -> void:
 	mesh.mesh = box
 	if material != null:
 		mesh.material_override = material
+	mesh.add_to_group(BUILT)
 	mesh.position = Vector3(
 		0.0,
 		-rise * float(index) + rise * 0.5,

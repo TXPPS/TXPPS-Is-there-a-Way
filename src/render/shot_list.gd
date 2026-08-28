@@ -38,6 +38,8 @@ const SETTLE_FRAMES := 8
 ## The document column is there because a page is art too, and a page nobody has
 ## looked at is a page whose line breaks are wrong.
 const SHOTS: Array = [
+	# What the player is actually looking at when the game starts.
+	["00-first-frame", Vector3(-6.00, 0.00, -2.50), 0.0, 0.0],
 	["01-hall-west", Vector3(6.00, 0.00, 0.00), 80.7, 2.4],
 	["02-lamp-close", Vector3(-5.40, 0.00, -2.50), 90.0, 34.1],
 	["03-across-the-dark", Vector3(-6.00, 0.00, 4.00), -59.3, -1.5],

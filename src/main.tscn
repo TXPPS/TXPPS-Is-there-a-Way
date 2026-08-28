@@ -68,7 +68,7 @@ script = ExtResource("11_fear")
 
 [node name="Shots" type="Node" parent="."]
 script = ExtResource("12_shots")
-lit_from = 10
+lit_from = 11
 
 [node name="Journal" type="Node" parent="." groups=["saveable"]]
 script = ExtResource("16_journal")
@@ -79,10 +79,14 @@ tuning = ExtResource("14_scoretune")
 
 [node name="Powerhouse" parent="." instance=ExtResource("2_room")]
 
-; Four hours into the survey, in the generator hall, facing the switchgear end.
-; Fourteen fifty-two: the sequence has just fired and the bus has just dropped.
+; Fourteen fifty-two. Four hours into the survey, standing two and a half metres
+; off panel DP-1 with a torch on it, which is where an auditor writing a
+; condition survey would be when the bus drops -- and, not by accident, close
+; enough that the first puzzle is in the light the player already has. The
+; alternative was making the torch brighter, which would have been a lighting
+; answer to a level-design problem. See DECISIONS.md D25.
 [node name="Player" parent="." instance=ExtResource("3_player")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 4, 0.1, 3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.1, -2.5)
 
 [node name="PostStack" parent="." instance=ExtResource("10_post")]
 

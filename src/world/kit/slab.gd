@@ -23,6 +23,8 @@ extends Node3D
 		solid = value
 		_rebuild()
 
+const BUILT := &"kit_built"
+
 var _built := false
 
 
@@ -34,18 +36,23 @@ func _ready() -> void:
 func _rebuild() -> void:
 	if not _built:
 		return
+	# Only what this built. Anything placed on this node in the scene -- a
+	# surface tag, a light, a sound -- is somebody else's and stays.
 	for child in get_children():
-		child.free()
+		if child.is_in_group(BUILT):
+			child.free()
 	var mesh := MeshInstance3D.new()
 	var box := BoxMesh.new()
 	box.size = size
 	mesh.mesh = box
+	mesh.add_to_group(BUILT)
 	if material != null:
 		mesh.material_override = material
 	add_child(mesh)
 	if not solid:
 		return
 	var body := StaticBody3D.new()
+	body.add_to_group(BUILT)
 	body.collision_layer = 1
 	body.collision_mask = 0
 	var shape := CollisionShape3D.new()

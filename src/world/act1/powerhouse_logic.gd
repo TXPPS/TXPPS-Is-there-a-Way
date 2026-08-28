@@ -99,6 +99,7 @@ func _physics_process(delta: float) -> void:
 		_tripping -= delta
 		if _tripping <= 0.0:
 			_main.on = false
+			_main.play(0.72)
 			_apply_lighting()
 	if _admitting >= 0.0:
 		_admitting -= delta
@@ -120,6 +121,7 @@ func _on_fuse_changed(_on: bool) -> void:
 func _on_main_changed(on: bool) -> void:
 	if on and _fuse_in(FAULTED):
 		_tripping = TRIP_SECONDS
+		_main.play(0.72)
 		_apply_lighting()
 		return
 	_apply_lighting()
