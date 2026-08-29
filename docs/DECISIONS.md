@@ -571,3 +571,49 @@ of Act 1's scene file is all that changes, plus one opening in the gallery's
 east wall.
 
 Cost to reverse: moderate, and the same shape as D28's.
+
+## D30 — No watchdog for a dropped touch: the platform already releases it
+
+The worst failure a twin-stick layer can have on a phone is a touch that never
+ends. The OS steals the gesture — the notification shade, the app switcher, an
+incoming call — the browser never delivers `touchend`, and the stick stays at
+full deflection. The player walks into a wall until they reload.
+
+The obvious defence is a watchdog in `TouchRouter`: a claim that has not moved
+for N seconds is released. I did not add one, and the reason is worth writing
+down, because the next person to think of this will think of it as an omission.
+
+**Godot's web platform already handles it.** The engine's JS glue registers
+`touchcancel` on the canvas bound to the *same callback as `touchend`*, with
+the release argument:
+
+    GodotEventListeners.add(canvas, "touchend",    touch_cb.bind(null, 1), false);
+    GodotEventListeners.add(canvas, "touchcancel", touch_cb.bind(null, 1), false);
+
+`touchcancel` is precisely the event a browser fires when the OS takes a gesture
+away, so the case the watchdog would exist for arrives as an ordinary release
+and the router unclaims it through the path every other release uses.
+
+**Alternatives:** a timeout watchdog in the router, or a release-all on
+`NOTIFICATION_APPLICATION_FOCUS_OUT`.
+
+Both are changes to a control layer that has **never run on a real device** and
+is frozen for that reason. A watchdog is worse than redundant: any threshold
+long enough not to interrupt a player holding a stick still (which is normal —
+walking forward down a corridor moves no thumb for seconds at a time) is too
+long to rescue them from a stuck one, and the failure mode of getting it wrong
+is releasing a stick under a thumb that is still on the glass. That is a new
+bug in exchange for a fixed one, and only the new bug happens during ordinary
+play.
+
+The pause path already calls `Hud.release_touches()` before the tree stops
+delivering input, which covers the one case the platform does not: a release
+that arrives while the tree is paused and nothing is listening.
+
+If device QA finds a stuck stick anyway, this is the note to start from — the
+premise to re-check is the `touchcancel` binding above, not the router's
+bookkeeping.
+
+Cost to reverse: trivial. Adding the watchdog later is a dozen lines, and it
+should be added the moment a real device proves it is needed — and not before,
+which is the whole of rule 8.

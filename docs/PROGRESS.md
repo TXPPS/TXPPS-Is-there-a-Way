@@ -150,6 +150,25 @@ The questions that worked, roughly in order of yield:
 
 Each question is now a test, so each answer stays answered.
 
+A fifth pass, after those four, found **nothing** — and that is the useful part
+of the record, so it is here rather than omitted. It asked three questions:
+
+- **Is anything shipping that should not be?** The export's exclude filter
+  covers `tools/`, `tests/`, `docs/`, `web/` and the build directories; the
+  payload is a 2.4 MB pck beside the engine wasm. Clean.
+- **What happens to a touch the browser never ends?** The failure that would
+  make the game unplayable on a phone. It is handled a layer below this
+  project — the engine binds `touchcancel` to the same release path as
+  `touchend`. Written up as D30, because the instinct is to fix it in the
+  router and the router is frozen.
+- **Is the QA checklist ordered so a partial pass still catches the worst?**
+  It already leads with the frozen-input warning and says to stop if Controls
+  fails.
+
+Four passes found eleven defects; the fifth found none. That is the signal to
+stop auditing, not to ask a sixth question — the remaining unknowns are the ones
+that need a thumb on glass, and they are all in `NEEDS_DEVICE_QA.md`.
+
 ### What an audit for dead wiring found
 
 Late in the run, with the game finished, I swept for things that were built and
