@@ -35,7 +35,7 @@ than anything else that could be built on top of this.**
 | | |
 |---|---|
 | **Live** | <https://txpps.github.io/TXPPS-Is-there-a-Way/> |
-| **Stamp to expect** | `v0.1.0 d336056` (or later — every push deploys) |
+| **Stamp to expect** | `v0.1.0 0f1dcbd` (or later — every push deploys) |
 | **First thing to do** | `docs/NEEDS_DEVICE_QA.md`, all 121 items, in order. Section "Controls" first: if that fails, stop, because everything else stands on it. |
 | **Blocked on a human** | Everything unverifiable. Nothing is blocked on a decision. |
 | **If you only do one thing** | Play it, once, on the phone, to an ending. Every number in this file is a number I checked; not one of them is an opinion about whether it is any good. |
@@ -246,7 +246,7 @@ bench unit first, then the piers.
 | | Status |
 |---|---|
 | Build | **green.** Export, budgets (download, texture size, shipped audio), the import-settings check, a **639-check headless suite**, 55-check gameplay smoke, 28-check update-path smoke, and a thirty-five-frame walk of every space in the game that costs each frame and uploads the gallery. |
-| Last verified | `v0.1.0 d336056`, serving from GitHub Pages with every payload file answering 200 and the wasm as `application/wasm`. |
+| Last verified | `v0.1.0 0f1dcbd`, serving from GitHub Pages with every payload file answering 200 and the wasm as `application/wasm`. A recorded stamp can only ever name the commit *before* the one that records it, so if `main` is a doc-only commit or two ahead of this, that is why: those redeploy an identical game payload. CI asserts the live stamp matches `main` on every push, which is the check that does not go stale. |
 | Publish | **automatic.** Every push to `main` deploys, and so does a manual **Run workflow** on `main` — both proven, runs #15 and #16. |
 | Verified | the `verify` job fetches the live URL after every deploy and fails the build unless it serves *this* commit with every payload file answering 200 and the wasm as `application/wasm`. |
 | Cloudflare Pages | still no credentials; that job skips. Optional — it buys `web/_headers` and nothing else. See `DEPLOY.md`. |
